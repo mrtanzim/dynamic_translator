@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { clearHistory, deleteHistory, listHistory, listSaved, type HistoryEntry } from '../../storage/history'
+import { clearHistory, deleteHistory, listHistory, listSaved, updateHistory, type HistoryEntry } from '../../storage/history'
 import { btn } from '../styles'
 
 export function HistoryView({ savedOnly, onPick }: { savedOnly?: boolean; onPick: (q: string) => void }) {
@@ -14,15 +14,17 @@ export function HistoryView({ savedOnly, onPick }: { savedOnly?: boolean; onPick
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: '#AAB8C8', fontSize: 12 }}>{items.length} item(s)</span>
-        <button
-          style={btn}
-          onClick={() => {
-            if (!confirm('Clear all history?')) return
-            void clearHistory().then(refresh)
-          }}
-        >
-          Clear all
-        </button>
+        {!savedOnly && (
+          <button
+            style={btn}
+            onClick={() => {
+              if (!confirm('Clear all history?')) return
+              void clearHistory().then(refresh)
+            }}
+          >
+            Clear all
+          </button>
+        )}
       </div>
       {items.length === 0 && <div style={{ color: '#AAB8C8' }}>{savedOnly ? 'No saved words yet.' : 'No search history yet.'}</div>}
       {items.map((h) => (
@@ -39,9 +41,15 @@ export function HistoryView({ savedOnly, onPick }: { savedOnly?: boolean; onPick
             {h.id !== undefined && (
               <button
                 style={{ ...btn, marginLeft: 'auto' }}
-                onClick={() => void deleteHistory(h.id as number).then(refresh)}
+                onClick={() => {
+                  if (savedOnly) {
+                    void updateHistory(h.id as number, { saved: false }).then(refresh)
+                  } else {
+                    void deleteHistory(h.id as number).then(refresh)
+                  }
+                }}
               >
-                Delete
+                {savedOnly ? 'Unsave' : 'Delete'}
               </button>
             )}
           </div>

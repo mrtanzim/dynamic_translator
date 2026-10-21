@@ -1,15 +1,22 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { loadAppSettings, saveAppSettings, DEFAULT_APP_SETTINGS, type AppSettings } from '../../storage/app-settings'
 
 export function SettingsView() {
-  const [autoSpeak, setAutoSpeak] = useState(false)
-  const [historyLimit, setHistoryLimit] = useState(200)
-  const [theme, setTheme] = useState('glass')
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_APP_SETTINGS)
+
+  useEffect(() => { void loadAppSettings().then(setSettings) }, [])
+
+  function update(patch: Partial<AppSettings>) {
+    const next = { ...settings, ...patch }
+    setSettings(next)
+    void saveAppSettings(next)
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13 }}>
       <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>Auto-pronounce results</span>
-        <input type="checkbox" checked={autoSpeak} onChange={(e) => setAutoSpeak(e.target.checked)} />
+        <input type="checkbox" checked={settings.autoSpeak} onChange={(e) => update({ autoSpeak: e.target.checked })} />
       </label>
       <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>History limit</span>
@@ -18,20 +25,19 @@ export function SettingsView() {
           min={20}
           max={2000}
           step={20}
-          value={historyLimit}
-          onChange={(e) => setHistoryLimit(Number(e.target.value))}
+          value={settings.historyLimit}
+          onChange={(e) => update({ historyLimit: Number(e.target.value) })}
           style={{ width: 90, padding: 4, borderRadius: 6, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(16,21,29,0.6)', color: '#F3F6FA' }}
         />
       </label>
       <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>Theme</span>
         <select
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
+          value={settings.theme}
+          onChange={(e) => update({ theme: e.target.value as 'glass' })}
           style={{ padding: 4, borderRadius: 6, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(16,21,29,0.6)', color: '#F3F6FA' }}
         >
           <option value="glass">Glass (dark)</option>
-          <option value="light">Light</option>
         </select>
       </label>
       <p style={{ color: '#AAB8C8', fontSize: 12, margin: 0 }}>
