@@ -69,3 +69,12 @@ export async function listSaved(): Promise<HistoryEntry[]> {
   const all = await listHistory()
   return all.filter((h) => h.saved)
 }
+
+export async function pruneHistory(limit: number): Promise<void> {
+  if (!Number.isFinite(limit) || limit <= 0) return
+  const all = await listHistory()
+  const toDelete = all.slice(limit)
+  for (const entry of toDelete) {
+    if (entry.id !== undefined) await deleteHistory(entry.id)
+  }
+}

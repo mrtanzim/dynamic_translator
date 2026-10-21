@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { LookupCoordinator } from '../lookup/coordinator'
 import type { LookupResult, View } from '../shared/types'
 import { MENU_ITEMS } from '../shared/types'
-import { addHistory, listSaved, updateHistory, type HistoryEntry } from '../storage/history'
+import { addHistory, listSaved, updateHistory, pruneHistory, type HistoryEntry } from '../storage/history'
+import { loadAppSettings } from '../storage/app-settings'
+import { isBengali } from '../providers/offline'
 import { ProvidersView } from './views/ProvidersView'
 import { HistoryView } from './views/HistoryView'
 import { SettingsView, AboutView } from './views/SettingsView'
@@ -27,23 +29,37 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const [view, setView] = useState<View>('search')
   const [menuOpen, setMenuOpen] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [historyId, setHistoryId] = useState<number | null>(null)
   const dragging = useRef(false)
   const resizing = useRef(false)
   const start = useRef({ mx: 0, my: 0, pos: DEFAULT })
   const coordinator = useRef<LookupCoordinator | null>(null)
   const lastWord = useRef<string | null>(null)
   const lastLookup = useRef<string | null>(null)
+  // FIX B: use ref instead of state to avoid stale closure in coordinator
+  const historyIdRef = useRef<number | null>(null)
+  // FIX C-overlay: app settings refs
+  const autoSpeakRef = useRef(false)
+  const historyLimitRef = useRef(200)
+  const resultRef = useRef<LookupResult | null>(null)
 
   useEffect(() => {
     chrome.storage.local.get(STORAGE_KEY, (r) => { if (r?.[STORAGE_KEY]) setPos(clamp(r[STORAGE_KEY] as Pos)) })
   }, [])
 
+  // FIX C-overlay: load app settings on mount
+  useEffect(() => {
+    void loadAppSettings().then((s) => {
+      autoSpeakRef.current = s.autoSpeak
+      historyLimitRef.current = s.historyLimit
+    })
+  }, [])
+
+  // FIX B: persistHistory has stable [] dep array so coordinator is created once
   const persistHistory = useCallback(async (r: LookupResult) => {
     try {
       const direction = /[\u0980-\u09FF]/.test(r.word) ? 'bn->en' : 'en->bn'
-      if (historyId !== null && lastWord.current === r.word) {
-        await updateHistory(historyId, { result: r, source: r.source, timestamp: Date.now() })
+      if (historyIdRef.current !== null && lastWord.current === r.word) {
+        await updateHistory(historyIdRef.current as number, { result: r, source: r.source, timestamp: Date.now() })
         return
       }
       const id = await addHistory({
@@ -54,14 +70,16 @@ export function Overlay({ onClose }: { onClose: () => void }) {
         timestamp: Date.now(),
         saved: false,
       })
+      // FIX C-overlay: prune history after adding
+      if (historyLimitRef.current > 0) await pruneHistory(historyLimitRef.current)
       lastWord.current = r.word
-      setHistoryId(id)
+      historyIdRef.current = id
       const existing = await listSaved()
       setSaved(existing.some((h: HistoryEntry) => h.query === r.word))
     } catch {
       // History persistence is best-effort; never break the lookup flow.
     }
-  }, [historyId])
+  }, [])
 
   useEffect(() => {
     const c = new LookupCoordinator({
@@ -69,11 +87,15 @@ export function Overlay({ onClose }: { onClose: () => void }) {
         if (e.type === 'LOCAL_RESULT' || e.type === 'AI_RESULT') {
           setResult(e.result)
           setError(null)
+          // FIX C-overlay: track latest result before persisting
+          resultRef.current = e.result
           void persistHistory(e.result)
         } else if (e.type === 'LOOKUP_ERROR') {
           setError(`${e.provider}: ${e.error}`)
         } else if (e.type === 'LOOKUP_COMPLETE') {
           setLoading(false)
+          // FIX C-overlay: auto-speak on lookup complete
+          if (autoSpeakRef.current && resultRef.current) speakWord(resultRef.current.word)
         }
       },
     })
@@ -97,16 +119,17 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   useEffect(() => { chrome.storage.local.set({ [STORAGE_KEY]: pos }) }, [pos])
 
   async function toggleSave() {
-    if (historyId === null) return
-    await updateHistory(historyId, { saved: !saved })
+    // FIX B: use ref instead of state
+    if (historyIdRef.current === null) return
+    await updateHistory(historyIdRef.current, { saved: !saved })
     setSaved((s) => !s)
   }
 
-  function speak() {
-    if (!result) return
+  // FIX E: set utterance language by script (Bengali vs English)
+  function speakWord(word: string) {
     try {
-      const u = new SpeechSynthesisUtterance(result.word)
-      u.lang = 'en-US'
+      const u = new SpeechSynthesisUtterance(word)
+      u.lang = isBengali(word) ? 'bn-IN' : 'en-US'
       speechSynthesis.cancel()
       speechSynthesis.speak(u)
     } catch {
@@ -191,7 +214,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
             <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700 }}>{result.word}</div>
             {result.partOfSpeech && <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>{result.partOfSpeech}</div>}
             {result.bengaliMeaning && <div style={{ marginTop: 6 }}>{result.bengaliMeaning}</div>}
-            {result.englishDefinition && <div style={{ marginTop: 6, color: '#AAB8C8' }}>{result.englishDefinition}</div>}
+            {result.englishDefinition && <div style={{ color: '#AAB8C8', marginTop: 6 }}>{result.englishDefinition}</div>}
             {result.synonyms && result.synonyms.length > 0 && (
               <div style={{ marginTop: 6 }}>Synonyms: {result.synonyms.join(', ')}</div>
             )}
@@ -206,7 +229,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
             )}
             <div style={{ marginTop: 8, fontSize: 12, color: '#AAB8C8' }}>Source: {result.source === 'offline' ? 'Offline dictionary' : result.source}</div>
             <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-              <button onClick={speak} style={actionBtn}>🔊 Pronounce</button>
+              <button onClick={() => speakWord(result.word)} style={actionBtn}>🔊 Pronounce</button>
               <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>
             </div>
           </>
