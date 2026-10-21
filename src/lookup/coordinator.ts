@@ -150,7 +150,8 @@ export class LookupCoordinator {
           if (this.currentId !== requestId) return // stale
           // Only a strictly better result is accepted, so a late, inferior AI
           // response can never overwrite a superior offline or AI result.
-          const replace = this.best === null || this.isBetter(result, this.best)
+          const best = this.best
+          const replace = best === null || this.isBetter(result, best)
           if (replace) {
             this.best = result
             this.cache.set(normalized, result)
@@ -212,7 +213,8 @@ export class LookupCoordinator {
         exampleEn: source.ex,
       }
       // An AI result that already arrived may be better; keep the best one.
-      if (this.best === null || this.isBetter(offlineResult, this.best)) {
+      const best = this.best
+      if (best === null || this.isBetter(offlineResult, best)) {
         this.best = offlineResult
         this.emit({ type: 'LOCAL_RESULT', result: offlineResult })
       }

@@ -12,6 +12,7 @@ import { DEFAULT_MODELS, loadSettings, saveSettings } from './settings'
  * - The seed only fills empty fields; it never resets other providers.
  *
  * @returns the settings after seeding.
+ * @see src/config/env.ts — seeds only in development builds; HAS_GROQ_SEED is false in production.
  */
 export async function seedProviderSettings(): Promise<void> {
   if (!HAS_GROQ_SEED) return

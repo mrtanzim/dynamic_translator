@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-001",
+  "type": "fix",
+  "description": "Security & strict foundation. Stop embedding the Groq API key in production builds (fix A), fix the OpenRouter model slug (fix G), and enable strict TypeScript (fix F). Do this first — A and F are prerequisites for all later FEATs. G is a one-line config fix batched in. Dry-run confirms: strict:true in tsconfig.app.json produces ZERO errors in src/ — no additional code changes needed beyond the defensive coordinator narrowing.",
+  "status": "completed",
+  "steps": [
+    "FIX A — src/config/env.ts: Replace the three exported constants with a readSeed() helper that returns {key, model} only when `import.meta.env.DEV === true || import.meta.env.DEV === 'true'`, otherwise {key:'', model:''}. Export SEED_GROQ_API_KEY, SEED_GROQ_MODEL, HAS_GROQ_SEED as before but now sourced from readSeed(). Use non-optional-chaining `import.meta.env.DEV` (not `?.`) so Vite statically replaces it with `false` in production and dead-code-eliminates the VITE_GROQ_API_KEY literal. Update the SECURITY WARNING comment to: 'The key is seeded ONLY when running vite dev (local development). npm run build (production) never embeds it.' Exact replacement for the file body: `function readSeed(): { key: string; model: string } { if (import.meta.env.DEV === true || import.meta.env.DEV === 'true') { return { key: import.meta.env.VITE_GROQ_API_KEY ?? '', model: import.meta.env.VITE_GROQ_MODEL ?? '' } } return { key: '', model: '' } } const seed = readSeed(); export const SEED_GROQ_API_KEY: string = seed.key; export const SEED_GROQ_MODEL: string = seed.model; export const HAS_GROQ_SEED: boolean = SEED_GROQ_API_KEY.trim().length > 0`",
+    "FIX A — .env.example: Replace the WARNING comment block (lines starting with '# WARNING:') to state: '# NOTE: The key is seeded into chrome.storage.local ONLY when running `vite dev` (local\\n# development). Running `npm run build` (production) never embeds the key in the output bundle.'",
+    "FIX A — src/storage/seed.ts: No logic changes. Update the JSDoc on seedProviderSettings to add: '@see src/config/env.ts — seeds only in development builds; HAS_GROQ_SEED is false in production.'",
+    "FIX A — tests/seed.test.ts: Remove the top-level `vi.mock('../src/config/env', ...)` block entirely. Rewrite to use vi.stubEnv + vi.resetModules + dynamic import. Structure: (1) const store = new Map(); installChrome() helper (unchanged from current); (2) beforeEach: vi.resetModules(); vi.unstubAllEnvs(); store.clear(); installChrome(); (3) helper `async function loadModules(env: Record<string,string>)`: stubs all env vars then `const env_module = await import('../src/config/env'); const seed_module = await import('../src/storage/seed'); return { env: env_module, seed: seed_module }`. Stub DEV and VITE_GROQ_API_KEY and VITE_GROQ_MODEL before the import. (4) Keep the 4 existing rule tests BUT rewrite them to call loadModules({ DEV: 'true', VITE_GROQ_API_KEY: 'seed-key', VITE_GROQ_MODEL: 'qwen/qwen3.8-27b' }) and use the returned seed module. (5) Add: production-gate test — loadModules({ DEV: 'false', VITE_GROQ_API_KEY: 'gsk_test_leak', VITE_GROQ_MODEL: '' }) -> expect(env.HAS_GROQ_SEED).toBe(false), expect(env.SEED_GROQ_API_KEY).toBe(''), then seedProviderSettings() -> expect stored groq.apiKey toBe(''); (6) Add: dev-gate test — loadModules({ DEV: 'true', VITE_GROQ_API_KEY: 'sk_dev_key', VITE_GROQ_MODEL: 'test/model' }) -> HAS_GROQ_SEED true, SEED_GROQ_API_KEY 'sk_dev_key', seedProviderSettings() stores groq.apiKey 'sk_dev_key'.",
+    "FIX G — src/storage/settings.ts: Change 'open-ai/gpt-4o-mini' to 'openai/gpt-4o-mini' in DEFAULT_MODELS.openrouter (line: `openrouter: 'open-ai/gpt-4o-mini'`) AND in PROVIDER_MODELS.openrouter array (first element `'open-ai/gpt-4o-mini'`). Two replacements total.",
+    "FIX F — tsconfig.app.json: Add `\"strict\": true` inside compilerOptions, after `\"resolveJsonModule\": true`. A dry-run confirmed zero new errors in src/ with strict enabled. Run `npx tsc -b` to verify. If any errors appear, fix by narrowing (not @ts-ignore/any). One expected defensive fix regardless: in src/lookup/coordinator.ts, in the lookup() method's `jobs.map(async (job) => {...})` callback: `const replace = this.best === null || this.isBetter(result, this.best)` — refactor to `const best = this.best; const replace = best === null || this.isBetter(result, best)`. Same in lookupOffline: `if (this.best === null || this.isBetter(offlineResult, this.best))` -> `const best = this.best; if (best === null || this.isBetter(offlineResult, best))`."
+  ],
+  "acceptance_criteria": [
+    "npx tsc -b exits 0 with strict:true enabled in tsconfig.app.json",
+    "npm test passes — seed suite has 6 tests (4 existing rule tests + 2 new gating tests); only 3 pre-existing live-API tests skip",
+    "npm run lint exits 0",
+    "npm run build exits 0",
+    "PowerShell: Get-ChildItem -Recurse -Path dist -Filter *.js | Select-String -SimpleMatch 'gsk_' returns NO output (no leaked key in production bundle)",
+    "src/storage/settings.ts DEFAULT_MODELS.openrouter and PROVIDER_MODELS.openrouter both use 'openai/gpt-4o-mini' (no hyphen between open and ai)"
+  ],
+  "verification": [
+    "npx tsc -b",
+    "npm test",
+    "npm run lint",
+    "npm run build",
+    "Get-ChildItem -Recurse -Path dist -Filter *.js | Select-String -SimpleMatch 'gsk_'"
+  ],
+  "blocked_reason": null,
+  "findings": "1. import.meta.env.DEV === true strict comparison caused TS2367 under strict mode — used simple truthiness `if (import.meta.env.DEV)` which preserves Vite dead-code elimination in production (replaced with `if (false)`) and is stubbable in vitest via vi.stubEnv('DEV', ''). 2. vi.stubEnv('DEV', 'false') does NOT work to simulate production in vitest — per vitest docs, use '' (empty string) for falsy/production-like and '1' for truthy/dev. Production-gate test updated accordingly. 3. All 5 verification commands passed: tsc -b, npm test (41/44 + 3 skipped), lint, build, no gsk_ in dist."
+}

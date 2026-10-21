@@ -18,7 +18,7 @@ export type ProviderSettings = Record<ProviderId, ProviderConfig>
  */
 export const DEFAULT_MODELS: Record<ProviderId, string> = {
   groq: 'qwen/qwen3.8-27b',
-  openrouter: 'open-ai/gpt-4o-mini',
+  openrouter: 'openai/gpt-4o-mini',
   gemini: 'gemini-2.0-flash',
 }
 
@@ -36,7 +36,7 @@ export const PROVIDER_MODELS: Record<ProviderId, string[]> = {
     'openai/gpt-oss-20b',
     'llama-3.3-70b-versatile',
   ],
-  openrouter: ['open-ai/gpt-4o-mini', 'anthropic/claude-3.5-sonnet', 'google/gemini-2.0-flash-001'],
+  openrouter: ['openai/gpt-4o-mini', 'anthropic/claude-3.5-sonnet', 'google/gemini-2.0-flash-001'],
   gemini: ['gemini-2.0-flash', 'gemini-2.5-flash'],
 }
 
