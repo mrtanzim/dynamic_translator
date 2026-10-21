@@ -1,0 +1,7 @@
+{
+  "task_id": "task-vocabflow-bugfixes",
+  "task_description": "Fix all identified VocabFlow bugs: stop leaking the Groq API key in production builds (CRITICAL), fix the Overlay coordinator lifecycle bug (AI results dropped mid-lookup), make SettingsView/HistoryView functional and correctly persistent, fix speak() language for Bengali, enable strict TypeScript, fix OpenRouter model slug, add missing unit tests for parseAiJson/history/providers, and clean up dead code. See implementation-plan.md.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null
+}

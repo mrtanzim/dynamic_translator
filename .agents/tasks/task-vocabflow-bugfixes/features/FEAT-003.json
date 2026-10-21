@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-003",
+  "type": "fix",
+  "description": "Settings & History views functional (fixes C-ui, D). Make SettingsView load and persist settings to chrome.storage.local 'vocabflow.settings'. Remove the non-functional Light theme option. Fix HistoryView: hide Clear-all in Saved Words view; make per-item action 'Unsave' (not Delete) in Saved Words view. Depends on FEAT-002 (provides src/storage/app-settings.ts). Independent of FEAT-004.",
+  "status": "completed",
+  "steps": [
+    "FIX C-ui — src/ui/views/SettingsView.tsx: Read the current file first (it has 3 useState hooks and no persistence). Rewrite the SettingsView component: (1) Replace `import { useState } from 'react'` with `import { useEffect, useState } from 'react'`. (2) Add import: `import { loadAppSettings, saveAppSettings, DEFAULT_APP_SETTINGS, type AppSettings } from '../../storage/app-settings'`. (3) Replace the three separate useState calls with a single `const [settings, setSettings] = useState<AppSettings>(DEFAULT_APP_SETTINGS)`. (4) Add mount useEffect: `useEffect(() => { void loadAppSettings().then(setSettings) }, [])`. (5) Add update helper: `function update(patch: Partial<AppSettings>) { const next = { ...settings, ...patch }; setSettings(next); void saveAppSettings(next) }`. (6) Rewire JSX: autoSpeak checkbox onChange calls `update({ autoSpeak: e.target.checked })`; historyLimit number input onChange calls `update({ historyLimit: Number(e.target.value) })`; theme select onChange calls `update({ theme: e.target.value as 'glass' })`. (7) REMOVE `<option value=\"light\">Light</option>` — only `<option value=\"glass\">Glass (dark)</option>` remains. Keep all existing inline styles unchanged.",
+    "FIX D — src/ui/views/HistoryView.tsx: (1) Add `updateHistory` to the import from '../../storage/history': `import { clearHistory, deleteHistory, listHistory, listSaved, updateHistory, type HistoryEntry } from '../../storage/history'`. (2) Wrap the Clear-all button in a conditional so it only renders when !savedOnly: `{!savedOnly && (<button style={btn} onClick={() => { if (!confirm('Clear all history?')) return; void clearHistory().then(refresh) }}>Clear all</button>)}`. The item count span remains unconditional. (3) Replace the per-item Delete button with a conditional that checks savedOnly: `{h.id !== undefined && (<button style={{ ...btn, marginLeft: 'auto' }} onClick={() => { if (savedOnly) { void updateHistory(h.id as number, { saved: false }).then(refresh) } else { void deleteHistory(h.id as number).then(refresh) } }}>{savedOnly ? 'Unsave' : 'Delete'}</button>)}`"
+  ],
+  "acceptance_criteria": [
+    "SettingsView loads persisted settings on mount from chrome.storage.local 'vocabflow.settings'",
+    "SettingsView saves on every change (autoSpeak, historyLimit, theme) via saveAppSettings",
+    "SettingsView only shows Glass (dark) theme option — Light option is gone",
+    "In Saved Words view (savedOnly=true): Clear all button is NOT rendered",
+    "In Saved Words view: per-item button is labeled 'Unsave' and calls updateHistory with {saved:false}",
+    "In History view (savedOnly=false): Clear all button IS rendered; per-item button is 'Delete' and calls deleteHistory",
+    "npx tsc -b exits 0; npm run lint exits 0; npm run build exits 0; npm test still passes"
+  ],
+  "verification": [
+    "npx tsc -b",
+    "npm run lint",
+    "npm run build",
+    "npm test"
+  ],
+  "blocked_reason": null,
+  "findings": "All changes implemented cleanly. updateHistory was already exported from history.ts so the import just needed adding. tsc -b, lint, build, and all 42 tests pass (3 live-API tests skipped as expected)."
+}
