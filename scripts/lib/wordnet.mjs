@@ -60,8 +60,8 @@ function parseDataFiles(dictDir) {
       const pointerCount = Number.parseInt(tokens[cursor], 10)
       if (!Number.isFinite(pointerCount)) continue
       for (let i = 0; i < pointerCount; i += 1) {
-        const symbol = tokens[cursor + 1 + i * 2]
-        const target = tokens[cursor + 2 + i * 2]
+        const symbol = tokens[cursor + 1 + i * 4]
+        const target = tokens[cursor + 2 + i * 4]
         if (symbol === '!' && target) {
           if (!antonymTargets.has(key)) antonymTargets.set(key, [])
           antonymTargets.get(key).push({ pos, offset: target })

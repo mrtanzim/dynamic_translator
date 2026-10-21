@@ -3,6 +3,7 @@ import {
   LOOKUP_MESSAGE,
   OFFLINE_LOOKUP_MESSAGE,
   SEED_MESSAGE,
+  TOGGLE_MESSAGE,
   runListModels,
   runProviderLookup,
   type AiLookupRequest,
@@ -45,7 +46,7 @@ chrome.runtime.onMessage.addListener((msg: { type?: string }, _sender, sendRespo
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return
   try {
-    await chrome.tabs.sendMessage(tab.id, { type: 'VOCABFLOW_TOGGLE' })
+    await chrome.tabs.sendMessage(tab.id, { type: TOGGLE_MESSAGE })
   } catch {
     // Content script may not be ready yet; the page will reload and
     // content_scripts (declared in manifest) will inject it automatically.

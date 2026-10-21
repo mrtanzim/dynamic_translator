@@ -1,9 +1,10 @@
+import { TOGGLE_MESSAGE } from '../providers/bridge'
 import { mountOverlay } from '../ui/mount'
 
 let unmount: (() => void) | null = null
 
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type !== 'VOCABFLOW_TOGGLE') return
+  if (msg?.type !== TOGGLE_MESSAGE) return
   if (unmount) { unmount(); unmount = null; return }
   const host = document.createElement('div')
   host.id = 'vocabflow-host'

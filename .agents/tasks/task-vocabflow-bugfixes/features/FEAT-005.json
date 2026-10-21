@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-005",
+  "type": "chore",
+  "description": "Cleanup (fix I). Centralize VOCABFLOW_TOGGLE constant, remove dead Vite scaffolding, and fix the WordNet pointer parser stepping bug. CONDITIONAL: only execute if FEATs 001-004 are complete and all 4 verification commands pass (npm test, npx tsc -b, npm run lint, npm run build). If any prior FEAT is broken, skip this FEAT and record in findings.",
+  "status": "completed",
+  "steps": [
+    "GATE — Run `npm test` and `npx tsc -b` and `npm run lint` and `npm run build`. If any fails, set status to blocked (blocked_reason: retryable=false, detail: 'Prior FEATs not fully green') and do NOT proceed with the steps below.",
+    "FIX I1 — src/providers/bridge.ts: Add `export const TOGGLE_MESSAGE = 'VOCABFLOW_TOGGLE'` after the existing SEED_MESSAGE export line. In src/background/service-worker.ts: import TOGGLE_MESSAGE from '../providers/bridge' (add to the existing import block from that file); replace the literal `{ type: 'VOCABFLOW_TOGGLE' }` in the chrome.tabs.sendMessage call with `{ type: TOGGLE_MESSAGE }`. In src/content/content-entry.ts: add `import { TOGGLE_MESSAGE } from '../providers/bridge'` at the top; replace `msg?.type !== 'VOCABFLOW_TOGGLE'` with `msg?.type !== TOGGLE_MESSAGE`.",
+    "FIX I2 — Remove dead Vite scaffolding. Files to delete: index.html, src/main.tsx, src/App.tsx, src/App.css, src/index.css, src/assets/ (directory). After deletion run `npm run build` — if build fails (unlikely since CRXJS builds from manifest.json, not index.html), restore these files and record in findings. If build passes, also run `npx tsc -b` to confirm no dangling references.",
+    "FIX I3 — scripts/lib/wordnet.mjs pointer parser. Read the parseDataFiles function. The current loop: `const symbol = tokens[cursor + 1 + i * 2]; const target = tokens[cursor + 2 + i * 2]`. WordNet 3.0 pointer entries are 4 fields each: [symbol, offset, pos, source/target]. So each step is 4 tokens, not 2. Change to: `const symbol = tokens[cursor + 1 + i * 4]; const target = tokens[cursor + 2 + i * 4]`. After changing, run `npm run build:dictionary` to regenerate src/dictionary/generated.json and public/dictionary.json.gz. Then run `npm test` — tests/offline.test.ts imports generated.json and asserts size thresholds (>= 50 entries). If antonym or entry counts change and tests fail, update the threshold assertions in tests/offline.test.ts to match the new counts (still using >= to avoid brittleness). Record the before/after antonym count in findings."
+  ],
+  "acceptance_criteria": [
+    "TOGGLE_MESSAGE is exported from src/providers/bridge.ts and used (not the literal string) in both service-worker.ts and content-entry.ts",
+    "Dead Vite scaffolding files (index.html, src/main.tsx, src/App.tsx, src/App.css, src/index.css, src/assets/) are deleted AND npm run build still exits 0",
+    "scripts/lib/wordnet.mjs pointer loop uses i * 4 stepping; npm run build:dictionary regenerates the dictionary; npm test passes",
+    "All 4 verification commands pass: npm test, npx tsc -b, npm run lint, npm run build"
+  ],
+  "verification": [
+    "npx tsc -b",
+    "npm test",
+    "npm run lint",
+    "npm run build",
+    "Get-ChildItem -Recurse -Path dist -Filter *.js | Select-String -SimpleMatch 'gsk_'"
+  ],
+  "blocked_reason": null,
+  "findings": "I1: TOGGLE_MESSAGE constant added to src/providers/bridge.ts; service-worker.ts and content-entry.ts updated to use the constant instead of the literal string 'VOCABFLOW_TOGGLE'. I2: Deleted index.html, src/main.tsx, src/App.tsx, src/App.css, src/index.css, src/assets/ — build continues to pass (CRXJS builds from manifest.json). I3: WordNet pointer loop fixed from i*2 to i*4 stepping; antonym count before: 739, after: 886 (147 more entries now correctly resolved). All 5 verification commands passed (tsc -b, npm test, npm run lint, npm run build, no gsk_ in dist)."
+}
