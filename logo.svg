@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#65CFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4A90E2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="110" fill="#0F172A" />
+  
+  <!-- Speech bubble -->
+  <path d="M180 220c-30 0-55 25-55 55v80c0 30 25 55 55 55h152c30 0 55-25 55-55v-80c0-30-25-55-55-55z" fill="#1E293B" stroke="#334155" stroke-width="4" />
+  <path d="M180 355c-15 0-28-13-28-28s13-28 28-28h28v28z" fill="url(#grad)" />
+  
+  <!-- Flow lines -->
+  <path d="M220 260c0 20 40 20 40 0" fill="none" stroke="url(#grad)" stroke-width="12" stroke-linecap="round" />
+  <path d="M260 260c0 20 40 20 40 0" fill="none" stroke="#4A90E2" stroke-width="12" stroke-linecap="round" opacity="0.7" />
+  <path d="M300 260c0 20 40 20 40 0" fill="none" stroke="url(#grad)" stroke-width="12" stroke-linecap="round" opacity="0.5" />
+  
+  <!-- Bengali character "ভ" (bha) -->
+  <text x="256" y="300" font-family="sans-serif" font-size="64" font-weight="bold" fill="url(#grad)" text-anchor="middle">ভ</text>
+  
+  <!-- English "V" -->
+  <text x="256" y="400" font-family="sans-serif" font-size="96" font-weight="bold" fill="#FFFFFF" text-anchor="middle" letter-spacing="-8">V</text>
+</svg>

@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "VocabFlow",
+  "version": "0.1.0",
+  "description": "Floating bilingual vocabulary companion for Bengali-native English learners.",
+  "action": { "default_title": "VocabFlow" },
+  "background": { "service_worker": "src/background/service-worker.ts", "type": "module" },
+  "content_scripts": [
+    { "matches": ["<all_urls>"], "js": ["src/content/content-entry.ts"], "run_at": "document_idle" }
+  ],
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://api.groq.com/*", "https://openrouter.ai/*", "https://generativelanguage.googleapis.com/*"]
+}

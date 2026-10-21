@@ -1,0 +1,245 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { LookupCoordinator } from '../lookup/coordinator'
+import type { LookupResult, View } from '../shared/types'
+import { MENU_ITEMS } from '../shared/types'
+import { addHistory, listSaved, updateHistory, type HistoryEntry } from '../storage/history'
+import { ProvidersView } from './views/ProvidersView'
+import { HistoryView } from './views/HistoryView'
+import { SettingsView, AboutView } from './views/SettingsView'
+
+const STORAGE_KEY = 'vocabflow.overlay'
+type Pos = { x: number; y: number; w: number; h: number }
+const DEFAULT: Pos = { x: window.innerWidth - 400, y: 80, w: 380, h: 520 }
+function clamp(p: Pos): Pos {
+  const w = Math.min(Math.max(p.w, 300), window.innerWidth - 20)
+  const h = Math.min(Math.max(p.h, 260), window.innerHeight - 20)
+  const x = Math.min(Math.max(p.x, 0), window.innerWidth - w)
+  const y = Math.min(Math.max(p.y, 0), window.innerHeight - h)
+  return { x, y, w, h }
+}
+
+export function Overlay({ onClose }: { onClose: () => void }) {
+  const [pos, setPos] = useState<Pos>(DEFAULT)
+  const [query, setQuery] = useState('')
+  const [result, setResult] = useState<LookupResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [view, setView] = useState<View>('search')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [historyId, setHistoryId] = useState<number | null>(null)
+  const dragging = useRef(false)
+  const resizing = useRef(false)
+  const start = useRef({ mx: 0, my: 0, pos: DEFAULT })
+  const coordinator = useRef<LookupCoordinator | null>(null)
+  const lastWord = useRef<string | null>(null)
+  const lastLookup = useRef<string | null>(null)
+
+  useEffect(() => {
+    chrome.storage.local.get(STORAGE_KEY, (r) => { if (r?.[STORAGE_KEY]) setPos(clamp(r[STORAGE_KEY] as Pos)) })
+  }, [])
+
+  const persistHistory = useCallback(async (r: LookupResult) => {
+    try {
+      const direction = /[\u0980-\u09FF]/.test(r.word) ? 'bn->en' : 'en->bn'
+      if (historyId !== null && lastWord.current === r.word) {
+        await updateHistory(historyId, { result: r, source: r.source, timestamp: Date.now() })
+        return
+      }
+      const id = await addHistory({
+        query: r.word,
+        direction,
+        result: r,
+        source: r.source,
+        timestamp: Date.now(),
+        saved: false,
+      })
+      lastWord.current = r.word
+      setHistoryId(id)
+      const existing = await listSaved()
+      setSaved(existing.some((h: HistoryEntry) => h.query === r.word))
+    } catch {
+      // History persistence is best-effort; never break the lookup flow.
+    }
+  }, [historyId])
+
+  useEffect(() => {
+    const c = new LookupCoordinator({
+      onEvent: (e) => {
+        if (e.type === 'LOCAL_RESULT' || e.type === 'AI_RESULT') {
+          setResult(e.result)
+          setError(null)
+          void persistHistory(e.result)
+        } else if (e.type === 'LOOKUP_ERROR') {
+          setError(`${e.provider}: ${e.error}`)
+        } else if (e.type === 'LOOKUP_COMPLETE') {
+          setLoading(false)
+        }
+      },
+    })
+    coordinator.current = c
+    return () => c.cancel()
+  }, [persistHistory])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (!query.trim()) { setResult(null); setLoading(false); return }
+      // Skip if this exact query was already looked up (e.g. via Enter).
+      if (lastLookup.current === query.trim()) return
+      lastLookup.current = query.trim()
+      setLoading(true)
+      setError(null)
+      void coordinator.current?.lookup(query)
+    }, 400)
+    return () => clearTimeout(t)
+  }, [query])
+
+  useEffect(() => { chrome.storage.local.set({ [STORAGE_KEY]: pos }) }, [pos])
+
+  async function toggleSave() {
+    if (historyId === null) return
+    await updateHistory(historyId, { saved: !saved })
+    setSaved((s) => !s)
+  }
+
+  function speak() {
+    if (!result) return
+    try {
+      const u = new SpeechSynthesisUtterance(result.word)
+      u.lang = 'en-US'
+      speechSynthesis.cancel()
+      speechSynthesis.speak(u)
+    } catch {
+      // Speech is optional.
+    }
+  }
+
+  const doSearch = (q: string) => {
+    const trimmed = q.trim()
+    if (!trimmed) return
+    lastLookup.current = trimmed
+    setLoading(true)
+    setError(null)
+    void coordinator.current?.lookup(trimmed)
+  }
+
+  const onHeaderDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button,input')) return
+    dragging.current = true
+    start.current = { mx: e.clientX, my: e.clientY, pos }
+    const move = (ev: MouseEvent) => {
+      if (!dragging.current) return
+      const dx = ev.clientX - start.current.mx
+      const dy = ev.clientY - start.current.my
+      setPos(clamp({ ...start.current.pos, x: start.current.pos.x + dx, y: start.current.pos.y + dy }))
+    }
+    const up = () => { dragging.current = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
+    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up)
+  }
+  const onResizeDown = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    resizing.current = true
+    start.current = { mx: e.clientX, my: e.clientY, pos }
+    const move = (ev: MouseEvent) => {
+      if (!resizing.current) return
+      const dw = ev.clientX - start.current.mx
+      const dh = ev.clientY - start.current.my
+      setPos(clamp({ ...start.current.pos, w: start.current.pos.w + dw, h: start.current.pos.h + dh }))
+    }
+    const up = () => { resizing.current = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
+    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up)
+  }
+
+  const headerBtn: React.CSSProperties = { background: 'transparent', color: '#AAB8C8', border: 'none', cursor: 'pointer', fontSize: 16, padding: '0 6px' }
+  const actionBtn: React.CSSProperties = { padding: '5px 10px', borderRadius: 8, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(101,207,255,0.12)', color: '#F3F6FA', cursor: 'pointer', fontSize: 12 }
+
+  return (
+    <div style={{ position: 'fixed', left: pos.x, top: pos.y, width: pos.w, height: pos.h, background: 'rgba(30,41,54,0.82)', backdropFilter: 'blur(12px)', border: '1px solid rgba(148,163,184,0.28)', borderRadius: 16, color: '#F3F6FA', zIndex: 2147483647, display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
+      <div onMouseDown={onHeaderDown} style={{ padding: 12, cursor: 'move', borderBottom: '1px solid rgba(148,163,184,0.28)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+        <span style={{ color: '#65CFFF', fontWeight: 600 }}>VocabFlow</span>
+        <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <button style={headerBtn} title="Menu" onClick={() => setMenuOpen((o) => !o)}>⋯</button>
+          <button style={headerBtn} title="Close" onClick={onClose}>×</button>
+        </span>
+        {menuOpen && (
+          <div style={{ position: 'absolute', top: 42, right: 8, background: 'rgba(16,21,29,0.96)', border: '1px solid rgba(148,163,184,0.28)', borderRadius: 10, padding: 6, minWidth: 180, zIndex: 10, cursor: 'default' }}>
+            {MENU_ITEMS.map((m) => (
+              <div
+                key={m.view}
+                onClick={() => { setView(m.view); setMenuOpen(false) }}
+                style={{ padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101,207,255,0.14)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+              >
+                {m.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {view === 'search' && (
+        <>
+          <div style={{ padding: 12 }}>
+            <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') doSearch(query) }} placeholder="Search any word" style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(16,21,29,0.6)', color: '#F3F6FA' }} />
+          </div>
+      <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
+        {loading && <div style={{ color: '#AAB8C8', fontSize: 12, marginBottom: 8 }}>Searching…</div>}
+        {error && <div style={{ color: '#E58A8A', fontSize: 12, marginBottom: 8 }}>{error}</div>}
+        {!result && !loading && !error && <div style={{ color: '#AAB8C8' }}>Search any word to begin.</div>}
+        {result && (
+          <>
+            <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700 }}>{result.word}</div>
+            {result.partOfSpeech && <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>{result.partOfSpeech}</div>}
+            {result.bengaliMeaning && <div style={{ marginTop: 6 }}>{result.bengaliMeaning}</div>}
+            {result.englishDefinition && <div style={{ marginTop: 6, color: '#AAB8C8' }}>{result.englishDefinition}</div>}
+            {result.synonyms && result.synonyms.length > 0 && (
+              <div style={{ marginTop: 6 }}>Synonyms: {result.synonyms.join(', ')}</div>
+            )}
+            {result.antonyms && result.antonyms.length > 0 && (
+              <div style={{ marginTop: 6 }}>Antonyms: {result.antonyms.join(', ')}</div>
+            )}
+            {result.exampleEn && (
+              <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: 'rgba(16,21,29,0.55)', fontStyle: 'italic' }}>
+                {result.exampleEn}
+                {result.exampleBn && <div style={{ marginTop: 4, fontStyle: 'normal' }}>{result.exampleBn}</div>}
+              </div>
+            )}
+            <div style={{ marginTop: 8, fontSize: 12, color: '#AAB8C8' }}>Source: {result.source === 'offline' ? 'Offline dictionary' : result.source}</div>
+            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+              <button onClick={speak} style={actionBtn}>🔊 Pronounce</button>
+              <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>
+            </div>
+          </>
+        )}
+      </div>
+        </>
+      )}
+      {view === 'providers' && (
+        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
+          <ProvidersView />
+        </div>
+      )}
+      {view === 'history' && (
+        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
+          <HistoryView onPick={(q) => { setQuery(q); setView('search'); doSearch(q) }} />
+        </div>
+      )}
+      {view === 'saved' && (
+        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
+          <HistoryView savedOnly onPick={(q) => { setQuery(q); setView('search'); doSearch(q) }} />
+        </div>
+      )}
+      {view === 'settings' && (
+        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
+          <SettingsView />
+        </div>
+      )}
+      {view === 'about' && (
+        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
+          <AboutView />
+        </div>
+      )}
+      <div onMouseDown={onResizeDown} style={{ position: 'absolute', right: 4, bottom: 4, width: 16, height: 16, cursor: 'se-resize', background: 'rgba(101,207,255,0.4)', borderRadius: 4 }} />
+    </div>
+  )
+}
