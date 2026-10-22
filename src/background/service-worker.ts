@@ -3,6 +3,7 @@ import {
   LOOKUP_MESSAGE,
   OFFLINE_LOOKUP_MESSAGE,
   SEED_MESSAGE,
+  SUGGEST_MESSAGE,
   TOGGLE_MESSAGE,
   runListModels,
   runProviderLookup,
@@ -11,6 +12,8 @@ import {
   type ListModelsResponse,
   type OfflineLookupRequest,
   type OfflineLookupResponse,
+  type SuggestRequest,
+  type SuggestResponse,
 } from '../providers/bridge'
 import { loadOfflineDictionary } from '../providers/offline/loader'
 import { seedProviderSettings } from '../storage/seed'
@@ -91,6 +94,18 @@ chrome.runtime.onMessage.addListener(
   },
 )
 
+// The type-ahead suggestions come from the same dictionary, so they are
+// resolved here as well: the content script never sees the dataset.
+chrome.runtime.onMessage.addListener(
+  (msg: SuggestRequest, _sender, sendResponse: (r: SuggestResponse) => void) => {
+    if (msg?.type !== SUGGEST_MESSAGE) return false
+    handleSuggest(msg).then(sendResponse, (err: unknown) =>
+      sendResponse({ ok: false, error: err instanceof Error ? err.message : String(err) }),
+    )
+    return true // async response
+  },
+)
+
 // Listing the available models is also proxied through the service worker,
 // for the same CORS/CSP reason as the lookup itself.
 chrome.runtime.onMessage.addListener(
@@ -116,5 +131,11 @@ async function handleOfflineLookup(
   }
   const entry = dictionary.lookup(msg.query)
   return { ok: true, result: entry ? { ...entry } : null }
+}
+
+/** Suggests the dictionary words that match a partially typed query. */
+async function handleSuggest(msg: SuggestRequest): Promise<SuggestResponse> {
+  const dictionary = await loadOfflineDictionary()
+  return { ok: true, suggestions: dictionary.suggest(msg.query, msg.limit ?? 8) }
 }
 

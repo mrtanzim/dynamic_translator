@@ -109,6 +109,90 @@ export function normalizeBengali(q: string): string {
 }
 
 
+/** A word the user can pick from the type-ahead list. */
+export interface Suggestion {
+  /** The word to show and to look up. */
+  word: string
+  /** The English headword the word resolves to. */
+  headword: string
+  /** Whether the word is written in Bengali. */
+  bengali: boolean
+  /** A short hint: the Bengali meaning of an English word, the headword of a Bengali one. */
+  hint: string
+}
+
+/**
+ * The edit distance between two words, with transpositions allowed.
+ *
+ * `max` is an upper bound: the function returns `max + 1` as soon as the
+ * distance is known to be larger, so scanning the whole dictionary stays
+ * cheap.
+ */
+function editDistance(a: string, b: string, max: number): number {
+  const n = a.length
+  const m = b.length
+  if (Math.abs(n - m) > max) return max + 1
+  if (n === 0) return m <= max ? m : max + 1
+  if (m === 0) return n <= max ? n : max + 1
+
+  let prev2: number[] = []
+  let prev: number[] = Array.from({ length: m + 1 }, (_, j) => j)
+  let cur: number[] = []
+
+  for (let i = 1; i <= n; i++) {
+    cur = new Array<number>(m + 1)
+    cur[0] = i
+    let rowMin = i
+    for (let j = 1; j <= m; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1
+      let value = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+      // A transposition ("teh" -> "the") counts as a single edit.
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        value = Math.min(value, prev2[j - 2] + 1)
+      }
+      cur[j] = value
+      if (value < rowMin) rowMin = value
+    }
+    if (rowMin > max) return max + 1
+    prev2 = prev
+    prev = cur
+  }
+  return prev[m] <= max ? prev[m] : max + 1
+}
+
+/**
+ * Whether every character of `needle` appears in `haystack`, in order.
+ *
+ * This catches the typos an edit distance forgives: "cmbr" is a subsequence
+ * of "cumber" even though three characters are missing.
+ */
+function isSubsequence(needle: string, haystack: string): boolean {
+  let i = 0
+  for (let j = 0; j < haystack.length && i < needle.length; j++) {
+    if (haystack[j] === needle[i]) i++
+  }
+  return i === needle.length
+}
+
+/** Index of the first entry that is not smaller than `prefix`. */
+function lowerBound(words: string[], prefix: string): number {
+  let lo = 0
+  let hi = words.length
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (words[mid] < prefix) lo = mid + 1
+    else hi = mid
+  }
+  return lo
+}
+
+/** The score bands of the type-ahead ranking; lower is better. */
+const SCORE_EXACT = 0
+const SCORE_RELATION = 500
+const SCORE_PREFIX = 1000
+const SCORE_FUZZY = 2000
+const SCORE_SUBSEQUENCE = 3000
+
 /**
  * An indexed, read-only view over the offline dictionary.
  *
@@ -117,8 +201,16 @@ export function normalizeBengali(q: string): string {
  */
 export class OfflineDictionary {
   private readonly byHeadword = new Map<string, DictionaryEntry>()
+  /** The entries keyed by their normalized headword, used by the type-ahead. */
+  private readonly byNormalized = new Map<string, DictionaryEntry>()
   private readonly byRelation = new Map<string, string>()
   private readonly byBengali = new Map<string, string[]>()
+  /** The normalized English headwords, sorted, for the prefix search. */
+  private readonly englishWords: string[] = []
+  /** The normalized single-token Bengali words, sorted, for the prefix search. */
+  private readonly bengaliWords: string[] = []
+  /** The English headword a normalized Bengali word resolves to. */
+  private readonly bengaliHeadword = new Map<string, string>()
 
   constructor(dataset: DictionaryDataset) {
     if (dataset.v !== DATASET_VERSION) {
@@ -130,6 +222,8 @@ export class OfflineDictionary {
         throw new Error(`Dictionary dataset column "${key}" has the wrong length`)
       }
     }
+
+    const bengali = new Set<string>()
 
     for (let i = 0; i < n; i++) {
       const entry: DictionaryEntry = {
@@ -143,6 +237,9 @@ export class OfflineDictionary {
         ex: dataset.ex[i],
       }
       this.byHeadword.set(entry.headword, entry)
+      const normalized = normalize(entry.headword)
+      this.byNormalized.set(normalized, entry)
+      this.englishWords.push(normalized)
 
       // A relation may belong to several headwords; the first one wins, which
       // keeps the result deterministic because the dataset is sorted.
@@ -152,7 +249,21 @@ export class OfflineDictionary {
 
       this.addBengali(entry.bn, entry.headword)
       for (const alt of entry.bnAlts) this.addBengali(alt, entry.headword)
+
+      // Only single words are useful as type-ahead suggestions: a multi-word
+      // meaning ("দক্ষিণ আফ্রিকার জন্তুবিশেষ") is a description, not a word.
+      for (const candidate of [entry.bn, ...entry.bnAlts]) {
+        const word = candidate.trim()
+        if (!word || /\s/.test(word)) continue
+        const key = normalizeBengali(word)
+        if (!key || this.bengaliHeadword.has(key)) continue
+        this.bengaliHeadword.set(key, entry.headword)
+        bengali.add(key)
+      }
     }
+
+    this.englishWords.sort()
+    this.bengaliWords = [...bengali].sort()
   }
 
   private addBengali(bengali: string, headword: string): void {
@@ -216,5 +327,106 @@ export class OfflineDictionary {
     const n = normalizeBengali(q)
     if (!n) return []
     return this.byBengali.get(n) ?? []
+  }
+
+  /** The words in `words` that start with `prefix` (at most `cap` of them). */
+  private prefixRange(words: string[], prefix: string, cap: number): string[] {
+    const out: string[] = []
+    let i = lowerBound(words, prefix)
+    while (i < words.length && words[i].startsWith(prefix) && out.length < cap) {
+      out.push(words[i])
+      i++
+    }
+    return out
+  }
+
+  /** Builds the type-ahead suggestion for an English word. */
+  private englishSuggestion(word: string): Suggestion | null {
+    const entry = this.byNormalized.get(word)
+    if (!entry) return null
+    return {
+      word: entry.headword,
+      headword: entry.headword,
+      bengali: false,
+      hint: entry.bn,
+    }
+  }
+
+  /** Builds the type-ahead suggestion for a Bengali word. */
+  private bengaliSuggestion(word: string): Suggestion | null {
+    const headword = this.bengaliHeadword.get(word)
+    if (!headword) return null
+    return {
+      word,
+      headword,
+      bengali: true,
+      hint: headword,
+    }
+  }
+
+  /**
+   * Suggests the dictionary words that match a partially typed query.
+   *
+   * The ranking is forgiving on purpose: a learner who cannot spell the word
+   * yet still has to find it.
+   *
+   *   1. an exact dictionary word,
+   *   2. a synonym or antonym whose headword is shown instead,
+   *   3. every word that starts with the query (the common case: "cucu"
+   *      offers "cucumber"),
+   *   4. words within a small edit distance of the query, so a typo
+   *      ("cucnber") still finds the word,
+   *   5. words that contain the query's letters in order ("cmbr").
+   *
+   * @param query  the partially typed word
+   * @param limit  the maximum number of suggestions
+   */
+  suggest(query: string, limit = 8): Suggestion[] {
+    const q = normalize(query)
+    if (!q || limit <= 0) return []
+
+    const scored: Array<{ suggestion: Suggestion; score: number }> = []
+    const push = (suggestion: Suggestion | null, score: number) => {
+      if (!suggestion) return
+      if (scored.some((s) => s.suggestion.word === suggestion.word)) return
+      scored.push({ suggestion, score })
+    }
+
+    // 1. The exact word.
+    push(this.englishSuggestion(q), SCORE_EXACT)
+
+    // 2. A relation (synonym or antonym) resolves to its headword.
+    const relation = this.byRelation.get(q)
+    if (relation) push(this.englishSuggestion(normalize(relation)), SCORE_RELATION)
+
+    // 3. Prefix matches. The scan is capped so that a one-letter query does
+    //    not walk through the whole dictionary.
+    for (const word of this.prefixRange(this.englishWords, q, 200)) {
+      push(this.englishSuggestion(word), SCORE_PREFIX + word.length)
+    }
+    for (const word of this.prefixRange(this.bengaliWords, q, 200)) {
+      push(this.bengaliSuggestion(word), SCORE_PREFIX + word.length)
+    }
+
+    if (scored.length < limit) {
+      // 4. and 5. Fuzzy matches, so a misspelled word still finds its entry.
+      const maxDistance = q.length <= 3 ? 0 : q.length <= 5 ? 1 : 2
+      if (maxDistance > 0) {
+        for (const word of this.englishWords) {
+          if (Math.abs(word.length - q.length) > maxDistance) continue
+          const distance = editDistance(q, word, maxDistance)
+          if (distance <= maxDistance) {
+            push(this.englishSuggestion(word), SCORE_FUZZY + distance * 100 + word.length)
+          } else if (word.length >= q.length && isSubsequence(q, word)) {
+            push(this.englishSuggestion(word), SCORE_SUBSEQUENCE + word.length)
+          }
+        }
+      }
+    }
+
+    return scored
+      .sort((a, b) => a.score - b.score || a.suggestion.word.localeCompare(b.suggestion.word))
+      .slice(0, limit)
+      .map((s) => s.suggestion)
   }
 }

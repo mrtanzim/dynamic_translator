@@ -1,5 +1,24 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { TOGGLE_MESSAGE } from '../src/providers/bridge'
+import { SUGGEST_MESSAGE, TOGGLE_MESSAGE } from '../src/providers/bridge'
+
+/** The suggestions the mocked dictionary returns. */
+const SUGGESTIONS = [
+  { word: 'cucumber', headword: 'cucumber', bengali: false, hint: 'কুকুম্বার' },
+]
+
+vi.mock('../src/providers/offline/loader', () => ({
+  DATASET_PATH: 'dictionary.json.gz',
+  loadOfflineDictionary: vi.fn(async () => ({
+    suggest: (_query: string, limit: number) => SUGGESTIONS.slice(0, limit),
+  })),
+}))
+
+/** A message listener as the service worker registers it. */
+type MessageListener = (
+  msg: { type?: string; query?: string; limit?: number },
+  sender: unknown,
+  respond: (r: unknown) => void,
+) => boolean
 
 /**
  * Mocks the parts of the `chrome` API that the service worker's action
@@ -22,6 +41,7 @@ function installChrome(options: {
   const reload = vi.fn(async () => {})
 
   let onClicked: ((tab: { id?: number }) => Promise<void>) | null = null
+  const messageListeners: MessageListener[] = []
 
   ;(globalThis as unknown as { chrome: unknown }).chrome = {
     runtime: {
@@ -29,7 +49,11 @@ function installChrome(options: {
         content_scripts: [{ js: ['src/content/content-entry.iife.js'] }],
       }),
       onInstalled: { addListener: vi.fn() },
-      onMessage: { addListener: vi.fn() },
+      onMessage: {
+        addListener: (fn: MessageListener) => {
+          messageListeners.push(fn)
+        },
+      },
     },
     action: {
       onClicked: {
@@ -47,6 +71,15 @@ function installChrome(options: {
     sendMessage,
     executeScript,
     reload,
+    /** Sends a message to the service worker and waits for the answer. */
+    ask: async (msg: { type?: string; query?: string; limit?: number }) => {
+      const respond = vi.fn()
+      for (const listener of messageListeners) {
+        if (listener(msg, {}, respond)) break
+      }
+      await vi.waitFor(() => expect(respond).toHaveBeenCalled())
+      return respond.mock.calls[0][0]
+    },
     click: async (tabId?: number) => {
       if (!onClicked) throw new Error('no action listener registered')
       await onClicked({ id: tabId })
@@ -62,6 +95,17 @@ async function loadServiceWorker() {
 
 beforeEach(() => {
   vi.resetModules()
+})
+
+describe('suggestion message', () => {
+  it('answers the type-ahead request from the offline dictionary', async () => {
+    const chromeMock = installChrome({})
+    await loadServiceWorker()
+
+    const response = await chromeMock.ask({ type: SUGGEST_MESSAGE, query: 'cucu', limit: 8 })
+
+    expect(response).toEqual({ ok: true, suggestions: SUGGESTIONS })
+  })
 })
 
 describe('action click handler', () => {

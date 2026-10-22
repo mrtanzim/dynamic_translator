@@ -153,6 +153,54 @@ describe('offline lookup coverage', () => {
   })
 })
 
+describe('type-ahead suggestions', () => {
+  it('suggests the words that start with the query', () => {
+    const list = dictionary.suggest('cucu')
+    expect(list.map((s) => s.word)).toContain('cucumber')
+  })
+
+  it('puts the exact word first', () => {
+    const list = dictionary.suggest('cucumber')
+    expect(list[0]?.word).toBe('cucumber')
+    expect(list[0]?.bengali).toBe(false)
+    expect(list[0]?.hint).toBeTruthy()
+  })
+
+  it('finds a word that is misspelled', () => {
+    // The user cannot spell the word yet, but the answer must still be there.
+    const list = dictionary.suggest('cucnber')
+    expect(list.map((s) => s.word)).toContain('cucumber')
+  })
+
+  it('finds a word that is only half typed', () => {
+    const list = dictionary.suggest('cucumb')
+    expect(list.map((s) => s.word)).toContain('cucumber')
+  })
+
+  it('suggests Bengali words for a Bengali query', () => {
+    const list = dictionary.suggest('বই')
+    expect(list.length).toBeGreaterThan(0)
+    expect(list[0]?.bengali).toBe(true)
+    expect(list[0]?.word).toBe('বই')
+    expect(list[0]?.headword).toBe('book')
+  })
+
+  it('returns nothing for an empty query', () => {
+    expect(dictionary.suggest('')).toEqual([])
+    expect(dictionary.suggest('   ')).toEqual([])
+  })
+
+  it('never returns more than the limit', () => {
+    expect(dictionary.suggest('c', 3).length).toBeLessThanOrEqual(3)
+    expect(dictionary.suggest('c', 3).length).toBeGreaterThan(0)
+  })
+
+  it('ignores case and punctuation', () => {
+    expect(dictionary.suggest('CUCU').map((s) => s.word)).toContain('cucumber')
+    expect(dictionary.suggest('cucu,').map((s) => s.word)).toContain('cucumber')
+  })
+})
+
 describe('runtime artifact', () => {
   it('ships a gzipped dataset that matches the source dataset', () => {
     expect(fs.existsSync(gzPath)).toBe(true)

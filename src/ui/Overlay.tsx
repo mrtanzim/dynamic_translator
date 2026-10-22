@@ -4,7 +4,7 @@ import type { LookupResult, View } from '../shared/types'
 import { MENU_ITEMS } from '../shared/types'
 import { addHistory, listSaved, updateHistory, pruneHistory, type HistoryEntry } from '../storage/history'
 import { loadAppSettings } from '../storage/app-settings'
-import { isBengali } from '../providers/offline'
+import { isBengali, suggestWords, type SuggestionPayload } from '../providers/offline'
 import { ProvidersView } from './views/ProvidersView'
 import { HistoryView } from './views/HistoryView'
 import { SettingsView, AboutView } from './views/SettingsView'
@@ -12,6 +12,14 @@ import { SettingsView, AboutView } from './views/SettingsView'
 const STORAGE_KEY = 'vocabflow.overlay'
 /** How long the overlay position is left unsettled before it is persisted. */
 const POSITION_WRITE_DEBOUNCE_MS = 300
+/** How long the search waits before the query is sent to the dictionary. */
+const LOOKUP_DEBOUNCE_MS = 300
+/** How long the search waits before the type-ahead suggestions are requested. */
+const SUGGEST_DEBOUNCE_MS = 120
+/** How long the type-ahead suggestions may take before they are given up on. */
+const SUGGEST_TIMEOUT_MS = 1000
+/** The number of type-ahead suggestions that are shown. */
+const SUGGEST_LIMIT = 8
 type Pos = { x: number; y: number; w: number; h: number }
 const DEFAULT: Pos = { x: window.innerWidth - 400, y: 80, w: 380, h: 520 }
 function clamp(p: Pos): Pos {
@@ -20,6 +28,21 @@ function clamp(p: Pos): Pos {
   const x = Math.min(Math.max(p.x, 0), window.innerWidth - w)
   const y = Math.min(Math.max(p.y, 0), window.innerHeight - h)
   return { x, y, w, h }
+}
+
+/**
+ * Whether the query is only the beginning of a suggested word.
+ *
+ * "cucu" is not a word the user wants looked up yet — the suggestion
+ * "cucumber" is the answer they are looking for. But "book" is a word in its
+ * own right, even though "bookcase" starts with it, so a query that is
+ * exactly one of the suggestions is never treated as partial.
+ */
+function isPartialWord(query: string, suggestions: SuggestionPayload[]): boolean {
+  if (!suggestions.length) return false
+  const q = query.toLowerCase()
+  if (suggestions.some((s) => s.word.toLowerCase() === q)) return false
+  return suggestions.some((s) => s.word.toLowerCase().startsWith(q))
 }
 
 export function Overlay({ onClose }: { onClose: () => void }) {
@@ -31,12 +54,24 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const [view, setView] = useState<View>('search')
   const [menuOpen, setMenuOpen] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [suggestions, setSuggestions] = useState<SuggestionPayload[]>([])
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [highlight, setHighlight] = useState(-1)
   const dragging = useRef(false)
   const resizing = useRef(false)
   const start = useRef({ mx: 0, my: 0, pos: DEFAULT })
   const coordinator = useRef<LookupCoordinator | null>(null)
   const lastRequestId = useRef<string | null>(null)
   const lastLookup = useRef<string | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  // The suggestions arrive out of order when the user types quickly, so only
+  // the answer of the newest request is used.
+  const suggestSeq = useRef(0)
+  // The suggestions of the current query, and the query they belong to. The
+  // refs hold the values the lookup needs, the state holds the values the
+  // list is rendered from.
+  const suggestionsRef = useRef<SuggestionPayload[]>([])
+  const suggestionsForRef = useRef<string>('')
   // FIX B: use ref instead of state to avoid stale closure in coordinator
   const historyIdRef = useRef<number | null>(null)
   // FIX C-overlay: app settings refs
@@ -119,18 +154,65 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     return () => c.cancel()
   }, [persistHistory])
 
+  /**
+   * Type-ahead suggestions.
+   *
+   * The dictionary lives in the service worker, so the request is proxied
+   * through it. The answer of a request that has been overtaken by a newer
+   * keystroke is dropped, and a request that never comes back is given up on
+   * so that the lookup is not blocked by it.
+   */
   useEffect(() => {
+    const trimmed = query.trim()
+    if (!trimmed) {
+      suggestionsRef.current = []
+      suggestionsForRef.current = ''
+      return
+    }
+    const seq = ++suggestSeq.current
     const t = setTimeout(() => {
-      if (!query.trim()) { setResult(null); setLoading(false); return }
-      // Skip if this exact query was already looked up (e.g. via Enter).
-      if (lastLookup.current === query.trim()) return
-      lastLookup.current = query.trim()
-      setLoading(true)
-      setError(null)
-      void coordinator.current?.lookup(query)
-    }, 400)
+      let expiryTimer: ReturnType<typeof setTimeout> | undefined
+      const request = suggestWords(trimmed, SUGGEST_LIMIT)
+        .then((list) => ({ list }))
+        // The suggestions are a convenience: a failure must not break the
+        // lookup that follows.
+        .catch(() => ({ list: [] as SuggestionPayload[] }))
+      const expiry = new Promise<{ list: SuggestionPayload[] }>((resolve) => {
+        expiryTimer = setTimeout(() => resolve({ list: [] }), SUGGEST_TIMEOUT_MS)
+      })
+      void Promise.race([request, expiry]).then(({ list }) => {
+        if (expiryTimer !== undefined) clearTimeout(expiryTimer)
+        if (seq !== suggestSeq.current) return
+        suggestionsRef.current = list
+        suggestionsForRef.current = trimmed
+        setSuggestions(list)
+        setHighlight(-1)
+      })
+    }, SUGGEST_DEBOUNCE_MS)
     return () => clearTimeout(t)
   }, [query])
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const trimmed = query.trim()
+      if (!trimmed) { setResult(null); setLoading(false); return }
+      // The lookup waits for the suggestions of *this* query: a half-typed
+      // word must not be sent to the AI providers before it is known that it
+      // is only the beginning of a longer word. The suggestions arrive as a
+      // state change, which re-runs this effect.
+      if (suggestionsForRef.current !== trimmed) return
+      // A word that is only the beginning of a known word is not looked up:
+      // the suggestions are the better answer while the user is still typing.
+      if (isPartialWord(trimmed, suggestionsRef.current)) return
+      // Skip if this exact query was already looked up (e.g. via Enter).
+      if (lastLookup.current === trimmed) return
+      lastLookup.current = trimmed
+      setLoading(true)
+      setError(null)
+      void coordinator.current?.lookup(trimmed)
+    }, LOOKUP_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [query, suggestions])
 
   // The position is persisted on every drag/resize frame, which would write
   // to storage hundreds of times per second. The write is debounced so that
@@ -191,9 +273,80 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     const trimmed = q.trim()
     if (!trimmed) return
     lastLookup.current = trimmed
+    setSuggestOpen(false)
     setLoading(true)
     setError(null)
     void coordinator.current?.lookup(trimmed)
+  }
+
+  /**
+   * Empties the search field and everything it produced.
+   *
+   * The in-flight lookup is cancelled as well, so a slow provider cannot
+   * resurrect the word that was just removed.
+   */
+  const clearSearch = () => {
+    setQuery('')
+    setResult(null)
+    setError(null)
+    setLoading(false)
+    setSuggestions([])
+    setHighlight(-1)
+    setSuggestOpen(false)
+    suggestionsRef.current = []
+    suggestionsForRef.current = ''
+    lastLookup.current = null
+    coordinator.current?.cancel()
+    inputRef.current?.focus()
+  }
+
+  /** Looks up a word the user picked from the suggestions. */
+  const pickSuggestion = (suggestion: SuggestionPayload) => {
+    setQuery(suggestion.word)
+    setSuggestions([])
+    setHighlight(-1)
+    setSuggestOpen(false)
+    lastLookup.current = suggestion.word
+    setLoading(true)
+    setError(null)
+    void coordinator.current?.lookup(suggestion.word)
+  }
+
+  const onSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const list = visibleSuggestions
+    if (e.key === 'ArrowDown' && list.length) {
+      e.preventDefault()
+      setSuggestOpen(true)
+      setHighlight((h) => (h + 1) % list.length)
+      return
+    }
+    if (e.key === 'ArrowUp' && list.length) {
+      e.preventDefault()
+      setSuggestOpen(true)
+      setHighlight((h) => (h <= 0 ? list.length - 1 : h - 1))
+      return
+    }
+    if (e.key === 'Escape') {
+      setSuggestOpen(false)
+      return
+    }
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    const trimmed = query.trim()
+    if (!trimmed) return
+    // A word that is in the dictionary is searched as it was typed; anything
+    // else takes the highlighted suggestion, so a half-typed or misspelled
+    // word still finds its entry.
+    const exact = list.find((s) => s.word.toLowerCase() === trimmed.toLowerCase())
+    if (exact) {
+      doSearch(trimmed)
+      return
+    }
+    if (list.length) {
+      pickSuggestion(list[highlight >= 0 ? highlight : 0])
+      return
+    }
+    doSearch(trimmed)
   }
 
   const onHeaderDown = (e: React.MouseEvent) => {
@@ -226,6 +379,10 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const headerBtn: React.CSSProperties = { background: 'transparent', color: '#AAB8C8', border: 'none', cursor: 'pointer', fontSize: 16, padding: '0 6px' }
   const actionBtn: React.CSSProperties = { padding: '5px 10px', borderRadius: 8, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(101,207,255,0.12)', color: '#F3F6FA', cursor: 'pointer', fontSize: 12 }
 
+  // The suggestions of an empty search are stale by definition, so they are
+  // not shown.
+  const visibleSuggestions = query.trim() ? suggestions : []
+
   return (
     <div style={{ position: 'fixed', left: pos.x, top: pos.y, width: pos.w, height: pos.h, background: 'rgba(30,41,54,0.82)', backdropFilter: 'blur(12px)', border: '1px solid rgba(148,163,184,0.28)', borderRadius: 16, color: '#F3F6FA', zIndex: 2147483647, display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
       <div onMouseDown={onHeaderDown} style={{ padding: 12, cursor: 'move', borderBottom: '1px solid rgba(148,163,184,0.28)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
@@ -252,8 +409,77 @@ export function Overlay({ onClose }: { onClose: () => void }) {
       </div>
       {view === 'search' && (
         <>
-          <div style={{ padding: 12 }}>
-            <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') doSearch(query) }} placeholder="Search any word" style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(16,21,29,0.6)', color: '#F3F6FA' }} />
+          <div style={{ padding: 12, position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', borderRadius: 8, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(16,21,29,0.6)' }}>
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setSuggestOpen(true) }}
+                onFocus={() => setSuggestOpen(true)}
+                onBlur={() => setSuggestOpen(false)}
+                onKeyDown={onSearchKeyDown}
+                placeholder="Search any word"
+                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', color: '#F3F6FA', padding: '8px 0' }}
+              />
+              {query && (
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  title="Clear search"
+                  onClick={clearSearch}
+                  style={{ background: 'transparent', border: 'none', color: '#AAB8C8', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            {suggestOpen && visibleSuggestions.length > 0 && (
+              <div
+                role="listbox"
+                aria-label="Suggestions"
+                style={{
+                  position: 'absolute',
+                  left: 12,
+                  right: 12,
+                  top: 'calc(100% - 6px)',
+                  zIndex: 20,
+                  background: 'rgba(16,21,29,0.98)',
+                  border: '1px solid rgba(148,163,184,0.28)',
+                  borderRadius: 10,
+                  overflow: 'hidden auto',
+                  maxHeight: 210,
+                }}
+              >
+                {visibleSuggestions.map((s, i) => (
+                  <div
+                    key={`${s.word}-${i}`}
+                    role="option"
+                    aria-selected={i === highlight}
+                    // Keeping the focus in the input means the click lands on
+                    // the suggestion instead of closing the list first.
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => pickSuggestion(s)}
+                    style={{
+                      padding: '6px 10px',
+                      cursor: 'pointer',
+                      fontSize: 13,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      background: i === highlight ? 'rgba(101,207,255,0.16)' : 'transparent',
+                      color: '#F3F6FA',
+                    }}
+                  >
+                    <span>{s.word}</span>
+                    {s.hint && (
+                      <span style={{ color: '#AAB8C8', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>
+                        {s.hint}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
       <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
         {loading && <div style={{ color: '#AAB8C8', fontSize: 12, marginBottom: 8 }}>Searching…</div>}

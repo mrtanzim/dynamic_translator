@@ -6,8 +6,11 @@
 
 import {
   OFFLINE_LOOKUP_MESSAGE,
+  SUGGEST_MESSAGE,
   type OfflineEntryPayload,
   type OfflineLookupResponse,
+  type SuggestionPayload,
+  type SuggestResponse,
 } from '../bridge'
 
 export {
@@ -15,8 +18,9 @@ export {
   normalize,
   normalizeBengali,
   type DictionaryEntry,
+  type Suggestion,
 } from './dataset'
-export type { OfflineEntryPayload }
+export type { OfflineEntryPayload, SuggestionPayload }
 
 /**
  * Asks the service worker for a dictionary entry.
@@ -47,6 +51,29 @@ export async function offlineBengaliLookup(
 ): Promise<{ headword: string; entry: OfflineEntryPayload } | null> {
   const entry = await offlineLookup(query, true)
   return entry ? { headword: entry.headword, entry } : null
+}
+
+/**
+ * Asks the service worker for the words that match a partially typed query.
+ *
+ * The suggestions come from the offline dictionary, so they are available
+ * without an AI provider and without a network round trip.
+ *
+ * @param query  the partially typed word
+ * @param limit  the maximum number of suggestions
+ */
+export async function suggestWords(
+  query: string,
+  limit = 8,
+): Promise<SuggestionPayload[]> {
+  const response = (await chrome.runtime.sendMessage({
+    type: SUGGEST_MESSAGE,
+    query,
+    limit,
+  })) as SuggestResponse | undefined
+  if (!response) return []
+  if (!response.ok) throw new Error(response.error)
+  return response.suggestions
 }
 
 

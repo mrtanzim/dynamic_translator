@@ -56,7 +56,11 @@ function aiResultFor(query: string): LookupResult {
   return { ...aiResult, word: query, query }
 }
 
+/** Makes the AI provider fail, as if the API were unreachable. */
+let aiFails = false
+
 beforeEach(() => {
+  aiFails = false
   addHistory.mockClear()
   listSaved.mockClear().mockResolvedValue([])
   updateHistory.mockClear()
@@ -65,6 +69,13 @@ beforeEach(() => {
     runtime: {
       sendMessage: vi.fn().mockImplementation(async (req: { type?: string; query?: string }) => {
         if (req.type === 'VOCABFLOW_SEED') return { ok: true }
+        if (req.type === 'VOCABFLOW_SUGGEST') {
+          const query = (req.query ?? '').toLowerCase()
+          const suggestions = query.startsWith('cucu')
+            ? [{ word: 'cucumber', headword: 'cucumber', bengali: false, hint: 'কুকুম্বার' }]
+            : []
+          return { ok: true, suggestions }
+        }
         if (req.type === 'VOCABFLOW_OFFLINE_LOOKUP') {
           // The offline dictionary resolves a Bengali query to its English
           // headword; the payload always carries the canonical headword.
@@ -76,10 +87,12 @@ beforeEach(() => {
               : offlineEntry,
           }
         }
-        if (req.type === 'VOCABFLOW_AI_LOOKUP')
+        if (req.type === 'VOCABFLOW_AI_LOOKUP') {
+          if (aiFails) return { ok: false, error: 'provider is down' }
           return new Promise((resolve) =>
             setTimeout(() => resolve({ ok: true, result: aiResultFor(req.query ?? 'hello') }), 40),
           )
+        }
         return { ok: false, error: 'unknown' }
       }),
     },
@@ -105,6 +118,14 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
 })
+
+/** The messages the overlay sent to the service worker. */
+function sentMessages(): Array<{ type?: string; query?: string }> {
+  const sendMessage = (globalThis.chrome.runtime.sendMessage as unknown as {
+    mock: { calls: Array<[{ type?: string; query?: string }]> }
+  }).mock
+  return sendMessage.calls.map((call) => call[0])
+}
 
 describe('Overlay integration', () => {
   it('displays offline result first, then AI result replaces it, and Searching… is cleared', async () => {
@@ -137,6 +158,65 @@ describe('Overlay position persistence', () => {
     // The write carries the overlay position.
     const payload = set.mock.calls[set.mock.calls.length - 1][0] as Record<string, unknown>
     expect(Object.keys(payload)).toContain('vocabflow.overlay')
+  })
+})
+
+describe('Overlay type-ahead', () => {
+  it('suggests dictionary words while the user types', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'cucu' } })
+
+    await waitFor(() => expect(screen.getByRole('option', { name: /cucumber/ })).toBeInTheDocument())
+  })
+
+  it('does not look up a word that is only the beginning of a longer word', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'cucu' } })
+    await waitFor(() => expect(screen.getByRole('option', { name: /cucumber/ })).toBeInTheDocument())
+
+    // The lookup debounce has elapsed by now; the partial word must not have
+    // been sent to the providers.
+    await new Promise((r) => setTimeout(r, 600))
+    const lookups = sentMessages().filter((m) => m.type === 'VOCABFLOW_AI_LOOKUP')
+    expect(lookups).toHaveLength(0)
+  })
+
+  it('looks up the suggestion the user picks', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'cucu' } })
+    await waitFor(() => expect(screen.getByRole('option', { name: /cucumber/ })).toBeInTheDocument())
+
+    fireEvent.click(screen.getByRole('option', { name: /cucumber/ }))
+
+    await waitFor(() => {
+      const lookups = sentMessages().filter((m) => m.type === 'VOCABFLOW_AI_LOOKUP')
+      expect(lookups.map((m) => m.query)).toContain('cucumber')
+    })
+    expect((input as HTMLInputElement).value).toBe('cucumber')
+  })
+})
+
+describe('Overlay clear button', () => {
+  it('removes the previous word and its result', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'hello' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() => expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument())
+
+    fireEvent.click(screen.getByLabelText('Clear search'))
+
+    expect((input as HTMLInputElement).value).toBe('')
+    expect(screen.queryByText(/Offline dictionary/)).toBeNull()
+    expect(screen.queryByRole('option')).toBeNull()
   })
 })
 
