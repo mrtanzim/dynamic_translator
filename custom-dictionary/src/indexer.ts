@@ -12,10 +12,17 @@
 //
 // All lookups are O(1) for exact matches and O(log n) for prefix searches.
 
-import { DictionaryDataset } from './types'
+import { DictionaryDataset, SuggestionPayload } from './types'
 
 /** Field separator used inside multi-valued columns. */
 export const SEP = '\u0001'
+
+/** Score bands for type-ahead ranking (lower is better). */
+const SCORE_EXACT = 0
+const SCORE_RELATION = 500
+const SCORE_PREFIX = 1000
+const SCORE_FUZZY = 2000
+const SCORE_SUBSEQUENCE = 3000
 
 /** A single dictionary entry as stored in the Indexer. */
 export interface IndexEntry {
@@ -171,6 +178,187 @@ export class OfflineDictionary {
     if (!n) return []
     return this.byBengali.get(n) ?? []
   }
+
+  /**
+   * English type-ahead suggestions for a partially typed query.
+   *
+   * Ranking:
+   *   1. Exact dictionary word match
+   *   2. Synonym/antonym matches (via relation index)
+   *   3. Prefix matches
+   *   4. Fuzzy matches (edit distance <= 2 for words >= 3 chars)
+   *   5. Subsequence matches
+   *
+   * @param query - Partially typed word
+   * @param limit - Maximum suggestions to return
+   */
+  englishSuggestions(query: string, limit: number): SuggestionPayload[] {
+    const n = normalizeHeadword(query)
+    if (!n) return []
+
+    const scored: Array<{ suggestion: SuggestionPayload; score: number }> = []
+    const seen = new Set<string>()
+
+    const push = (suggestion: SuggestionPayload | null, score: number) => {
+      if (!suggestion) return
+      if (seen.has(suggestion.word)) return
+      seen.add(suggestion.word)
+      scored.push({ suggestion, score })
+    }
+
+    // 1. Exact dictionary word match
+    const exact = this.byNormalized.get(n)
+    if (exact) {
+      push({
+        word: exact.headword,
+        headword: exact.headword,
+        bengali: false,
+        hint: exact.bn,
+      }, SCORE_EXACT)
+    }
+
+    // 2. Synonym/antonym matches via relation index
+    const relation = this.byRelation.get(n)
+    if (relation) {
+      const entry = this.byHeadword.get(relation)
+      if (entry) {
+        push({
+          word: entry.headword,
+          headword: entry.headword,
+          bengali: false,
+          hint: entry.bn,
+        }, SCORE_RELATION)
+      }
+    }
+
+    // 3. Prefix matches on English headwords
+    for (const [headword, entry] of this.byHeadword) {
+      if (headword.toLowerCase().startsWith(n) && headword !== n) {
+        push({
+          word: entry.headword,
+          headword: entry.headword,
+          bengali: false,
+          hint: entry.bn,
+        }, SCORE_PREFIX + entry.headword.length)
+      }
+    }
+
+    // 4. Fuzzy matches on English headwords (edit distance)
+    if (scored.length < limit) {
+      const maxDist = n.length >= 3 ? 2 : 0
+      for (const [headword, entry] of this.byHeadword) {
+        if (headword === n) continue
+        const dist = editDistance(n, headword.toLowerCase(), maxDist)
+        if (dist <= maxDist && dist > 0) {
+          push({
+            word: entry.headword,
+            headword: entry.headword,
+            bengali: false,
+            hint: entry.bn,
+          }, SCORE_FUZZY + dist * 100 + entry.headword.length)
+        }
+      }
+    }
+
+    // 5. Subsequence matches
+    if (scored.length < limit) {
+      for (const [headword, entry] of this.byHeadword) {
+        if (headword.toLowerCase().startsWith(n)) continue
+        if (isSubsequence(n, headword.toLowerCase())) {
+          push({
+            word: entry.headword,
+            headword: entry.headword,
+            bengali: false,
+            hint: entry.bn,
+          }, SCORE_SUBSEQUENCE + entry.headword.length)
+        }
+      }
+    }
+
+    return scored
+      .sort((a, b) => a.score - b.score || a.suggestion.word.localeCompare(b.suggestion.word))
+      .slice(0, limit)
+      .map((s) => s.suggestion)
+  }
+
+  /**
+   * Bengali type-ahead suggestions for a partially typed query.
+   *
+   * @param query - Partially typed Bengali word
+   * @param limit - Maximum suggestions to return
+   */
+  bengaliSuggestions(query: string, limit: number): SuggestionPayload[] {
+    const n = normalizeBengali(query)
+    if (!n) return []
+
+    const scored: Array<{ suggestion: SuggestionPayload; score: number }> = []
+    const seen = new Set<string>()
+
+    const push = (suggestion: SuggestionPayload | null, score: number) => {
+      if (!suggestion) return
+      if (seen.has(suggestion.word)) return
+      seen.add(suggestion.word)
+      scored.push({ suggestion, score })
+    }
+
+    // 1. Exact dictionary word match
+    const exact = this.byBengali.get(n)
+    if (exact) {
+      for (const hit of exact) {
+        const entry = this.byHeadword.get(hit.headword)
+        if (entry) {
+          push({
+            word: entry.headword,
+            headword: entry.headword,
+            bengali: true,
+            hint: entry.headword,
+          }, SCORE_EXACT)
+        }
+      }
+    }
+
+    // 2. Prefix matches on Bengali words
+    for (const [bnKey, hits] of this.byBengali) {
+      if (bnKey.startsWith(n)) {
+        for (const hit of hits) {
+          const entry = this.byHeadword.get(hit.headword)
+          if (entry && entry.headword !== n) {
+            push({
+              word: entry.headword,
+              headword: entry.headword,
+              bengali: true,
+              hint: entry.headword,
+            }, SCORE_PREFIX + entry.headword.length)
+          }
+        }
+      }
+    }
+
+    // 3. Fuzzy matches on Bengali words
+    if (scored.length < limit) {
+      const maxDist = n.length >= 3 ? 2 : 0
+      for (const [bnKey, hits] of this.byBengali) {
+        for (const hit of hits) {
+          const entry = this.byHeadword.get(hit.headword)
+          if (!entry || entry.headword === n) continue
+          const dist = editDistance(n, bnKey, maxDist)
+          if (dist <= maxDist && dist > 0) {
+            push({
+              word: entry.headword,
+              headword: entry.headword,
+              bengali: true,
+              hint: entry.headword,
+            }, SCORE_FUZZY + dist * 100 + entry.headword.length)
+          }
+        }
+      }
+    }
+
+    return scored
+      .sort((a, b) => a.score - b.score || a.suggestion.word.localeCompare(b.suggestion.word))
+      .slice(0, limit)
+      .map((s) => s.suggestion)
+  }
 }
 
 /**
@@ -213,4 +401,61 @@ function normalizeBengali(text: string): string {
 function splitColumn(value: string): string[] {
   if (!value) return []
   return value.split(SEP)
+}
+
+/**
+ * The edit distance between two words, with transpositions allowed.
+ *
+ * `max` is an upper bound: the function returns `max + 1` as soon as the
+ * distance is known to be larger, so scanning the whole dictionary stays
+ * cheap.
+ */
+function editDistance(a: string, b: string, max: number): number {
+  const n = a.length
+  const m = b.length
+  if (Math.abs(n - m) > max) return max + 1
+  if (n === 0) return m <= max ? m : max + 1
+  if (m === 0) return n <= max ? n : max + 1
+
+  let prev2: number[] = []
+  let prev: number[] = Array.from({ length: m + 1 }, (_, j) => j)
+  let cur: number[] = []
+
+  for (let i = 1; i <= n; i++) {
+    cur = new Array<number>(m + 1)
+    cur[0] = i
+    let rowMin = i
+    for (let j = 1; j <= m; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1
+      const v1 = prev[j]! + 1
+      const v2 = cur[j - 1]! + 1
+      const v3 = prev[j - 1]! + cost
+      let value = Math.min(v1, v2, v3)
+      // A transposition ("teh" -> "the") counts as a single edit.
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        const v4 = prev2[j - 2]! + 1
+        value = Math.min(value, v4)
+      }
+      cur[j]! = value
+      if (value < rowMin) rowMin = value
+    }
+    if (rowMin > max) return max + 1
+    prev2 = prev
+    prev = cur
+  }
+  return prev[m]! <= max ? prev[m]! : max + 1
+}
+
+/**
+ * Whether every character of `needle` appears in `haystack`, in order.
+ *
+ * This catches typos an edit distance forgives: "cmbr" is a subsequence
+ * of "cumber" even though three characters are missing.
+ */
+function isSubsequence(needle: string, haystack: string): boolean {
+  let i = 0
+  for (let j = 0; j < haystack.length && i < needle.length; j++) {
+    if (haystack[j] === needle[i]) i++
+  }
+  return i === needle.length
 }
