@@ -11,8 +11,27 @@ import type { LookupEvent, LookupResult, ResultSource } from '../shared/types'
 
 const PRIORITY: ResultSource[] = ['groq', 'openrouter', 'gemini']
 
+/** How long the offline dictionary lookup may take before it is given up on. */
+const OFFLINE_TIMEOUT_MS = 3000
+
+/**
+ * How long the AI result may wait for the canonical headword.
+ *
+ * The headword is a display detail, so it must never delay the AI result
+ * noticeably; when the offline dictionary is slow the result is shown
+ * without it.
+ */
+const HEADWORD_WAIT_MS = 1500
+
 export interface CoordinatorOptions {
   onEvent: (e: LookupEvent) => void
+}
+
+/** The offline dictionary entry, plus the canonical headword it resolved to. */
+interface OfflineHit {
+  entry: OfflineEntryPayload
+  /** The English headword, when it is worth showing next to the query. */
+  headword?: string
 }
 
 export class LookupCoordinator {
@@ -94,6 +113,44 @@ export class LookupCoordinator {
     return response.result
   }
 
+  /**
+   * Looks the query up in the offline dictionary.
+   *
+   * The dictionary itself lives in the service worker, so this is an
+   * asynchronous round trip. Failures are swallowed and the lookup is given up
+   * on after a timeout: a broken offline dictionary must never break the AI
+   * lookups.
+   */
+  private async fetchOffline(query: string, bengaliInput: boolean): Promise<OfflineHit | null> {
+    const lookup = (async () => {
+      const payload = bengaliInput
+        ? ((await offlineBengaliLookup(query))?.entry ?? null)
+        : ((await offlineLookup(query)) as OfflineEntryPayload | null)
+      if (!payload) return null
+      // The headword is the canonical English word of the entry. It is only
+      // worth showing when it differs from what the user typed: for a Bengali
+      // query it is the English answer, for an English synonym it is the
+      // headword the synonym belongs to.
+      const headword = payload.headword
+      const interesting =
+        !!headword && headword.toLowerCase() !== query.toLowerCase() ? headword : undefined
+      return { entry: payload, headword: interesting }
+    })()
+
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const timeout = new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), OFFLINE_TIMEOUT_MS)
+    })
+    try {
+      return await Promise.race([lookup, timeout])
+    } catch {
+      // Offline lookup is best-effort.
+      return null
+    } finally {
+      if (timer !== undefined) clearTimeout(timer)
+    }
+  }
+
   /** Runs a full offline + concurrent AI lookup. */
   async lookup(rawQuery: string, settings?: ProviderSettings): Promise<void> {
     const query = rawQuery.trim()
@@ -103,8 +160,13 @@ export class LookupCoordinator {
 
     const cached = this.cache.get(normalized)
     if (cached) {
-      this.emit({ type: 'AI_RESULT', result: { ...cached, requestId: 'cached' } })
-      this.emit({ type: 'LOOKUP_COMPLETE', requestId: 'cached' })
+      // A cache hit is still its own search action, so it gets a fresh
+      // request id: it must not be merged with the entry of the lookup that
+      // originally produced the cached result.
+      const requestId = `r${++this.seq}`
+      this.currentId = requestId
+      this.emit({ type: 'AI_RESULT', result: { ...cached, word: query, query, requestId } })
+      this.emit({ type: 'LOOKUP_COMPLETE', requestId })
       return
     }
 
@@ -122,7 +184,49 @@ export class LookupCoordinator {
     // service worker applies the first-run seed while the offline lookup is
     // already in flight. The settings are awaited further down.
     const settingsPromise = settings ? Promise.resolve(settings) : this.loadSeededSettings()
-    const offlineJob = this.lookupOffline(query, bengaliInput, requestId)
+
+    // A single offline round trip serves two purposes: it produces the
+    // provisional result and it resolves the canonical headword. The AI
+    // results are stamped with that headword so that the displayed word does
+    // not change when the AI result replaces the offline one.
+    const offlinePromise = this.fetchOffline(query, bengaliInput)
+    const headwordPromise = offlinePromise.then(
+      (hit) => hit?.headword,
+      () => undefined,
+    )
+    // The headword only decorates the result, so the wait for it is capped:
+    // a slow offline dictionary must never delay the AI result.
+    const headwordWithDeadline = Promise.race([
+      headwordPromise,
+      new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), HEADWORD_WAIT_MS)),
+    ])
+    const offlineJob = offlinePromise.then((hit) => {
+      if (!hit) return
+      if (this.currentId !== requestId) return // stale
+      const source = hit.entry
+      const offlineResult: LookupResult = {
+        // The word is always the query as typed; the canonical headword is
+        // carried separately so that the display stays stable.
+        word: query,
+        query,
+        headword: hit.headword,
+        source: 'offline',
+        requestId,
+        timestamp: Date.now(),
+        bengaliMeaning: source.bn,
+        englishDefinition: source.def,
+        partOfSpeech: source.pos || undefined,
+        synonyms: source.syn,
+        antonyms: source.ant,
+        exampleEn: source.ex,
+      }
+      // An AI result that already arrived may be better; keep the best one.
+      const best = this.best
+      if (best === null || this.isBetter(offlineResult, best)) {
+        this.best = offlineResult
+        this.emit({ type: 'LOCAL_RESULT', result: offlineResult })
+      }
+    })
 
     const cfg = await settingsPromise
 
@@ -138,6 +242,7 @@ export class LookupCoordinator {
     }
 
     if (jobs.length === 0) {
+      await offlineJob
       this.emit({ type: 'LOOKUP_COMPLETE', requestId })
       return
     }
@@ -146,8 +251,17 @@ export class LookupCoordinator {
       offlineJob,
       ...jobs.map(async (job) => {
         try {
-          const result = await job.run()
+          const raw = await job.run()
           if (this.currentId !== requestId) return // stale
+          // The headword only decorates the result, so waiting for it cannot
+          // delay the provider call itself.
+          const headword = await headwordWithDeadline
+          const result: LookupResult = {
+            ...raw,
+            word: query,
+            query,
+            headword: headword ?? raw.headword,
+          }
           // Only a strictly better result is accepted, so a late, inferior AI
           // response can never overwrite a superior offline or AI result.
           const best = this.best
@@ -173,53 +287,6 @@ export class LookupCoordinator {
 
     if (this.currentId === requestId) {
       this.emit({ type: 'LOOKUP_COMPLETE', requestId })
-    }
-  }
-
-  /**
-   * Looks the query up in the offline dictionary.
-   *
-   * The dictionary itself lives in the service worker, so this is an
-   * asynchronous round trip. Failures are swallowed: a broken offline
-   * dictionary must never break the AI lookups.
-   */
-  private async lookupOffline(
-    query: string,
-    bengaliInput: boolean,
-    requestId: string,
-  ): Promise<void> {
-    try {
-      const entry = bengaliInput
-        ? await offlineBengaliLookup(query)
-        : ((await offlineLookup(query)) as OfflineEntryPayload | null)
-      if (!entry) return
-      if (this.currentId !== requestId) return // stale
-      const source = bengaliInput
-        ? (entry as { headword: string; entry: OfflineEntryPayload }).entry
-        : (entry as OfflineEntryPayload)
-      const headword = bengaliInput
-        ? (entry as { headword: string; entry: OfflineEntryPayload }).headword
-        : query
-      const offlineResult: LookupResult = {
-        word: headword,
-        source: 'offline',
-        requestId,
-        timestamp: Date.now(),
-        bengaliMeaning: source.bn,
-        englishDefinition: source.def,
-        partOfSpeech: source.pos || undefined,
-        synonyms: source.syn,
-        antonyms: source.ant,
-        exampleEn: source.ex,
-      }
-      // An AI result that already arrived may be better; keep the best one.
-      const best = this.best
-      if (best === null || this.isBetter(offlineResult, best)) {
-        this.best = offlineResult
-        this.emit({ type: 'LOCAL_RESULT', result: offlineResult })
-      }
-    } catch {
-      // Offline lookup is best-effort.
     }
   }
 }

@@ -1,7 +1,30 @@
 export type ResultSource = 'offline' | 'groq' | 'openrouter' | 'gemini'
 
 export interface LookupResult {
+  /**
+   * The word being displayed, i.e. the query exactly as the user typed it.
+   *
+   * It is stable across sources: the offline dictionary and the AI providers
+   * describe the same query. Never use it as an identity — the canonical
+   * English headword is `headword` and the search identity is `query`.
+   */
   word: string
+  /**
+   * The original user query that produced this result.
+   *
+   * This is the stable identity of a lookup: it is the same for the offline
+   * and the AI result of one search, so it is what the history, the saved
+   * words and the lookup direction are keyed on.
+   */
+  query: string
+  /**
+   * The canonical English headword, when the offline dictionary resolved one.
+   *
+   * For a Bengali query this is the English word the Bengali meaning maps
+   * back to; for an English query that is a synonym it is the headword the
+   * synonym belongs to. Absent when the query is not in the dictionary.
+   */
+  headword?: string
   bengaliMeaning?: string
   englishDefinition?: string
   synonyms?: string[]

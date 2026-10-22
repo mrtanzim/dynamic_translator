@@ -44,6 +44,7 @@ beforeEach(() => {
 function aiResult(source: 'groq' | 'openrouter' | 'gemini', extra: Partial<LookupResult> = {}): LookupResult {
   return {
     word: 'hello',
+    query: 'hello',
     source,
     requestId: 'x',
     timestamp: 1,
@@ -216,7 +217,12 @@ describe('LookupCoordinator', () => {
     await new Promise((r) => setTimeout(r, 10))
     const local = events.find((e) => e.type === 'LOCAL_RESULT')
     expect(local, 'expected an offline result for the Bengali query').toBeTruthy()
-    expect(local && local.type === 'LOCAL_RESULT' && local.result.word).toBe('book')
+    if (local && local.type === 'LOCAL_RESULT') {
+      // The query is the stable identity; the resolved English headword is
+      // carried separately so the display does not change between sources.
+      expect(local.result.query).toBe('বই')
+      expect(local.result.headword).toBe('book')
+    }
   })
 
   it('normalizes a Bengali query without stripping its characters', async () => {

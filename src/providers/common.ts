@@ -52,12 +52,13 @@ export async function fetchWithTimeout(
 
 export function toResult(
   source: ResultSource,
-  word: string,
+  query: string,
   requestId: string,
   parsed: Partial<LookupResult>,
 ): LookupResult {
   return {
-    word,
+    word: query,
+    query,
     source,
     requestId,
     timestamp: Date.now(),

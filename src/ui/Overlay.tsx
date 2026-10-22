@@ -33,7 +33,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const resizing = useRef(false)
   const start = useRef({ mx: 0, my: 0, pos: DEFAULT })
   const coordinator = useRef<LookupCoordinator | null>(null)
-  const lastWord = useRef<string | null>(null)
+  const lastRequestId = useRef<string | null>(null)
   const lastLookup = useRef<string | null>(null)
   // FIX B: use ref instead of state to avoid stale closure in coordinator
   const historyIdRef = useRef<number | null>(null)
@@ -57,25 +57,39 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   // FIX B: persistHistory has stable [] dep array so coordinator is created once
   const persistHistory = useCallback(async (r: LookupResult) => {
     try {
-      const direction = /[\u0980-\u09FF]/.test(r.word) ? 'bn->en' : 'en->bn'
-      if (historyIdRef.current !== null && lastWord.current === r.word) {
+      // Two identities are in play and must not be mixed up:
+      //   * `r.requestId` identifies the *search action*. The offline result
+      //     and the AI result of one search share it, so the AI result
+      //     updates the existing row instead of creating a second one.
+      //   * `r.query` is the word the user actually typed. It is what the
+      //     history row stores and what the lookup direction is derived
+      //     from. It must not be the display word: a Bengali query is
+      //     resolved to its English headword, so the offline and the AI
+      //     result of one search would otherwise look like two different
+      //     words.
+      const query = r.query
+      const direction = isBengali(query) ? 'bn->en' : 'en->bn'
+      if (historyIdRef.current !== null && lastRequestId.current === r.requestId) {
         await updateHistory(historyIdRef.current as number, { result: r, source: r.source, timestamp: Date.now() })
-        return
+      } else {
+        const id = await addHistory({
+          query,
+          direction,
+          result: r,
+          source: r.source,
+          timestamp: Date.now(),
+          saved: false,
+        })
+        // FIX C-overlay: prune history after adding
+        if (historyLimitRef.current > 0) await pruneHistory(historyLimitRef.current)
+        lastRequestId.current = r.requestId
+        historyIdRef.current = id
       }
-      const id = await addHistory({
-        query: r.word,
-        direction,
-        result: r,
-        source: r.source,
-        timestamp: Date.now(),
-        saved: false,
-      })
-      // FIX C-overlay: prune history after adding
-      if (historyLimitRef.current > 0) await pruneHistory(historyLimitRef.current)
-      lastWord.current = r.word
-      historyIdRef.current = id
-      const existing = await listSaved()
-      setSaved(existing.some((h: HistoryEntry) => h.query === r.word))
+      // A word is saved as a whole, not as a single row: the bookmark
+      // follows the word, so re-searching a saved word does not create a
+      // second saved entry for it.
+      const savedForQuery = (await listSaved()).filter((h: HistoryEntry) => h.query === query)
+      setSaved(savedForQuery.length > 0)
     } catch {
       // History persistence is best-effort; never break the lookup flow.
     }
@@ -95,7 +109,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
         } else if (e.type === 'LOOKUP_COMPLETE') {
           setLoading(false)
           // FIX C-overlay: auto-speak on lookup complete
-          if (autoSpeakRef.current && resultRef.current) speakWord(resultRef.current.word)
+          if (autoSpeakRef.current && resultRef.current) speakWord(resultRef.current.query)
         }
       },
     })
@@ -118,11 +132,27 @@ export function Overlay({ onClose }: { onClose: () => void }) {
 
   useEffect(() => { chrome.storage.local.set({ [STORAGE_KEY]: pos }) }, [pos])
 
+  /**
+   * Toggles the bookmark for the word that is currently displayed.
+   *
+   * The bookmark belongs to the *word*, not to a single history row: a word
+   * that was saved in an earlier search must not end up saved twice, so all
+   * rows for the same query are toggled together.
+   */
   async function toggleSave() {
-    // FIX B: use ref instead of state
+    const word = resultRef.current?.query
+    if (!word) return
+    const savedRows = (await listSaved()).filter((h: HistoryEntry) => h.query === word)
+    if (savedRows.length > 0) {
+      for (const h of savedRows) {
+        if (h.id !== undefined) await updateHistory(h.id, { saved: false })
+      }
+      setSaved(false)
+      return
+    }
     if (historyIdRef.current === null) return
-    await updateHistory(historyIdRef.current, { saved: !saved })
-    setSaved((s) => !s)
+    await updateHistory(historyIdRef.current, { saved: true })
+    setSaved(true)
   }
 
   // FIX E: set utterance language by script (Bengali vs English)
@@ -211,7 +241,12 @@ export function Overlay({ onClose }: { onClose: () => void }) {
         {!result && !loading && !error && <div style={{ color: '#AAB8C8' }}>Search any word to begin.</div>}
         {result && (
           <>
-            <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700 }}>{result.word}</div>
+            <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700 }}>{result.query}</div>
+            {result.headword && (
+              <div style={{ color: '#AAB8C8', fontSize: 12, marginTop: 2 }}>
+                {isBengali(result.query) ? 'English' : 'Headword'}: {result.headword}
+              </div>
+            )}
             {result.partOfSpeech && <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>{result.partOfSpeech}</div>}
             {result.bengaliMeaning && <div style={{ marginTop: 6 }}>{result.bengaliMeaning}</div>}
             {result.englishDefinition && <div style={{ color: '#AAB8C8', marginTop: 6 }}>{result.englishDefinition}</div>}
@@ -229,7 +264,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
             )}
             <div style={{ marginTop: 8, fontSize: 12, color: '#AAB8C8' }}>Source: {result.source === 'offline' ? 'Offline dictionary' : result.source}</div>
             <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-              <button onClick={() => speakWord(result.word)} style={actionBtn}>🔊 Pronounce</button>
+              <button onClick={() => speakWord(result.query)} style={actionBtn}>🔊 Pronounce</button>
               <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>
             </div>
           </>

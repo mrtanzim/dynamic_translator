@@ -38,6 +38,8 @@ export function HistoryView({ savedOnly, onPick }: { savedOnly?: boolean; onPick
           </div>
           <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
             <span style={{ fontSize: 11, color: '#AAB8C8' }}>Source: {h.source}</span>
+            <span style={{ fontSize: 11, color: '#AAB8C8' }}>{h.direction}</span>
+            {h.saved && <span style={{ fontSize: 11, color: '#F3C969' }}>★</span>}
             {h.id !== undefined && (
               <button
                 style={{ ...btn, marginLeft: 'auto' }}
