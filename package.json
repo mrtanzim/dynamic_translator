@@ -10,6 +10,7 @@
     "prebuild": "npm run build:dictionary",
     "test": "vitest run",
     "lint": "oxlint",
+    "typecheck": "tsc -b",
     "preview": "vite preview"
   },
   "dependencies": {

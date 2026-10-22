@@ -37,11 +37,14 @@
 - [x] Groq, OpenRouter, Gemini implementations
 - [x] service-worker proxy so page CSP/CORS never blocks API calls
 - [x] provider settings UI (key, enable, model, test, remove) stored in chrome.storage.local
+- [x] current model IDs (Gemini 3.x, OpenRouter qwen/gemini/claude, Groq qwen/gpt-oss)
+- [x] Gemini: `x-goog-api-key` header, `thinkingConfig.thinkingLevel`, no sampling params
 - [ ] Live API verification (requires real API keys)
 
 ## Phase 6 Vocab features
 - [x] search history (IndexedDB) + saved words
 - [x] pronunciation (Web Speech API)
+- [x] one history row per search (keyed on the original query / requestId)
 - [ ] export history/saved as CSV/JSON
 - [ ] full bilingual sentence translation view
 
@@ -49,10 +52,20 @@
 - [ ] Supabase optional auth + cloud sync of saved words
 
 ## Phase 8 QA
-- [x] vitest suite for coordinator + offline dictionary (30 tests)
+- [x] vitest suite (81 tests, 3 live-API tests skipped) covering the coordinator,
+      the offline dictionary, the providers, the history store, the overlay, the
+      service worker and the content script
 - [x] type-check + production build green
 - [x] built-artifact check: `dist/dictionary.json.gz` present, content bundle free
       of dictionary data, service-worker load path simulated
 - [ ] manual Chrome verification: toggle, drag, resize, persistence, offline lookup
 - [x] docs sync (PRD / ARCHITECTURE / DESIGN / RULES)
+
+## Phase 9 Fixes
+- [x] retired provider model IDs replaced with the current ones
+- [x] history and saved words keyed on the original query, not the display word
+- [x] toggle injects the content script on demand — the page is never reloaded
+- [x] shadow host element removed when the overlay unmounts
+- [x] offline result ranked below every provider result
+- [x] overlay position write debounced, history pruning batched
 
