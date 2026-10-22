@@ -48,6 +48,7 @@
 - [x] type-ahead suggestions from the offline dictionary (prefix + typo tolerant)
 - [x] clear button in the search field
 - [x] thin, glass-themed scrollbars (styled inside the shadow root)
+- [x] "Search" entry in the menu to return to the search screen
 - [x] AI answer carries a transcription (other script) and a pronunciation guide
 - [ ] export history/saved as CSV/JSON
 - [ ] full bilingual sentence translation view

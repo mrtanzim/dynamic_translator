@@ -397,7 +397,15 @@ export function Overlay({ onClose }: { onClose: () => void }) {
               <div
                 key={m.view}
                 onClick={() => { setView(m.view); setMenuOpen(false) }}
-                style={{ padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  // The view that is open is marked, so that "Search" shows
+                  // where the home screen is.
+                  color: m.view === view ? '#65CFFF' : '#F3F6FA',
+                }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101,207,255,0.14)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
               >

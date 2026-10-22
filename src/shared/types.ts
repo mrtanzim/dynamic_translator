@@ -57,6 +57,7 @@ export type LookupEvent =
 export type View = 'search' | 'providers' | 'history' | 'saved' | 'settings' | 'about'
 
 export const MENU_ITEMS: Array<{ view: View; label: string }> = [
+  { view: 'search', label: 'Search' },
   { view: 'providers', label: 'AI Providers' },
   { view: 'history', label: 'Search History' },
   { view: 'saved', label: 'Saved Words' },

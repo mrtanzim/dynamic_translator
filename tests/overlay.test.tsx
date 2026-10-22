@@ -178,6 +178,42 @@ describe('Overlay transcription', () => {
   })
 })
 
+describe('Overlay menu', () => {
+  it('offers a Search entry that brings the search screen back', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    // Open the three-dot menu and leave the search screen.
+    fireEvent.click(screen.getByTitle('Menu'))
+    fireEvent.click(screen.getByText('AI Providers'))
+    await waitFor(() => expect(screen.queryByPlaceholderText('Search any word')).toBeNull())
+
+    // The menu offers a way home.
+    fireEvent.click(screen.getByTitle('Menu'))
+    const home = screen.getByText('Search')
+    expect(home).toBeInTheDocument()
+    fireEvent.click(home)
+
+    await waitFor(() => expect(screen.getByPlaceholderText('Search any word')).toBeInTheDocument())
+  })
+
+  it('keeps the word that was typed while the user is in another view', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'hello' } })
+
+    fireEvent.click(screen.getByTitle('Menu'))
+    fireEvent.click(screen.getByText('AI Providers'))
+    await waitFor(() => expect(screen.queryByPlaceholderText('Search any word')).toBeNull())
+
+    fireEvent.click(screen.getByTitle('Menu'))
+    fireEvent.click(screen.getByText('Search'))
+
+    await waitFor(() => expect(screen.getByPlaceholderText('Search any word')).toBeInTheDocument())
+    expect((screen.getByPlaceholderText('Search any word') as HTMLInputElement).value).toBe('hello')
+  })
+})
+
 describe('Overlay type-ahead', () => {
   it('suggests dictionary words while the user types', async () => {
     render(<Overlay onClose={vi.fn()} />)

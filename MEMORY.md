@@ -46,6 +46,9 @@
   The scrollbar is 6 px wide, has a transparent track and a translucent slate
   thumb; `:host { color-scheme: dark }` keeps the native fallback dark instead
   of the light bar Chrome draws on a light page.
+- The three-dot menu starts with a **Search** entry, so the search screen is
+  always one click away from any other view. The open view is marked in the
+  accent colour. Switching views keeps the typed word and the result.
 - The type-ahead is served by the offline dictionary through the
   `VOCABFLOW_SUGGEST` message, so it needs no provider and no network. The
   ranking is forgiving on purpose: exact word, then synonym/antonym, then

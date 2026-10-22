@@ -12,7 +12,9 @@ Translucent dark glass, subtle blur, thin borders, soft shadows. Solid fallback.
 Thin (6 px) and barely visible: a transparent track, a translucent slate thumb that turns accent-blue on hover, no arrow buttons. The scrollbar is styled from inside the shadow root, so the page it is injected into keeps its own. The overlay declares `color-scheme: dark`, so the native fallback is dark as well and never a white bar.
 ## Components
 - **Header** — product name (accent), three-dot menu, close button. Draggable.
-- **Menu** — AI Providers, Search History, Saved Words, Translation Settings, Help / About.
+- **Menu** — Search (the home screen), AI Providers, Search History, Saved Words,
+  Translation Settings, Help / About. The open view is marked in the accent
+  colour.
 - **Search input** — single field with a cross button on the right that clears
   the word, the result and the error; live lookup after a 300 ms debounce,
   Enter forces an immediate lookup.
