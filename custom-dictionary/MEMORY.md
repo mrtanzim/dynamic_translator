@@ -51,8 +51,8 @@ Persistent scratchpad for the Custom Dictionary Package System. Any AI starting 
 
 | File | Why blocked |
 |------|-----------|
-| `scripts/builders/columnar.ts` | Phase 1 micro-task 6 — columnar JSON serialization |
-| `scripts/builders/relations.ts` | Phase 1 micro-task 7 — synonym/antonym inheritance |
+| `scripts/builders/columnar.ts` | Complete | columnar JSON serialization with SEP joining |
+| `scripts/builders/relations.ts` | Complete | synonym/antonym inheritance within same POS |
 | `scripts/build-dict.ts` | Phase 1 micro-task 8 — main orchestration |
 | `scripts/build-dictionary.mjs` | Phase 1 micro-task 9 — ESM entry point |
 | `tests/*.test.ts` | Phase 5 |
