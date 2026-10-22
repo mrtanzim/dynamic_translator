@@ -49,9 +49,7 @@ Persistent scratchpad for the Custom Dictionary Package System. Any AI starting 
 | `scripts/lib/bengali.mjs` | Complete | read Wiktionary JSONL, group by headword |
 | `scripts/lib/wordnet.mjs` | Complete | read WordNet data/index, extract synonyms, antonyms, examples |
 | `scripts/lib/pronunciation.mjs` | Complete | CMUdict ARPAbet → IPA conversion |
-| `scripts/lib/romanize.mjs` | Phase 1 micro-task 4 — Bengali ↔ Latin transliteration |
-| `scripts/lib/pronunciation.mjs` | Phase 1 micro-task 3 — CMUdict ARPAbet → IPA |
-| `scripts/lib/romanize.mjs` | Phase 1 micro-task 4 — Bengali ↔ Latin transliteration |
+| `scripts/lib/romanize.mjs` | Complete | Bengali ↔ Latin transliteration |
 | `scripts/builders/normalize.ts` | Phase 1 micro-task 5 — NFC normalization |
 | `scripts/builders/columnar.ts` | Phase 1 micro-task 6 — columnar JSON serialization |
 | `scripts/builders/relations.ts` | Phase 1 micro-task 7 — synonym/antonym inheritance |
