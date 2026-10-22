@@ -49,6 +49,8 @@ const aiResult: LookupResult = {
   partOfSpeech: 'noun',
   synonyms: ['hi'],
   antonyms: [],
+  transcription: 'হ্যালো',
+  pronunciation: '/həˈləʊ/',
 }
 
 /** The result a provider returns for the given query. */
@@ -158,6 +160,21 @@ describe('Overlay position persistence', () => {
     // The write carries the overlay position.
     const payload = set.mock.calls[set.mock.calls.length - 1][0] as Record<string, unknown>
     expect(Object.keys(payload)).toContain('vocabflow.overlay')
+  })
+})
+
+describe('Overlay transcription', () => {
+  it('shows the transcription and the pronunciation of the result', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'hello' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() => expect(screen.getByText(/groq/)).toBeInTheDocument(), { timeout: 2000 })
+    // An English word is shown in Bengali script, with its pronunciation.
+    expect(screen.getByText(/In Bengali script/)).toBeInTheDocument()
+    expect(screen.getByText(/Pronunciation/)).toBeInTheDocument()
   })
 })
 

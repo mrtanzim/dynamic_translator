@@ -27,6 +27,16 @@ export interface LookupResult {
   headword?: string
   bengaliMeaning?: string
   englishDefinition?: string
+  /**
+   * The word written in the other script.
+   *
+   * An English word in Bengali script ("cucumber" -> "কুকুম্বার") and a
+   * Bengali word in Latin script ("বই" -> "boi"). It comes from the AI
+   * provider, because the offline dictionary has no transliteration.
+   */
+  transcription?: string
+  /** How the word is pronounced, in IPA or in a plain respelling. */
+  pronunciation?: string
   synonyms?: string[]
   antonyms?: string[]
   exampleEn?: string

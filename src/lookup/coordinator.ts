@@ -55,6 +55,7 @@ export class LookupCoordinator {
     let score = 0
     if (r.englishDefinition) score += 1
     if (r.bengaliMeaning) score += 2
+    if (r.transcription) score += 1
     if (r.synonyms?.length) score += 1
     if (r.antonyms?.length) score += 1
     if (r.exampleEn) score += 1

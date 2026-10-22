@@ -42,4 +42,15 @@ describe('parseAiJson', () => {
     const result = parseAiJson('{"bengaliMeaning":""}')
     expect(result?.bengaliMeaning).toBeUndefined()
   })
+
+  it('parses the transcription and the pronunciation', () => {
+    const result = parseAiJson('{"transcription":"কুকুম্বার","pronunciation":"/kʌmˈbʌmbər/"}')
+    expect(result?.transcription).toBe('কুকুম্বার')
+    expect(result?.pronunciation).toBe('/kʌmˈbʌmbər/')
+  })
+
+  it('ignores a transcription that is not a string', () => {
+    const result = parseAiJson('{"transcription":42}')
+    expect(result?.transcription).toBeUndefined()
+  })
 })

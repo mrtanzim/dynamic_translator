@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { openRouterLookup } from '../src/providers/openrouter'
 import { geminiLookup } from '../src/providers/gemini'
+import { buildUserPrompt, SYSTEM_PROMPT } from '../src/providers/common'
 import { DEFAULT_MODELS } from '../src/storage/settings'
 
 beforeEach(() => {
@@ -137,6 +138,47 @@ describe('geminiLookup request shape', () => {
     )
 
     expect(result.bengaliMeaning).toBe('হ্যালো')
+  })
+})
+
+describe('provider prompt', () => {
+  it('asks for a transcription and a pronunciation', () => {
+    // A translation alone is not enough: the learner also needs to know how
+    // the word is written in the other script and how it sounds.
+    expect(SYSTEM_PROMPT).toContain('transcription')
+    expect(SYSTEM_PROMPT).toContain('pronunciation')
+  })
+
+  it('asks for the script the learner cannot read yet', () => {
+    expect(buildUserPrompt('cucumber', false)).toContain('Bengali-script transcription')
+    expect(buildUserPrompt('বই', true)).toContain('Latin-script transcription')
+  })
+
+  it('carries the transcription and the pronunciation into the result', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: '{"bengaliMeaning":"শসা","transcription":"শসা","pronunciation":"/kʌmˈbʌmbər/"}',
+            },
+          },
+        ],
+      }),
+      text: async () => '',
+    })
+    ;(globalThis as unknown as { fetch: unknown }).fetch = fetchMock
+
+    const result = await openRouterLookup(
+      'cucumber',
+      false,
+      { apiKey: 'test-key', enabled: true, model: 'qwen/qwen3.8-flash' },
+      'r1',
+    )
+
+    expect(result.transcription).toBe('শসা')
+    expect(result.pronunciation).toBe('/kʌmˈbʌmbər/')
   })
 })
 

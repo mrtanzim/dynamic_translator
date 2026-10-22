@@ -496,6 +496,17 @@ export function Overlay({ onClose }: { onClose: () => void }) {
             {result.partOfSpeech && <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>{result.partOfSpeech}</div>}
             {result.bengaliMeaning && <div style={{ marginTop: 6 }}>{result.bengaliMeaning}</div>}
             {result.englishDefinition && <div style={{ color: '#AAB8C8', marginTop: 6 }}>{result.englishDefinition}</div>}
+            {result.transcription && (
+              <div style={{ marginTop: 6 }}>
+                <span style={{ color: '#AAB8C8' }}>
+                  {isBengali(result.query) ? 'In Latin script' : 'In Bengali script'}:
+                </span>{' '}
+                {result.transcription}
+              </div>
+            )}
+            {result.pronunciation && (
+              <div style={{ color: '#AAB8C8', marginTop: 4 }}>Pronunciation: {result.pronunciation}</div>
+            )}
             {result.synonyms && result.synonyms.length > 0 && (
               <div style={{ marginTop: 6 }}>Synonyms: {result.synonyms.join(', ')}</div>
             )}
