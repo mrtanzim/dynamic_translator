@@ -38,7 +38,7 @@
 - [x] Implement `scripts/lib/pronunciation.mjs`: load CMUdict, ARPAbet → IPA conversion table
 - [x] Implement `scripts/lib/romanize.mjs`: Bengali ↔ Latin transliteration table
 - [x] Implement `scripts/builders/normalize.ts`: NFC normalization, punctuation stripping, lowercase
-- [ ] Implement `scripts/builders/columnar.ts`: columnar JSON serialization with SEP joining
+- [x] Implement `scripts/builders/columnar.ts`: columnar JSON serialization with SEP joining
 - [ ] Implement `scripts/builders/relations.ts`: synonym/antonym inheritance within same POS
 - [ ] Implement `scripts/build-dict.ts`: main orchestration — read sources, normalize, match WordNet synsets, serialize columnar JSON, gzip output
 - [ ] Implement `scripts/build-dictionary.mjs`: ESM entry point that imports and runs `build-dict.ts`
