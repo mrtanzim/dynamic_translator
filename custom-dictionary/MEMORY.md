@@ -6,7 +6,7 @@ Persistent scratchpad for the Custom Dictionary Package System. Any AI starting 
 
 ## 2. Current Status
 
-**Phase:** Phase 0 — Project Setup (files created, no code implemented yet)  
+**Phase:** Phase 1 — Core Build Script + Dataset Setup (Phase 0 complete, verified)  
 **Last updated:** 2026-10-22  
 **Active branch:** `master`  
 **Folder:** `E:\Special NEED\Translator extention\custom-dictionary/`
@@ -35,19 +35,29 @@ Persistent scratchpad for the Custom Dictionary Package System. Any AI starting 
 | `PHASES.md` | Complete | 7-phase roadmap with micro-tasks and execution rules |
 | `DESIGN.md` | Complete | CLI style, color palette, typography, component specs, accessibility |
 | `MEMORY.md` | Complete | This file |
+| `package.json` | Complete | Scripts: build:dictionary, test, lint, typecheck |
+| `tsconfig.json` | Complete | Strict TypeScript config |
+| `vitest.config.ts` | Complete | Vitest config pointing to tests/ |
+| `oxlint.config.json` | Complete | Lint config |
+| `src/index.ts` | Complete | Public API placeholder (`VERSION = '0.1.0'`) |
+| `tests/placeholder.test.ts` | Complete | Placeholder test (2 passing) |
 
 ## 5. Files NOT Yet Created
 
 | File | Why blocked |
 |------|-----------|
-| `package.json` | Waiting for Phase 0 micro-task completion |
-| `tsconfig.json` | Waiting for Phase 0 |
-| `vitest.config.ts` | Waiting for Phase 0 |
-| `oxlint.config.json` | Waiting for Phase 0 |
-| `src/types.ts` | Waiting for Phase 1 |
-| `scripts/build-dict.ts` | Waiting for Phase 1 |
-| `scripts/build-dictionary.mjs` | Waiting for Phase 1 |
-| `tests/*.test.ts` | Waiting for Phase 5 |
+| `scripts/lib/bengali.mjs` | Complete | read Wiktionary JSONL, group by headword |
+| `scripts/lib/wordnet.mjs` | Complete | read WordNet data/index, extract synonyms, antonyms, examples |
+| `scripts/lib/pronunciation.mjs` | Complete | CMUdict ARPAbet → IPA conversion |
+| `scripts/lib/romanize.mjs` | Phase 1 micro-task 4 — Bengali ↔ Latin transliteration |
+| `scripts/lib/pronunciation.mjs` | Phase 1 micro-task 3 — CMUdict ARPAbet → IPA |
+| `scripts/lib/romanize.mjs` | Phase 1 micro-task 4 — Bengali ↔ Latin transliteration |
+| `scripts/builders/normalize.ts` | Phase 1 micro-task 5 — NFC normalization |
+| `scripts/builders/columnar.ts` | Phase 1 micro-task 6 — columnar JSON serialization |
+| `scripts/builders/relations.ts` | Phase 1 micro-task 7 — synonym/antonym inheritance |
+| `scripts/build-dict.ts` | Phase 1 micro-task 8 — main orchestration |
+| `scripts/build-dictionary.mjs` | Phase 1 micro-task 9 — ESM entry point |
+| `tests/*.test.ts` | Phase 5 |
 
 ## 6. Known Constraints
 
@@ -63,7 +73,7 @@ Persistent scratchpad for the Custom Dictionary Package System. Any AI starting 
 
 ## 8. Next Immediate Action
 
-Initialize `package.json`, `tsconfig.json`, `vitest.config.ts`, `oxlint.config.json`, then verify `npm run lint`, `npx tsc -b`, `npx vitest run` all pass on an empty project.
+Implement `scripts/lib/bengali.mjs`: read Wiktionary JSONL, group by headword, collect Bengali meanings + romanizations.
 
 ## 9. AI Contribution Instructions
 

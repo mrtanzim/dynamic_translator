@@ -33,9 +33,9 @@
 
 ## Phase 1 — Core Build Script + Dataset Format
 
-- [ ] Implement `scripts/lib/bengali.mjs`: read Wiktionary JSONL, group by headword, collect Bengali meanings + romanizations
-- [ ] Implement `scripts/lib/wordnet.mjs`: read WordNet data/index files, extract synonyms, antonyms, examples per synset
-- [ ] Implement `scripts/lib/pronunciation.mjs`: load CMUdict, ARPAbet → IPA conversion table
+- [x] Implement `scripts/lib/bengali.mjs`: read Wiktionary JSONL, group by headword, collect Bengali meanings + romanizations
+- [x] Implement `scripts/lib/wordnet.mjs`: read WordNet data/index files, extract synonyms, antonyms, examples per synset
+- [x] Implement `scripts/lib/pronunciation.mjs`: load CMUdict, ARPAbet → IPA conversion table
 - [ ] Implement `scripts/lib/romanize.mjs`: Bengali ↔ Latin transliteration table
 - [ ] Implement `scripts/builders/normalize.ts`: NFC normalization, punctuation stripping, lowercase
 - [ ] Implement `scripts/builders/columnar.ts`: columnar JSON serialization with SEP joining
