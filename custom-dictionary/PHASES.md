@@ -51,7 +51,7 @@
 
 ## Phase 2 — Runtime Lookup Engine + Service Worker Bridge
 
-- [ ] Implement `src/types.ts`: `LookupResult`, `DictionaryDataset`, `SuggestionPayload`, message contracts
+- [x] Implement `src/types.ts`: `LookupResult`, `DictionaryDataset`, `SuggestionPayload`, message contracts
 - [ ] Implement `src/loader.ts`: fetch gzipped dataset, `DecompressionStream`, memoized load, version check
 - [ ] Implement `src/indexer.ts`: `OfflineDictionary` class — build `byHeadword`, `byNormalized`, `byBengali`, `byRelation`, `englishWords`, `bengaliWords`
 - [ ] Implement `src/lookup.ts`: `lookup()`, `lookupBengali()`, headword resolution, synonym/antonym resolution via relation index
