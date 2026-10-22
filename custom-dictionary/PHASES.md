@@ -56,7 +56,7 @@
 - [x] Implement `src/indexer.ts`: `OfflineDictionary` class — build `byHeadword`, `byNormalized`, `byBengali`, `byRelation`, `englishWords`, `bengaliWords`
 - [x] Implement `src/lookup.ts`: `lookup()`, `lookupBengali()`, headword resolution, synonym/antonym resolution via relation index
 - [ ] Implement `src/index.ts`: public API exports
-- [ ] Implement service worker message handlers: `VOCABFLOW_DICT_LOOKUP`, `VOCABFLOW_DICT_SUGGEST`
+- [x] Implement service worker message handlers: `VOCABFLOW_DICT_LOOKUP`, `VOCABFLOW_DICT_SUGGEST`
 - [ ] Verify lookup latency p50 < 5ms, p95 < 20ms
 - [ ] Verify version mismatch throws immediately
 
