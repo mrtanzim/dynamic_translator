@@ -63,8 +63,8 @@ beforeEach(() => {
             cb({
               'vocabflow.providers': {
                 groq: { apiKey: 'k', enabled: true, model: 'm' },
-                openrouter: { apiKey: '', enabled: false, model: 'openai/gpt-4o-mini' },
-                gemini: { apiKey: '', enabled: false, model: 'gemini-2.0-flash' },
+                openrouter: { apiKey: '', enabled: false, model: 'qwen/qwen3.8-flash' },
+                gemini: { apiKey: '', enabled: false, model: 'gemini-3.8-flash' },
               },
             })
           else cb({})
