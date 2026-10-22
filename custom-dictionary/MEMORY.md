@@ -41,16 +41,16 @@ Persistent scratchpad for the Custom Dictionary Package System. Any AI starting 
 | `oxlint.config.json` | Complete | Lint config |
 | `src/index.ts` | Complete | Public API placeholder (`VERSION = '0.1.0'`) |
 | `tests/placeholder.test.ts` | Complete | Placeholder test (2 passing) |
+| `scripts/lib/bengali.mjs` | Complete | read Wiktionary JSONL, group by headword |
+| `scripts/lib/wordnet.mjs` | Complete | read WordNet data/index, extract synonyms, antonyms, examples |
+| `scripts/lib/pronunciation.mjs` | Complete | CMUdict ARPAbet → IPA conversion |
+| `scripts/lib/romanize.mjs` | Complete | Bengali ↔ Latin transliteration |
+| `scripts/builders/normalize.ts` | Complete | NFC normalization, punctuation stripping, lowercase |
 
 ## 5. Files NOT Yet Created
 
 | File | Why blocked |
 |------|-----------|
-| `scripts/lib/bengali.mjs` | Complete | read Wiktionary JSONL, group by headword |
-| `scripts/lib/wordnet.mjs` | Complete | read WordNet data/index, extract synonyms, antonyms, examples |
-| `scripts/lib/pronunciation.mjs` | Complete | CMUdict ARPAbet → IPA conversion |
-| `scripts/lib/romanize.mjs` | Complete | Bengali ↔ Latin transliteration |
-| `scripts/builders/normalize.ts` | Phase 1 micro-task 5 — NFC normalization |
 | `scripts/builders/columnar.ts` | Phase 1 micro-task 6 — columnar JSON serialization |
 | `scripts/builders/relations.ts` | Phase 1 micro-task 7 — synonym/antonym inheritance |
 | `scripts/build-dict.ts` | Phase 1 micro-task 8 — main orchestration |
@@ -71,7 +71,7 @@ Persistent scratchpad for the Custom Dictionary Package System. Any AI starting 
 
 ## 8. Next Immediate Action
 
-Implement `scripts/lib/bengali.mjs`: read Wiktionary JSONL, group by headword, collect Bengali meanings + romanizations.
+Implement `scripts/builders/columnar.ts`: columnar JSON serialization with SEP joining.
 
 ## 9. AI Contribution Instructions
 
