@@ -11,9 +11,6 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { createRequire } from 'node:module'
-
-const require = createRequire(import.meta.url)
 
 /** ARPAbet phoneme -> IPA mapping. */
 const ARPABET_TO_IPA = {
@@ -118,7 +115,6 @@ export function loadPronunciations(packageRoot) {
     throw new Error(`CMU pronouncing dictionary not found at ${modulePath}`)
   }
 
-  // cmu-pronouncing-dictionary is a CommonJS module; use createRequire to load it
   const mod = require(modulePath)
   const dictionary = mod.default?.dictionary ?? mod.dictionary
   if (!dictionary) {
