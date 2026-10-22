@@ -24,10 +24,12 @@ function readDictFile(dictDir, name) {
   return fs.readFileSync(file, 'utf8').split('\n')
 }
 
-/** Parses `data.{pos}` into synset -> lemma list, examples and antonym pointers. */
+/** Parses `data.{pos}` into synset -> lemma list, gloss, examples and antonym pointers. */
 function parseDataFiles(dictDir) {
   /** @type {Map<string, string[]>} */
   const synsetLemmas = new Map()
+  /** @type {Map<string, string>} */
+  const synsetGloss = new Map()
   /** @type {Map<string, string>} */
   const synsetExample = new Map()
   /** @type {Map<string, string[]>} */
@@ -51,8 +53,11 @@ function parseDataFiles(dictDir) {
       const key = synsetKey(pos, offset)
       synsetLemmas.set(key, lemmas)
 
-      // Example sentences are quoted and follow the gloss.
-      const example = line.slice(bar).match(/;\s*"([^"]+)"/)
+      // The gloss is the definition, the example sentence follows it after a
+      // semicolon.
+      const after = line.slice(bar + 1)
+      synsetGloss.set(key, after.split(';')[0].trim())
+      const example = after.match(/;\s*"([^"]+)"/)
       if (example) synsetExample.set(key, example[1])
 
       // Pointer block: p_cnt followed by p_cnt (symbol, offset) pairs.
@@ -63,13 +68,15 @@ function parseDataFiles(dictDir) {
         const symbol = tokens[cursor + 1 + i * 4]
         const target = tokens[cursor + 2 + i * 4]
         if (symbol === '!' && target) {
+          // The pointer never leaves the part of speech, so the target synset
+          // is looked up in the same file.
           if (!antonymTargets.has(key)) antonymTargets.set(key, [])
-          antonymTargets.get(key).push({ pos, offset: target })
+          antonymTargets.get(key).push(synsetKey(pos, target))
         }
       }
     }
   }
-  return { synsetLemmas, synsetExample, antonymTargets }
+  return { synsetLemmas, synsetGloss, synsetExample, antonymTargets }
 }
 
 
@@ -109,7 +116,13 @@ function parseIndexFiles(dictDir) {
 
 
 /**
- * Reads a `wordnet-db` package and extracts synonyms, antonyms and examples.
+ * Reads a `wordnet-db` package.
+ *
+ * The data is returned per synset, not per word: a word can be in several
+ * synsets, and each of them has its own synonyms, its own antonyms and its
+ * own example. The caller picks the synset that matches the entry, so the
+ * relations of another reading never leak in.
+ *
  * @param {string} packageRoot path to the `wordnet-db` package directory
  */
 export function loadWordNet(packageRoot) {
@@ -118,54 +131,19 @@ export function loadWordNet(packageRoot) {
     throw new Error(`WordNet dictionary files not found at ${dictDir}`)
   }
 
-  const { synsetLemmas, synsetExample, antonymTargets } = parseDataFiles(dictDir)
+  const { synsetLemmas, synsetGloss, synsetExample, antonymTargets } = parseDataFiles(dictDir)
   const senses = parseIndexFiles(dictDir)
 
-  /** @type {Map<string, string[]>} */
-  const synonyms = new Map()
-  /** @type {Map<string, string[]>} */
-  const antonyms = new Map()
-  /** @type {Map<string, string>} */
-  const examples = new Map()
-
-  const addTo = (map, lemma, other) => {
-    if (!map.has(lemma)) map.set(lemma, [])
-    const list = map.get(lemma)
-    if (!list.includes(other)) list.push(other)
+  return {
+    /** lemma -> the synsets it belongs to. */
+    senses,
+    /** synset key -> its lemmas. */
+    synsets: synsetLemmas,
+    /** synset key -> the definition. */
+    glosses: synsetGloss,
+    /** synset key -> the example sentence. */
+    examples: synsetExample,
+    /** synset key -> the keys of its antonym synsets. */
+    antonyms: antonymTargets,
   }
-
-  for (const [lemma, entries] of senses) {
-    for (const { pos, offset } of entries) {
-      const key = synsetKey(pos, offset)
-      for (const other of synsetLemmas.get(key) ?? []) {
-        const clean = other.split('(')[0].toLowerCase()
-        if (clean === lemma) continue
-        if (!/^[a-z][a-z-]*$/.test(clean)) continue
-        if (clean.length < 2) continue
-        addTo(synonyms, lemma, clean)
-      }
-      const example = synsetExample.get(key)
-      if (example && !examples.has(lemma)) examples.set(lemma, example)
-    }
-  }
-
-  // Antonyms: a synset's `!` pointer names the target synset; the relation is
-  // symmetric, so both directions are recorded.
-  for (const [key, targets] of antonymTargets) {
-    const sourceLemmas = synsetLemmas.get(key) ?? []
-    for (const { pos, offset } of targets) {
-      const targetLemmas = synsetLemmas.get(synsetKey(pos, offset)) ?? []
-      for (const source of sourceLemmas) {
-        for (const other of targetLemmas) {
-          const a = source.split('(')[0].toLowerCase()
-          const b = other.split('(')[0].toLowerCase()
-          if (a === b) continue
-          addTo(antonyms, a, b)
-          addTo(antonyms, b, a)
-        }
-      }
-    }
-  }
-
-  return { senses, synonyms, antonyms, examples }
 }

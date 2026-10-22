@@ -24,6 +24,7 @@ import path from 'node:path'
 import zlib from 'node:zlib'
 import { fileURLToPath } from 'node:url'
 import { canonicalBengali, loadBengaliDictionary, selectVocabulary } from './lib/bengali.mjs'
+import { loadPronunciations } from './lib/pronunciation.mjs'
 import { loadWordNet } from './lib/wordnet.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -32,7 +33,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SEP = '\u0001'
 
 /** Dataset format version, bumped when the layout changes. */
-const FORMAT_VERSION = 2
+const FORMAT_VERSION = 3
 
 const LIMITS = {
   synonyms: 8,
@@ -42,32 +43,71 @@ const LIMITS = {
   example: 150,
 }
 
+/**
+ * The part-of-speech labels of the source, written out.
+ *
+ * The source uses the abbreviations of a Wiktionary dump ("adj", "name"),
+ * which mean nothing to a learner.
+ */
+const POS_LABELS = {
+  noun: 'noun',
+  name: 'proper noun',
+  adj: 'adjective',
+  verb: 'verb',
+  num: 'numeral',
+  adv: 'adverb',
+  intj: 'interjection',
+  pron: 'pronoun',
+  prep: 'preposition',
+  postp: 'postposition',
+  conj: 'conjunction',
+  det: 'determiner',
+  prefix: 'prefix',
+  suffix: 'suffix',
+  particle: 'particle',
+  article: 'article',
+  symbol: 'symbol',
+  sentence: 'sentence',
+}
+
+/**
+ * The parts of speech of the source that WordNet also knows.
+ *
+ * A word that is both a noun and a verb has different synonyms and
+ * different antonyms in the two readings, so the relations are only taken
+ * from the part of speech the entry is listed under.
+ */
+const POS_TO_WORDNET = {
+  noun: 'noun',
+  name: 'noun',
+  verb: 'verb',
+  adj: 'adj',
+  adv: 'adv',
+}
+
+/**
+ * Writes the part of speech out.
+ *
+ * @param {string} pos the source value, e.g. "adj" or "name, old"
+ * @returns {string}
+ */
+function posLabel(pos) {
+  const parts = pos
+    .split('/')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const [name, ...rest] = part.split(',').map((p) => p.trim())
+      const label = POS_LABELS[name] ?? name
+      return rest.length ? `${label} (${rest.join(', ')})` : label
+    })
+  return parts.slice(0, 3).join(' / ')
+}
+
 /** Curated entries are the source of truth for the words they cover. */
 function loadCurated() {
   const file = path.join(root, 'src', 'dictionary', 'curated.json')
   return JSON.parse(fs.readFileSync(file, 'utf8'))
-}
-
-/**
- * Chooses the synonyms and antonyms that are worth showing.
- *
- * WordNet lists every lemma sharing a synset, which includes rare
- * morphological variants ("well-chosen" for "happy"). Only single-word
- * synonyms are kept, and they are ordered so that the most common ones come
- * first.
- */
-function pickRelations(word, candidates, limit) {
-  const seen = new Set([word])
-  const picked = []
-  for (const candidate of candidates) {
-    if (seen.has(candidate)) continue
-    if (!/^[a-z][a-z-]*$/.test(candidate)) continue
-    if (candidate.length < 3) continue
-    seen.add(candidate)
-    picked.push(candidate)
-    if (picked.length >= limit) break
-  }
-  return picked
 }
 
 /**
@@ -111,8 +151,176 @@ function romanOf(entry, meaning) {
   return entry.roman[index] ?? ''
 }
 
-function main() {
+/**
+ * Whether a relation is worth showing.
+ *
+ * WordNet lists every lemma that shares a synset, which includes rare
+ * morphological variants ("well-chosen" for "happy"). Only single words of
+ * at least three letters are kept.
+ */
+function isUsableRelation(word) {
+  return /^[a-z][a-z-]*$/.test(word) && word.length >= 3
+}
+
+/**
+ * The part of speech the relations of an entry are taken from.
+ *
+ * @param {import('./lib/bengali.mjs').BengaliHeadword} entry
+ * @returns {string | null} a WordNet part of speech
+ */
+function wordnetPos(entry) {
+  for (const pos of entry.pos) {
+    const mapped = POS_TO_WORDNET[pos]
+    if (mapped) return mapped
+  }
+  return null
+}
+
+/** The words of a text that carry meaning. */
+const STOP_WORDS = new Set([
+  'a', 'an', 'the', 'of', 'in', 'on', 'at', 'to', 'for', 'with', 'by', 'from',
+  'as', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'that', 'this',
+  'these', 'those', 'it', 'its', 'any', 'some', 'or', 'and', 'but', 'not',
+  'used', 'one', 'who', 'which', 'whose', 'when', 'where', 'how', 'than',
+  'them', 'they', 'their', 'there', 'here', 'into', 'onto', 'upon', 'about',
+])
+
+/**
+ * The meaningful words of a text.
+ *
+ * @param {string} text
+ * @returns {Set<string>}
+ */
+function contentWords(text) {
+  const out = new Set()
+  for (const word of text.toLowerCase().split(/[^a-z]+/)) {
+    if (word.length < 3) continue
+    if (STOP_WORDS.has(word)) continue
+    out.add(word)
+  }
+  return out
+}
+
+/**
+ * The WordNet synset that describes the entry.
+ *
+ * A word can be in several synsets -- "volume" is a set of books and also a
+ * loudness -- and each of them has its own synonyms, antonyms and example.
+ * The synset whose definition has the most words in common with the
+ * definition of the entry is the one that describes it.
+ *
+ * @param {ReturnType<typeof loadWordNet>} wordnet
+ * @param {string} head
+ * @param {string} pos
+ * @param {string} definition
+ * @returns {string | null} the synset key
+ */
+function matchSynset(wordnet, head, pos, definition) {
+  const candidates = (wordnet.senses.get(head) ?? []).filter((s) => s.pos === pos)
+  if (!candidates.length) return null
+  const wanted = contentWords(definition)
+  let best = null
+  let bestScore = 0
+  for (const sense of candidates) {
+    const key = synsetKey(sense.pos, sense.offset)
+    const gloss = wordnet.glosses.get(key) ?? ''
+    let score = 0
+    for (const word of contentWords(gloss)) {
+      if (wanted.has(word)) score += 1
+    }
+    if (score > bestScore) {
+      bestScore = score
+      best = key
+    }
+  }
+  // Without a single word in common the synset is a guess, and a wrong
+  // guess is worse than no relation at all.
+  return bestScore > 0 ? best : null
+}
+
+/**
+ * The lemmas of a synset, cleaned up.
+ *
+ * @param {ReturnType<typeof loadWordNet>} wordnet
+ * @param {string} key
+ * @returns {string[]}
+ */
+function synsetLemmas(wordnet, key) {
+  return (wordnet.synsets.get(key) ?? [])
+    .map((lemma) => lemma.split('(')[0].toLowerCase())
+    .filter((lemma) => lemma !== '' && lemma.length < 30)
+}
+
+/**
+ * The antonyms of a synset.
+ *
+ * @param {ReturnType<typeof loadWordNet>} wordnet
+ * @param {string} key
+ * @returns {string[]}
+ */
+function synsetAntonyms(wordnet, key) {
+  const out = []
+  for (const target of wordnet.antonyms.get(key) ?? []) {
+    for (const lemma of synsetLemmas(wordnet, target)) out.push(lemma)
+  }
+  return out
+}
+
+/**
+ * The antonyms of the synonyms of a synset.
+ *
+ * WordNet marks the opposite on a synset, so a word only gets an antonym
+ * when its own synset carries one. But the relation holds for the whole
+ * group: if "large" is the opposite of "small", then "big" -- a synonym of
+ * "large" -- is the opposite of "small" as well.
+ *
+ * @param {ReturnType<typeof loadWordNet>} wordnet
+ * @param {string} key
+ * @param {string} pos
+ * @returns {string[]}
+ */
+function inheritedAntonyms(wordnet, key, pos) {
+  const out = []
+  for (const lemma of synsetLemmas(wordnet, key)) {
+    for (const sense of wordnet.senses.get(lemma) ?? []) {
+      if (sense.pos !== pos) continue
+      out.push(...synsetAntonyms(wordnet, synsetKey(sense.pos, sense.offset)))
+    }
+  }
+  return out
+}
+
+/**
+ * The synonyms of the antonyms of a synset.
+ *
+ * The reverse of the antonym inheritance: if "unhappy" is the opposite of
+ * "happy", it can name the same synonyms.
+ *
+ * @param {ReturnType<typeof loadWordNet>} wordnet
+ * @param {string} key
+ * @param {string} pos
+ * @returns {string[]}
+ */
+function inheritedSynonyms(wordnet, key, pos) {
+  const out = []
+  for (const antonymKey of wordnet.antonyms.get(key) ?? []) {
+    for (const lemma of synsetLemmas(wordnet, antonymKey)) {
+      for (const sense of wordnet.senses.get(lemma) ?? []) {
+        if (sense.pos !== pos) continue
+        for (const other of synsetLemmas(wordnet, synsetKey(sense.pos, sense.offset))) {
+          out.push(other)
+        }
+      }
+    }
+  }
+  return out
+}
+
+async function main() {
   const wordNet = loadWordNet(path.join(root, 'node_modules', 'wordnet-db'))
+  const pronunciations = await loadPronunciations(
+    path.join(root, 'node_modules', 'cmu-pronouncing-dictionary'),
+  )
   const bengali = selectVocabulary(
     loadBengaliDictionary(path.join(root, 'node_modules', 'bn-en-dictionary')),
   )
@@ -120,21 +328,18 @@ function main() {
 
   console.log(`wordnet lemmas: ${wordNet.senses.size}`)
   console.log(`bengali headwords (single token): ${bengali.size}`)
+  console.log(`pronunciations: ${pronunciations.size}`)
 
   /** @type {Record<string, object>} */
   const table = {}
 
   for (const [head, entry] of bengali) {
-    const synonyms = pickRelations(
-      head,
-      wordNet.synonyms.get(head) ?? [],
-      LIMITS.synonyms,
-    )
-    const antonyms = pickRelations(
-      head,
-      wordNet.antonyms.get(head) ?? [],
-      LIMITS.antonyms,
-    )
+    // The relations are taken from the part of speech the entry is listed
+    // under, so a word that is both a noun and a verb does not get the
+    // antonyms of the other reading.
+    const pos = wordnetPos(entry)
+    const synonyms = pos ? synonymsWithInherited(wordNet, head, pos, LIMITS.synonyms) : []
+    const antonyms = pos ? antonymsWithInherited(wordNet, head, pos, LIMITS.antonyms) : []
     const example = (wordNet.examples.get(head) ?? '').trim().slice(0, LIMITS.example)
 
     const spellings = bengaliSpellings(entry)
@@ -144,10 +349,11 @@ function main() {
       trans: spellings[0]?.roman ?? '',
       transAlts: spellings.slice(1).map((s) => s.roman),
       def: entry.def.slice(0, LIMITS.definition),
-      pos: entry.pos.slice(0, 3).join('/'),
+      pos: posLabel(entry.pos.slice(0, 3).join('/')),
       syn: synonyms,
       ant: antonyms,
       ex: example,
+      pron: pronunciations.get(head) ?? '',
     }
   }
 
@@ -179,6 +385,9 @@ function main() {
       syn: value.syn?.length ? value.syn : (base.syn ?? []),
       ant: value.ant?.length ? value.ant : (base.ant ?? []),
       ex: value.ex ?? base.ex ?? '',
+      // The pronunciation belongs to the English word, so a curated entry
+      // never changes it.
+      pron: base.pron ?? pronunciations.get(head) ?? '',
     }
   }
 
@@ -195,6 +404,7 @@ function main() {
     syn: [],
     ant: [],
     ex: [],
+    pron: [],
   }
   for (const head of heads) {
     const entry = table[head]
@@ -207,6 +417,7 @@ function main() {
     columns.syn.push(entry.syn.join(SEP))
     columns.ant.push(entry.ant.join(SEP))
     columns.ex.push(entry.ex)
+    columns.pron.push(entry.pron)
   }
 
   const dataset = { v: FORMAT_VERSION, ...columns }
