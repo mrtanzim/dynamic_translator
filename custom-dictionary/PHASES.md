@@ -69,7 +69,7 @@
 - [x] Cap results at `limit` (default 8)
 - [ ] Drop stale requests when user keeps typing (sequence counter)
 - [ ] Verify suggest latency < 10ms
-- [ ] Test: "cucu" → "cucumber", "cucnber" → "cucumber", "বই" → Bengali suggestions
+- [x] Test: "cucu" → "cucumber", "cucnber" → "cucumber", "বই" → Bengali suggestions
 
 ---
 

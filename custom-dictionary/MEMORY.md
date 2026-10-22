@@ -56,6 +56,8 @@
 // | `src/indexer.ts` | Complete | OfflineDictionary class — build byHeadword, byNormalized, byBengali, byRelation, englishWords, bengaliWords |
 // | `src/lookup.ts` | Complete | lookup(), lookupBengali(), headword resolution |
 // | `src/suggest.ts` | Complete | Type-ahead suggestion engine — prefix + fuzzy matching |
+// | `src/service-worker.ts` | Complete | VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |
+// | `tests/suggest.test.ts` | Complete | suggest() tests — exact, prefix, typo, empty, limit |
 // | `src/service-worker.ts` | Phase 2 micro-task 6 — VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |
 //
 // ## 6. Known Constraints
