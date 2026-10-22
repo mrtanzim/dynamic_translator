@@ -14,6 +14,7 @@ import {
 } from '../providers/bridge'
 import { loadOfflineDictionary } from '../providers/offline/loader'
 import { seedProviderSettings } from '../storage/seed'
+import { contentScriptFiles } from './content-script'
 
 // A single shared promise so that the seed runs exactly once per worker start
 // and every request can await the same completion.
@@ -45,12 +46,26 @@ chrome.runtime.onMessage.addListener((msg: { type?: string }, _sender, sendRespo
 
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return
+  const tabId = tab.id
   try {
-    await chrome.tabs.sendMessage(tab.id, { type: TOGGLE_MESSAGE })
+    await chrome.tabs.sendMessage(tabId, { type: TOGGLE_MESSAGE })
+    return
   } catch {
-    // Content script may not be ready yet; the page will reload and
-    // content_scripts (declared in manifest) will inject it automatically.
-    await chrome.tabs.reload(tab.id)
+    // The content script is not running in this tab yet — it is declared for
+    // every page, but a tab that was already open when the extension was
+    // installed or reloaded never received it. Inject it on demand and try
+    // again. Reloading the tab would work too, but it would destroy the
+    // user's page state, so it is not an acceptable fallback.
+  }
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: contentScriptFiles(),
+    })
+    await chrome.tabs.sendMessage(tabId, { type: TOGGLE_MESSAGE })
+  } catch {
+    // The page refuses extension scripts (chrome://, the Web Store, a PDF
+    // viewer, or a page with a strict CSP). There is nothing to do here.
   }
 })
 
