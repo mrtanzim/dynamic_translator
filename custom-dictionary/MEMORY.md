@@ -53,7 +53,7 @@ Persistent scratchpad for the Custom Dictionary Package System. Any AI starting 
 |------|-----------|
 | `scripts/builders/columnar.ts` | Complete | columnar JSON serialization with SEP joining |
 | `scripts/builders/relations.ts` | Complete | synonym/antonym inheritance within same POS |
-| `scripts/build-dict.ts` | Phase 1 micro-task 8 — main orchestration |
+| `scripts/build-dict.ts` | Complete | main orchestration — read sources, normalize, match WordNet synsets, serialize columnar JSON, gzip output |
 | `scripts/build-dictionary.mjs` | Phase 1 micro-task 9 — ESM entry point |
 | `tests/*.test.ts` | Phase 5 |
 
