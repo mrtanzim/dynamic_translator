@@ -68,7 +68,7 @@
 - [x] Ranking: exact > relation > prefix > fuzzy > subsequence
 - [x] Cap results at `limit` (default 8)
 - [x] Drop stale requests when user keeps typing (sequence counter)
-- [ ] Verify suggest latency < 10ms
+- [x] Verify suggest latency < 10ms
 - [x] Test: "cucu" → "cucumber", "cucnber" → "cucumber", "বই" → Bengali suggestions
 
 ---

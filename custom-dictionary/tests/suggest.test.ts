@@ -127,4 +127,36 @@ describe('type-ahead suggestions', () => {
     expect(list.suggestions[0]?.bengali).toBe(true);
     expect(list.suggestions[0]?.headword).toBe('book');
   });
+
+  it('suggests within 10ms p95 latency', () => {
+    const headwords = [
+      'apple', 'apricot', 'banana', 'carrot', 'cucumber', 'dog', 'elephant', 'fish', 'grape', 'house',
+    ];
+    const largerDataset = {
+      v: 4,
+      headwords: ['apple', 'apricot', 'banana', 'carrot', 'cucumber', 'dog', 'elephant', 'fish', 'grape', 'house'],
+      bn: ['আপেল', 'আপরicot', 'কলা', 'গাজর', 'শসা', 'কুকুর', 'হাতি', 'মাছ', 'আংগুর', 'বাড়ি'],
+      bnAlt: headwords.map(() => ''),
+      trans: ['apel', 'aprikot', 'kola', 'gajor', 'shosha', 'kukur', 'hati', 'mach', 'angur', 'bari'],
+      transAlt: headwords.map(() => ''),
+      def: headwords.map(() => 'definition'),
+      pos: headwords.map(() => 'noun'),
+      syn: headwords.map(() => 'synonyms'),
+      ant: headwords.map(() => 'antonyms'),
+      ex: headwords.map(() => 'example'),
+      pron: headwords.map(() => '/ˈæpəl/'),
+    };
+    const dict = new OfflineDictionary(largerDataset);
+
+    const latencies: number[] = [];
+    for (const headword of headwords) {
+      const start = performance.now();
+      suggestWords(dict, headword, 8);
+      latencies.push(performance.now() - start);
+    }
+
+    latencies.sort((a, b) => a - b);
+    const p95 = latencies[Math.floor(latencies.length * 0.95)];
+    expect(p95).toBeLessThan(10);
+  });
 });
