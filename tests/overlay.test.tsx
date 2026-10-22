@@ -219,6 +219,22 @@ describe('Overlay type-ahead', () => {
   })
 })
 
+describe('Overlay offline fallback', () => {
+  it('keeps the offline answer on screen when the AI provider fails', async () => {
+    aiFails = true
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'hello' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() => expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/provider is down/)).toBeInTheDocument())
+    // The answer of the offline dictionary is still the one on screen.
+    expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument()
+  })
+})
+
 describe('Overlay clear button', () => {
   it('removes the previous word and its result', async () => {
     render(<Overlay onClose={vi.fn()} />)

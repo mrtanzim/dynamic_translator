@@ -237,6 +237,26 @@ describe('LookupCoordinator', () => {
     expect(stale).toBeUndefined()
   })
 
+  it('keeps the offline answer when the provider fails', async () => {
+    // The AI provider is down: the answer must still come from the offline
+    // dictionary instead of leaving the user with nothing.
+    sendMessage.mockImplementation(async (req: { type?: string }) => {
+      if (req.type === OFFLINE_LOOKUP_MESSAGE) {
+        return { ok: true, result: offlineEntry('hello', 'হ্যালো') }
+      }
+      return { ok: false, error: 'provider is down' }
+    })
+    const events: LookupEvent[] = []
+    const c = new LookupCoordinator({ onEvent: (e) => events.push(e) })
+    await c.lookup('hello', settings)
+
+    const local = events.find((e) => e.type === 'LOCAL_RESULT')
+    expect(local, 'expected the offline dictionary to answer').toBeTruthy()
+    expect(events.some((e) => e.type === 'LOOKUP_ERROR')).toBe(true)
+    // No provider result replaced the offline answer.
+    expect(events.some((e) => e.type === 'AI_RESULT')).toBe(false)
+  })
+
   it('reports provider errors without breaking other providers', async () => {
     sendMessage.mockImplementation(async (req: { type?: string; provider: string }) => {
       if (req.type === OFFLINE_LOOKUP_MESSAGE) {
