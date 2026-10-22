@@ -57,8 +57,9 @@
 //
 // | File | Why blocked |
 // |------|-----------|
-// | `src/loader.ts` | Phase 2 micro-task 2 — fetch gzipped dataset, DecompressionStream, memoized load |
-// | `src/indexer.ts` | Phase 2 micro-task 3 — OfflineDictionary class |
+// | `src/types.ts` | Complete | LookupResult, DictionaryDataset, SuggestionPayload, message contracts |
+// | `src/loader.ts` | Complete | fetch gzipped dataset, DecompressionStream, memoized load |
+// | `src/indexer.ts` | Complete | OfflineDictionary class — build byHeadword, byNormalized, byBengali, byRelation, englishWords, bengaliWords |
 // | `src/lookup.ts` | Phase 2 micro-task 4 — lookup(), lookupBengali(), headword resolution |
 // | `src/index.ts` | Phase 2 micro-task 5 — public API exports |
 // | Service worker message handlers | Phase 2 micro-task 6 — VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST |
