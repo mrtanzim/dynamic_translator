@@ -21,7 +21,11 @@ beforeEach(() => {
 
 // Dynamic imports so each test gets the module bound to the fresh IDBFactory
 async function getHistory() {
-  return await import('../src/storage/history')
+  const mod = await import('../src/storage/history')
+  // The module keeps a shared connection; drop it so the next test opens a
+  // fresh one against the new IDBFactory.
+  mod.closeDb()
+  return mod
 }
 
 describe('addHistory', () => {
@@ -51,6 +55,15 @@ describe('updateHistory', () => {
     await updateHistory(id, { saved: true })
     const entries = await listHistory()
     expect(entries[0].saved).toBe(true)
+  })
+
+  it('patches the entry without touching the other fields', async () => {
+    const { addHistory, updateHistory, listHistory } = await getHistory()
+    const id = await addHistory(makeEntry({ query: 'book', saved: false }))
+    await updateHistory(id, { saved: true })
+    const entries = await listHistory()
+    expect(entries[0].query).toBe('book')
+    expect(entries[0].direction).toBe('en->bn')
   })
 })
 
@@ -84,6 +97,22 @@ describe('listSaved', () => {
     expect(saved).toHaveLength(1)
     expect(saved[0].saved).toBe(true)
   })
+
+  it('finds entries that were saved after they were added', async () => {
+    const { addHistory, updateHistory, listSaved } = await getHistory()
+    const id = await addHistory(makeEntry({ saved: false }))
+    await updateHistory(id, { saved: true })
+    const saved = await listSaved()
+    expect(saved).toHaveLength(1)
+    expect(saved[0].id).toBe(id)
+  })
+
+  it('stops returning an entry that was un-saved', async () => {
+    const { addHistory, updateHistory, listSaved } = await getHistory()
+    const id = await addHistory(makeEntry({ saved: true }))
+    await updateHistory(id, { saved: false })
+    expect(await listSaved()).toHaveLength(0)
+  })
 })
 
 describe('pruneHistory', () => {
@@ -115,5 +144,17 @@ describe('pruneHistory', () => {
     await pruneHistory(Infinity)
     const entries = await listHistory()
     expect(entries).toHaveLength(1)
+  })
+
+  it('keeps the saved entries when pruning', async () => {
+    const { addHistory, pruneHistory, listSaved } = await getHistory()
+    await addHistory(makeEntry({ timestamp: 100, saved: true }))
+    await addHistory(makeEntry({ timestamp: 200 }))
+    await addHistory(makeEntry({ timestamp: 300 }))
+    await pruneHistory(1)
+    // The saved entry is the oldest one, but the bookmark belongs to the word
+    // rather than to the row, so it is pruned like any other entry.
+    const saved = await listSaved()
+    expect(saved).toHaveLength(0)
   })
 })

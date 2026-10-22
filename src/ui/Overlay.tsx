@@ -10,6 +10,8 @@ import { HistoryView } from './views/HistoryView'
 import { SettingsView, AboutView } from './views/SettingsView'
 
 const STORAGE_KEY = 'vocabflow.overlay'
+/** How long the overlay position is left unsettled before it is persisted. */
+const POSITION_WRITE_DEBOUNCE_MS = 300
 type Pos = { x: number; y: number; w: number; h: number }
 const DEFAULT: Pos = { x: window.innerWidth - 400, y: 80, w: 380, h: 520 }
 function clamp(p: Pos): Pos {
@@ -130,7 +132,25 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t)
   }, [query])
 
-  useEffect(() => { chrome.storage.local.set({ [STORAGE_KEY]: pos }) }, [pos])
+  // The position is persisted on every drag/resize frame, which would write
+  // to storage hundreds of times per second. The write is debounced so that
+  // only the final position is stored.
+  const posRef = useRef(pos)
+  posRef.current = pos
+  useEffect(() => {
+    const t = setTimeout(() => {
+      chrome.storage.local.set({ [STORAGE_KEY]: pos })
+    }, POSITION_WRITE_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [pos])
+
+  // The debounced write is cancelled when the overlay closes, so the last
+  // position is flushed on unmount.
+  useEffect(() => {
+    return () => {
+      chrome.storage.local.set({ [STORAGE_KEY]: posRef.current })
+    }
+  }, [])
 
   /**
    * Toggles the bookmark for the word that is currently displayed.

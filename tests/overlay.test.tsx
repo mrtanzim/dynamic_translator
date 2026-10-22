@@ -120,6 +120,26 @@ describe('Overlay integration', () => {
   })
 })
 
+describe('Overlay position persistence', () => {
+  it('debounces the position write instead of writing on every frame', async () => {
+    const set = vi.fn()
+    ;(globalThis.chrome.storage.local as unknown as { set: unknown }).set = set
+
+    render(<Overlay onClose={vi.fn()} />)
+
+    // Nothing is written before the debounce elapses.
+    await new Promise((r) => setTimeout(r, 50))
+    const writesDuringDebounce = set.mock.calls.length
+
+    await waitFor(() => expect(set).toHaveBeenCalled(), { timeout: 2000 })
+    const writes = set.mock.calls.length
+    expect(writes).toBeGreaterThan(writesDuringDebounce)
+    // The write carries the overlay position.
+    const payload = set.mock.calls[set.mock.calls.length - 1][0] as Record<string, unknown>
+    expect(Object.keys(payload)).toContain('vocabflow.overlay')
+  })
+})
+
 describe('Overlay history persistence', () => {
   it('stores one history row per search action and updates it when the AI result arrives', async () => {
     render(<Overlay onClose={vi.fn()} />)
