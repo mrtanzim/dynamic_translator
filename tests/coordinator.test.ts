@@ -6,11 +6,13 @@ import type { LookupEvent, LookupResult } from '../src/shared/types'
 const sendMessage = vi.fn()
 
 /** A minimal offline entry, as the service worker would return it. */
-function offlineEntry(headword: string, bn: string) {
+function offlineEntry(headword: string, bn: string, trans = '') {
   return {
     headword,
     bn,
     bnAlts: [],
+    trans,
+    transAlts: [],
     def: `${headword} definition`,
     pos: 'noun',
     syn: [],
@@ -323,5 +325,19 @@ describe('LookupCoordinator', () => {
     await new Promise((r) => setTimeout(r, 10))
     const local = events.find((e) => e.type === 'LOCAL_RESULT')
     expect(local && local.type === 'LOCAL_RESULT' && local.result.partOfSpeech).toBe('noun')
+  })
+
+  it('carries the romanized spelling of a Bengali word into the result', async () => {
+    // The Latin-script spelling comes from the dataset, so the offline answer
+    // carries it even when no AI provider is reachable.
+    mockBridge({
+      offline: (query) => (query === 'বই' ? offlineEntry('book', 'বই', 'boi') : null),
+    })
+    const events: LookupEvent[] = []
+    const c = new LookupCoordinator({ onEvent: (e) => events.push(e) })
+    void c.lookup('বই', settings)
+    await new Promise((r) => setTimeout(r, 10))
+    const local = events.find((e) => e.type === 'LOCAL_RESULT')
+    expect(local && local.type === 'LOCAL_RESULT' && local.result.transcription).toBe('boi')
   })
 })

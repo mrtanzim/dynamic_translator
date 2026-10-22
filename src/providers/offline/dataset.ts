@@ -7,10 +7,12 @@
 //
 // Layout (see `scripts/build-dictionary.mjs`):
 //   {
-//     v: 1,
+//     v: 2,
 //     headwords: string[],   // English headword, sorted
 //     bn: string[],          // primary Bengali meaning
 //     bnAlt: string[],       // alternative Bengali spellings, U+0001-joined
+//     trans: string[],       // romanization of the primary meaning
+//     transAlt: string[],    // romanization of the alternatives, U+0001-joined
 //     def: string[],         // English definition
 //     pos: string[],         // part of speech
 //     syn: string[],         // synonyms, U+0001-joined
@@ -23,7 +25,7 @@
 export const SEP = '\u0001'
 
 /** Current dataset format version. */
-export const DATASET_VERSION = 1
+export const DATASET_VERSION = 2
 
 export interface DictionaryEntry {
   /** English headword. */
@@ -32,6 +34,10 @@ export interface DictionaryEntry {
   bn: string
   /** Alternative Bengali spellings. */
   bnAlts: string[]
+  /** The romanized spelling of the primary meaning ("বই" -> "boi"). */
+  trans: string
+  /** The romanized spelling of every alternative, in the same order. */
+  transAlts: string[]
   /** English definition. */
   def: string
   /** Part of speech. */
@@ -50,6 +56,8 @@ export interface DictionaryDataset {
   headwords: string[]
   bn: string[]
   bnAlt: string[]
+  trans: string[]
+  transAlt: string[]
   def: string[]
   pos: string[]
   syn: string[]
@@ -204,7 +212,8 @@ export class OfflineDictionary {
   /** The entries keyed by their normalized headword, used by the type-ahead. */
   private readonly byNormalized = new Map<string, DictionaryEntry>()
   private readonly byRelation = new Map<string, string>()
-  private readonly byBengali = new Map<string, string[]>()
+  /** The English headword a Bengali word resolves to, with its romanization. */
+  private readonly byBengali = new Map<string, Array<{ headword: string; roman: string }>>()
   /** The normalized English headwords, sorted, for the prefix search. */
   private readonly englishWords: string[] = []
   /** The normalized single-token Bengali words, sorted, for the prefix search. */
@@ -217,7 +226,7 @@ export class OfflineDictionary {
       throw new Error(`Unsupported dictionary dataset version: ${dataset.v}`)
     }
     const n = dataset.headwords.length
-    for (const key of ['bn', 'bnAlt', 'def', 'pos', 'syn', 'ant', 'ex'] as const) {
+    for (const key of ['bn', 'bnAlt', 'trans', 'transAlt', 'def', 'pos', 'syn', 'ant', 'ex'] as const) {
       if (dataset[key].length !== n) {
         throw new Error(`Dictionary dataset column "${key}" has the wrong length`)
       }
@@ -230,6 +239,8 @@ export class OfflineDictionary {
         headword: dataset.headwords[i],
         bn: dataset.bn[i],
         bnAlts: splitColumn(dataset.bnAlt[i]),
+        trans: dataset.trans[i],
+        transAlts: splitColumn(dataset.transAlt[i]),
         def: dataset.def[i],
         pos: dataset.pos[i],
         syn: splitColumn(dataset.syn[i]),
@@ -247,8 +258,10 @@ export class OfflineDictionary {
         if (!this.byRelation.has(relation)) this.byRelation.set(relation, entry.headword)
       }
 
-      this.addBengali(entry.bn, entry.headword)
-      for (const alt of entry.bnAlts) this.addBengali(alt, entry.headword)
+      this.addBengali(entry.bn, entry.headword, entry.trans)
+      entry.bnAlts.forEach((alt, index) => {
+        this.addBengali(alt, entry.headword, entry.transAlts[index] ?? '')
+      })
 
       // Only single words are useful as type-ahead suggestions: a multi-word
       // meaning ("দক্ষিণ আফ্রিকার জন্তুবিশেষ") is a description, not a word.
@@ -266,15 +279,22 @@ export class OfflineDictionary {
     this.bengaliWords = [...bengali].sort()
   }
 
-  private addBengali(bengali: string, headword: string): void {
+  /**
+   * Indexes one Bengali spelling.
+   *
+   * The romanization belongs to the spelling, not to the headword: the same
+   * English word can be written in Bengali in more than one way, and each
+   * way has its own Latin spelling.
+   */
+  private addBengali(bengali: string, headword: string, roman: string): void {
     const key = normalizeBengali(bengali)
     if (!key) return
     const bucket = this.byBengali.get(key)
     if (bucket) {
-      if (!bucket.includes(headword)) bucket.push(headword)
+      if (!bucket.some((b) => b.headword === headword)) bucket.push({ headword, roman })
       return
     }
-    this.byBengali.set(key, [headword])
+    this.byBengali.set(key, [{ headword, roman }])
   }
 
   /** Number of entries in the dictionary. */
@@ -313,20 +333,29 @@ export class OfflineDictionary {
    * A Bengali word can be the translation of several English words, so the
    * first (alphabetically) headword is returned and the alternatives stay
    * available through {@link bengaliHeadwords}.
+   *
+   * The spelling that matched is returned as well, together with its
+   * romanization: it is the Latin-script spelling of the word the user typed
+   * ("বই" -> "boi"), which is what the offline answer shows next to it.
    */
-  lookupBengali(q: string): { headword: string; entry: DictionaryEntry } | null {
-    const heads = this.bengaliHeadwords(q)
-    if (!heads.length) return null
-    const headword = heads[0]
+  lookupBengali(q: string): { headword: string; entry: DictionaryEntry; roman: string; bengali: string } | null {
+    const hits = this.bengaliHits(q)
+    if (!hits.length) return null
+    const headword = hits[0].headword
     const entry = this.byHeadword.get(headword)
-    return entry ? { headword, entry } : null
+    return entry ? { headword, entry, roman: hits[0].roman, bengali: hits[0].bengali } : null
   }
 
   /** All English headwords whose Bengali meaning matches the query. */
   bengaliHeadwords(q: string): string[] {
+    return this.bengaliHits(q).map((hit) => hit.headword)
+  }
+
+  /** The reverse-index hits of a Bengali query. */
+  private bengaliHits(q: string): Array<{ headword: string; roman: string; bengali: string }> {
     const n = normalizeBengali(q)
     if (!n) return []
-    return this.byBengali.get(n) ?? []
+    return (this.byBengali.get(n) ?? []).map((hit) => ({ ...hit, bengali: n }))
   }
 
   /** The words in `words` that start with `prefix` (at most `cap` of them). */

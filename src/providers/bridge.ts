@@ -31,6 +31,10 @@ export interface OfflineEntryPayload {
   headword: string
   bn: string
   bnAlts: string[]
+  /** The romanized spelling of the primary meaning ("বই" -> "boi"). */
+  trans: string
+  /** The romanized spelling of every alternative, in the same order. */
+  transAlts: string[]
   def: string
   pos: string
   syn: string[]

@@ -49,6 +49,7 @@
 - [x] clear button in the search field
 - [x] thin, glass-themed scrollbars (styled inside the shadow root)
 - [x] "Search" entry in the menu to return to the search screen
+- [x] romanized spelling of every Bengali word in the offline dataset
 - [x] AI answer carries a transcription (other script) and a pronunciation guide
 - [ ] export history/saved as CSV/JSON
 - [ ] full bilingual sentence translation view
@@ -57,7 +58,7 @@
 - [ ] Supabase optional auth + cloud sync of saved words
 
 ## Phase 8 QA
-- [x] vitest suite (102 tests, 3 live-API tests skipped) covering the
+- [x] vitest suite (111 tests, 3 live-API tests skipped) covering the
       coordinator, the offline dictionary, the type-ahead, the providers, the
       history store, the overlay, the service worker and the content script
 - [x] type-check + production build green

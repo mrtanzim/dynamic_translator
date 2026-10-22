@@ -87,7 +87,7 @@ describe('offline dictionary', () => {
 
   it('has a non-trivial dataset with consistent shape', () => {
     expect(dataset.headwords.length).toBeGreaterThanOrEqual(50)
-    const columns = ['bn', 'bnAlt', 'def', 'pos', 'syn', 'ant', 'ex'] as const
+    const columns = ['bn', 'bnAlt', 'trans', 'transAlt', 'def', 'pos', 'syn', 'ant', 'ex'] as const
     for (const column of columns) {
       expect(dataset[column].length).toBe(dataset.headwords.length)
     }
@@ -97,6 +97,40 @@ describe('offline dictionary', () => {
       expect(Array.isArray(dataset.syn[i].split(SEP))).toBe(true)
       expect(Array.isArray(dataset.ant[i].split(SEP))).toBe(true)
     }
+  })
+})
+
+describe('romanization', () => {
+  it('ships the romanized spelling of a Bengali word', () => {
+    // The Latin-script spelling is what a learner needs to read a Bengali
+    // word, and it comes from the dataset, not from an AI provider.
+    const hit = dictionary.lookupBengali('বই')
+    expect(hit?.roman).toBe('boi')
+    expect(hit?.bengali).toBe('বই')
+    expect(hit?.entry.trans).toBe('boi')
+  })
+
+  it('ships a romanization for almost every entry', () => {
+    const withRoman = dataset.trans.filter((t) => t.trim() !== '').length
+    expect(withRoman).toBeGreaterThan(dataset.headwords.length * 0.95)
+  })
+
+  it('keeps the romanization of the spelling that was typed', () => {
+    // "book" has several Bengali spellings, and each one has its own Latin
+    // spelling, so the romanization belongs to the spelling, not to the
+    // headword.
+    const entry = dictionary.lookup('book')
+    const alternative = entry?.bnAlts[0]
+    expect(alternative).toBeTruthy()
+    const hit = dictionary.lookupBengali(alternative as string)
+    expect(hit?.roman).toBeTruthy()
+    expect(hit?.roman).not.toBe(dictionary.lookupBengali('বই')?.roman)
+  })
+
+  it('resolves a Bengali word that is only an alternative spelling', () => {
+    const entry = dictionary.lookup('book')
+    const alternative = entry?.bnAlts[0] as string
+    expect(dictionary.lookupBengali(alternative)?.headword).toBe('book')
   })
 })
 

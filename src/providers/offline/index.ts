@@ -45,12 +45,17 @@ export async function offlineLookup(
   return response.result
 }
 
-/** Resolves a Bengali meaning back to its English headword. */
+/**
+ * Resolves a Bengali meaning back to its English headword.
+ *
+ * The romanization of the queried spelling comes with it, so the caller can
+ * show how the word is written in Latin script.
+ */
 export async function offlineBengaliLookup(
   query: string,
-): Promise<{ headword: string; entry: OfflineEntryPayload } | null> {
+): Promise<{ headword: string; entry: OfflineEntryPayload; roman: string } | null> {
   const entry = await offlineLookup(query, true)
-  return entry ? { headword: entry.headword, entry } : null
+  return entry ? { headword: entry.headword, entry, roman: entry.trans } : null
 }
 
 /**

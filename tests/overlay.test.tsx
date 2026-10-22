@@ -29,6 +29,8 @@ const offlineEntry = {
   headword: 'hello',
   bn: 'হ্যালো',
   bnAlts: [],
+  trans: '',
+  transAlts: [],
   def: 'a greeting',
   pos: 'noun',
   syn: [],
@@ -85,7 +87,7 @@ beforeEach(() => {
           return {
             ok: true,
             result: bengali
-              ? { ...offlineEntry, headword: 'book', bn: 'বই' }
+              ? { ...offlineEntry, headword: 'book', bn: 'বই', trans: 'boi' }
               : offlineEntry,
           }
         }
@@ -175,6 +177,21 @@ describe('Overlay transcription', () => {
     // An English word is shown in Bengali script, with its pronunciation.
     expect(screen.getByText(/In Bengali script/)).toBeInTheDocument()
     expect(screen.getByText(/Pronunciation/)).toBeInTheDocument()
+  })
+
+  it('shows the romanized spelling of a Bengali word in the offline answer', async () => {
+    // The AI provider is down: the Latin-script spelling has to come from
+    // the offline dictionary.
+    aiFails = true
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'বই' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() => expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument())
+    expect(screen.getByText(/In Latin script/)).toBeInTheDocument()
+    expect(screen.getByText('boi')).toBeInTheDocument()
   })
 })
 

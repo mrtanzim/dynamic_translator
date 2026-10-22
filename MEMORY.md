@@ -59,8 +59,18 @@
   The whole dictionary is covered in about 4 ms.
 - The AI prompt asks for more than a translation: `transcription` (the word in
   the other script — an English word in Bengali script, a Bengali word in
-  Latin script) and `pronunciation` (IPA or respelling). Both come from the
-  provider; the offline dictionary has no transliteration.
+  Latin script) and `pronunciation` (IPA or respelling). The provider answers
+  both; the offline dictionary answers the Latin-script spelling of a Bengali
+  word on its own, because the Wiktionary source carries a `romanised` field
+  ("বই" -> "boi") for 100% of the entries. The romanization belongs to the
+  *spelling*, not to the headword: "book" is written "বই", "কিতাব" and "বুক",
+  and each spelling has its own Latin form.
+- The offline dataset is **not** written by an AI model. It is built by
+  `npm run build:dictionary` from `bn-en-dictionary` (a Wiktionary dump,
+  CC BY-SA 3.0), `wordnet-db` (Princeton WordNet 3.0) and the hand-written
+  `src/dictionary/curated.json`. The AI providers never receive the dataset:
+  a provider request carries the query, the direction, the model and the key,
+  and nothing else.
 - The history store keeps **one** IndexedDB connection for all operations (a
   per-operation connection leaked on failure), prunes in a single
   transaction, and lists the saved words through a `saved` index. IndexedDB
@@ -114,6 +124,8 @@
 - Proven: the offline dictionary answers when the AI provider fails — the
   offline answer stays on screen and the provider error is reported next to
   it.
+- Added: the offline dataset ships the romanized spelling of every Bengali
+  word, so the offline answer carries the Latin script as well.
 
 ## Blocked / Not verified
 - No live Groq / OpenRouter / Gemini / Supabase credentials are available yet.

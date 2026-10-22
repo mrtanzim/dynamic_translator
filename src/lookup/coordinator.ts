@@ -31,6 +31,14 @@ interface OfflineHit {
   entry: OfflineEntryPayload
   /** The English headword, when it is worth showing next to the query. */
   headword?: string
+  /**
+   * The romanization of the queried Bengali spelling.
+   *
+   * It is the Latin-script spelling of the word the user typed ("বই" ->
+   * "boi"), so it is only set for a Bengali query: for an English query the
+   * other script is Bengali, which only the AI provider can write.
+   */
+  roman?: string
 }
 
 export class LookupCoordinator {
@@ -138,9 +146,16 @@ export class LookupCoordinator {
    */
   private async fetchOffline(query: string, bengaliInput: boolean): Promise<OfflineHit | null> {
     const lookup = (async () => {
-      const payload = bengaliInput
-        ? ((await offlineBengaliLookup(query))?.entry ?? null)
-        : ((await offlineLookup(query)) as OfflineEntryPayload | null)
+      let payload: OfflineEntryPayload | null = null
+      /** The romanization of the queried Bengali spelling, when there is one. */
+      let roman = ''
+      if (bengaliInput) {
+        const hit = await offlineBengaliLookup(query)
+        payload = hit?.entry ?? null
+        roman = hit?.roman ?? ''
+      } else {
+        payload = (await offlineLookup(query)) as OfflineEntryPayload | null
+      }
       if (!payload) return null
       // The headword is the canonical English word of the entry. It is only
       // worth showing when it differs from what the user typed: for a Bengali
@@ -149,7 +164,7 @@ export class LookupCoordinator {
       const headword = payload.headword
       const interesting =
         !!headword && headword.toLowerCase() !== query.toLowerCase() ? headword : undefined
-      return { entry: payload, headword: interesting }
+      return { entry: payload, headword: interesting, roman }
     })()
 
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -222,6 +237,10 @@ export class LookupCoordinator {
         timestamp: Date.now(),
         bengaliMeaning: source.bn,
         englishDefinition: source.def,
+        // The Latin-script spelling of the Bengali word the user typed. It
+        // comes from the dataset, so the offline answer carries it even when
+        // no AI provider is reachable.
+        transcription: hit.roman || undefined,
         partOfSpeech: source.pos || undefined,
         synonyms: source.syn,
         antonyms: source.ant,

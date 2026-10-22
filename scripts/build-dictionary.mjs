@@ -32,7 +32,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SEP = '\u0001'
 
 /** Dataset format version, bumped when the layout changes. */
-const FORMAT_VERSION = 1
+const FORMAT_VERSION = 2
 
 const LIMITS = {
   synonyms: 8,
@@ -71,26 +71,44 @@ function pickRelations(word, candidates, limit) {
 }
 
 /**
- * Normalizes and de-duplicates a list of Bengali spellings.
+ * The Bengali spellings of an entry, each paired with its romanization.
+ *
+ * The romanization is the Latin-script spelling of one Bengali spelling
+ * ("বই" -> "boi"). It is what a learner needs to read a Bengali word, so it
+ * is part of the dataset: the offline answer can carry it without an AI
+ * provider.
  *
  * NFC can map two distinct spellings onto the same sequence (the YYA
- * variants), and the primary meaning is removed from the alternatives so that
- * the reverse index never maps one Bengali word to the same headword twice.
+ * variants), so the spellings are de-duplicated here. The first one is the
+ * primary meaning, the rest are its alternatives.
  *
- * @param {string[]} values
- * @param {string} primary
- * @returns {string[]}
+ * @param {import('./lib/bengali.mjs').BengaliHeadword} entry
+ * @returns {Array<{ meaning: string, roman: string }>}
  */
-function uniqueBengali(values, primary) {
-  const seen = new Set(primary ? [primary] : [])
-  const result = []
-  for (const value of values) {
-    const canonical = canonicalBengali(value)
-    if (!canonical || seen.has(canonical)) continue
-    seen.add(canonical)
-    result.push(canonical)
+function bengaliSpellings(entry) {
+  const seen = new Set()
+  const out = []
+  for (let i = 0; i < entry.meanings.length && out.length < LIMITS.meanings; i++) {
+    const meaning = canonicalBengali(entry.meanings[i])
+    if (!meaning || seen.has(meaning)) continue
+    seen.add(meaning)
+    out.push({ meaning, roman: entry.roman[i] ?? '' })
   }
-  return result
+  return out
+}
+
+/**
+ * The romanization of one Bengali spelling, if the entry knows it.
+ *
+ * @param {import('./lib/bengali.mjs').BengaliHeadword} entry
+ * @param {string} meaning
+ * @returns {string}
+ */
+function romanOf(entry, meaning) {
+  const canonical = canonicalBengali(meaning)
+  const index = entry.meanings.findIndex((m) => canonicalBengali(m) === canonical)
+  if (index === -1) return ''
+  return entry.roman[index] ?? ''
 }
 
 function main() {
@@ -119,10 +137,12 @@ function main() {
     )
     const example = (wordNet.examples.get(head) ?? '').trim().slice(0, LIMITS.example)
 
-    const primary = canonicalBengali(entry.meanings[0] ?? '')
+    const spellings = bengaliSpellings(entry)
     table[head] = {
-      bn: primary,
-      bnAlts: uniqueBengali(entry.meanings.slice(1, LIMITS.meanings), primary),
+      bn: spellings[0]?.meaning ?? '',
+      bnAlts: spellings.slice(1).map((s) => s.meaning),
+      trans: spellings[0]?.roman ?? '',
+      transAlts: spellings.slice(1).map((s) => s.roman),
       def: entry.def.slice(0, LIMITS.definition),
       pos: entry.pos.slice(0, 3).join('/'),
       syn: synonyms,
@@ -136,9 +156,24 @@ function main() {
     const base = table[head] ?? {}
     const primary = canonicalBengali(value.bn ?? base.bn ?? '')
     const alts = value.bnAlts ?? base.bnAlts ?? []
+    const source = bengali.get(head)
+    // The romanization belongs to a specific spelling, so it is only kept
+    // when the spelling it belongs to is still the one that is stored.
+    const trans = primary === base.bn ? (base.trans ?? '') : (source ? romanOf(source, primary) : '')
+    const transAlts = alts.map((alt) => {
+      if (!source) return ''
+      const generated = base.bnAlts ?? []
+      const index = generated.findIndex((a) => canonicalBengali(a) === canonicalBengali(alt))
+      if (index !== -1 && canonicalBengali(generated[index]) === canonicalBengali(alt)) {
+        return base.transAlts?.[index] ?? ''
+      }
+      return romanOf(source, alt)
+    })
     table[head] = {
       bn: primary,
-      bnAlts: uniqueBengali(alts, primary),
+      bnAlts: alts,
+      trans,
+      transAlts,
       def: value.def ?? base.def ?? '',
       pos: value.pos ?? base.pos ?? '',
       syn: value.syn?.length ? value.syn : (base.syn ?? []),
@@ -153,6 +188,8 @@ function main() {
     headwords: heads,
     bn: [],
     bnAlt: [],
+    trans: [],
+    transAlt: [],
     def: [],
     pos: [],
     syn: [],
@@ -163,6 +200,8 @@ function main() {
     const entry = table[head]
     columns.bn.push(entry.bn)
     columns.bnAlt.push(entry.bnAlts.join(SEP))
+    columns.trans.push(entry.trans)
+    columns.transAlt.push(entry.transAlts.join(SEP))
     columns.def.push(entry.def)
     columns.pos.push(entry.pos)
     columns.syn.push(entry.syn.join(SEP))

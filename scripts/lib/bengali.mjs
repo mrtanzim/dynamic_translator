@@ -23,7 +23,8 @@ import path from 'node:path'
  * @typedef {object} BengaliHeadword
  * @property {string} head
  * @property {string[]} meanings  Distinct Bengali spellings, most common first
- * @property {string[]} roman     Distinct romanized spellings
+ * @property {string[]} roman     The romanized spelling of `meanings[i]`
+ *                                 (an empty string when there is none)
  * @property {string[]} pos       Distinct parts of speech
  * @property {string} def         Best English definition
  * @property {number} senses      Number of records for this headword
@@ -74,9 +75,17 @@ export function loadBengaliDictionary(packageRoot) {
     }
     entry.senses += 1
 
-    if (!entry.meanings.includes(bn)) entry.meanings.push(bn)
     const roman = String(record.romanised ?? '').trim().toLowerCase()
-    if (roman && !entry.roman.includes(roman)) entry.roman.push(roman)
+    // The romanized spelling belongs to one specific Bengali spelling, so
+    // the two are kept in step: `roman[i]` is the romanization of
+    // `meanings[i]`.
+    const index = entry.meanings.indexOf(bn)
+    if (index === -1) {
+      entry.meanings.push(bn)
+      entry.roman.push(roman)
+    } else if (roman && !entry.roman[index]) {
+      entry.roman[index] = roman
+    }
     const pos = String(record.pos ?? '').trim()
     if (pos && !entry.pos.includes(pos)) entry.pos.push(pos)
 

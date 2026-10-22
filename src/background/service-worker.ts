@@ -127,7 +127,11 @@ async function handleOfflineLookup(
   const dictionary = await loadOfflineDictionary()
   if (msg.isBengali) {
     const hit = dictionary.lookupBengali(msg.query)
-    return { ok: true, result: hit ? { ...hit.entry } : null }
+    if (!hit) return { ok: true, result: null }
+    // The word the user typed is the Bengali word. The entry's primary
+    // meaning may be a different spelling of the same word, so the matched
+    // spelling and its romanization are returned instead.
+    return { ok: true, result: { ...hit.entry, bn: hit.bengali, trans: hit.roman } }
   }
   const entry = dictionary.lookup(msg.query)
   return { ok: true, result: entry ? { ...entry } : null }
