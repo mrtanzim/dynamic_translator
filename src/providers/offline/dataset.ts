@@ -7,17 +7,18 @@
 //
 // Layout (see `scripts/build-dictionary.mjs`):
 //   {
-//     v: 2,
+//     v: 4,
 //     headwords: string[],   // English headword, sorted
 //     bn: string[],          // primary Bengali meaning
-//     bnAlt: string[],       // alternative Bengali spellings, U+0001-joined
+//     bnAlt: string[],       // ALL other Bengali meanings, U+0001-joined
 //     trans: string[],       // romanization of the primary meaning
-//     transAlt: string[],    // romanization of the alternatives, U+0001-joined
+//     transAlt: string[],    // romanization of each alternative meaning
 //     def: string[],         // English definition
 //     pos: string[],         // part of speech
 //     syn: string[],         // synonyms, U+0001-joined
 //     ant: string[],         // antonyms, U+0001-joined
 //     ex: string[],          // example sentence
+//     pron: string[],        // pronunciation guide (IPA)
 //   }
 // Every array has the same length and shares the same index space.
 
@@ -25,18 +26,18 @@
 export const SEP = '\u0001'
 
 /** Current dataset format version. */
-export const DATASET_VERSION = 2
+export const DATASET_VERSION = 4
 
 export interface DictionaryEntry {
   /** English headword. */
   headword: string
   /** Primary Bengali meaning. */
   bn: string
-  /** Alternative Bengali spellings. */
+  /** All other Bengali meanings. */
   bnAlts: string[]
   /** The romanized spelling of the primary meaning ("বই" -> "boi"). */
   trans: string
-  /** The romanized spelling of every alternative, in the same order. */
+  /** The romanized spelling of every alternative meaning, in the same order. */
   transAlts: string[]
   /** English definition. */
   def: string
@@ -48,6 +49,8 @@ export interface DictionaryEntry {
   ant: string[]
   /** Example sentence. */
   ex: string
+  /** Pronunciation guide (IPA). */
+  pron: string
 }
 
 /** The raw columnar dataset as stored on disk. */
@@ -63,6 +66,7 @@ export interface DictionaryDataset {
   syn: string[]
   ant: string[]
   ex: string[]
+  pron: string[]
 }
 
 function splitColumn(value: string): string[] {
@@ -226,7 +230,7 @@ export class OfflineDictionary {
       throw new Error(`Unsupported dictionary dataset version: ${dataset.v}`)
     }
     const n = dataset.headwords.length
-    for (const key of ['bn', 'bnAlt', 'trans', 'transAlt', 'def', 'pos', 'syn', 'ant', 'ex'] as const) {
+    for (const key of ['bn', 'bnAlt', 'trans', 'transAlt', 'def', 'pos', 'syn', 'ant', 'ex', 'pron'] as const) {
       if (dataset[key].length !== n) {
         throw new Error(`Dictionary dataset column "${key}" has the wrong length`)
       }
@@ -246,6 +250,7 @@ export class OfflineDictionary {
         syn: splitColumn(dataset.syn[i]),
         ant: splitColumn(dataset.ant[i]),
         ex: dataset.ex[i],
+        pron: dataset.pron[i],
       }
       this.byHeadword.set(entry.headword, entry)
       const normalized = normalize(entry.headword)

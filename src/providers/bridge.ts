@@ -40,6 +40,8 @@ export interface OfflineEntryPayload {
   syn: string[]
   ant: string[]
   ex: string
+  /** Pronunciation guide (IPA). */
+  pron: string
 }
 
 export interface OfflineLookupRequest {

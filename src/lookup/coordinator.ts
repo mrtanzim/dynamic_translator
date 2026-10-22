@@ -226,6 +226,7 @@ export class LookupCoordinator {
       if (!hit) return
       if (this.currentId !== requestId) return // stale
       const source = hit.entry
+      const bengaliMeanings = [source.bn, ...source.bnAlts].filter(Boolean)
       const offlineResult: LookupResult = {
         // The word is always the query as typed; the canonical headword is
         // carried separately so that the display stays stable.
@@ -235,12 +236,15 @@ export class LookupCoordinator {
         source: 'offline',
         requestId,
         timestamp: Date.now(),
-        bengaliMeaning: source.bn,
+        // All Bengali meanings of the headword, not just the first one.
+        bengaliMeaning: bengaliMeanings.join(', '),
         englishDefinition: source.def,
         // The Latin-script spelling of the Bengali word the user typed. It
         // comes from the dataset, so the offline answer carries it even when
         // no AI provider is reachable.
         transcription: hit.roman || undefined,
+        // The pronunciation guide (IPA), from the dataset.
+        pronunciation: source.pron || undefined,
         partOfSpeech: source.pos || undefined,
         synonyms: source.syn,
         antonyms: source.ant,
