@@ -41,6 +41,18 @@
   content script, so `process.env.NODE_ENV` is replaced by a Rollup plugin.
 - The overlay position write is debounced by 300 ms and flushed when the
   overlay closes; a drag must not produce hundreds of storage writes.
+- The type-ahead is served by the offline dictionary through the
+  `VOCABFLOW_SUGGEST` message, so it needs no provider and no network. The
+  ranking is forgiving on purpose: exact word, then synonym/antonym, then
+  prefix, then a small edit distance (transpositions count as one edit), then
+  a subsequence. A word that is only the *beginning* of a longer word is not
+  looked up on its own — the suggestion is the better answer while the user
+  is still typing, and a half-typed word must not be sent to the providers.
+  The whole dictionary is covered in about 4 ms.
+- The AI prompt asks for more than a translation: `transcription` (the word in
+  the other script — an English word in Bengali script, a Bengali word in
+  Latin script) and `pronunciation` (IPA or respelling). Both come from the
+  provider; the offline dictionary has no transliteration.
 - The history store keeps **one** IndexedDB connection for all operations (a
   per-operation connection leaked on failure), prunes in a single
   transaction, and lists the saved words through a `saved` index. IndexedDB
@@ -62,9 +74,9 @@
 - Concurrent AI provider fan-out with per-provider error isolation.
 - Provider settings UI with test-connection button.
 - History, saved words, pronunciation, three-dot menu, settings & about views.
-- Vitest suite (81 tests, 3 live-API tests skipped) covering the coordinator,
-  the offline dictionary, the providers, the history store, the overlay, the
-  service worker and the content script.
+- Vitest suite (102 tests, 3 live-API tests skipped) covering the coordinator,
+  the offline dictionary, the type-ahead, the providers, the history store, the
+  overlay, the service worker and the content script.
 - Fixed: Bengali offline lookup was broken because `normalize()` stripped all
   Bengali characters, so the coordinator bailed out before any lookup ran.
   Covered by a regression test (`looks up a Bengali word offline`).
@@ -87,6 +99,13 @@
   completeness score (`PRIORITY.indexOf('offline')` was -1).
 - Fixed: the overlay position was written to storage on every mousemove and
   the history store opened a connection per operation; both are batched now.
+- Added: the search field suggests dictionary words while typing and has a
+  cross button that removes the previous word and its result.
+- Added: the AI answer carries a transcription (the word in the other script)
+  and a pronunciation guide, not just a translation.
+- Proven: the offline dictionary answers when the AI provider fails — the
+  offline answer stays on screen and the provider error is reported next to
+  it.
 
 ## Blocked / Not verified
 - No live Groq / OpenRouter / Gemini / Supabase credentials are available yet.

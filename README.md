@@ -11,15 +11,24 @@ translation in both directions.
 
 - **Floating overlay** — a draggable, resizable glass panel injected into every
   page. It never reloads the page and never leaks styles into it.
+- **Type-ahead** — the search field suggests dictionary words while you type.
+  It is forgiving: a half-typed word (`cucu` → *cucumber*) and a misspelled
+  one (`cucnber`) both find the entry.
+- **One-key clear** — the cross on the right of the search field removes the
+  previous word, its result and the answer that is still on its way.
 - **Offline first** — 6,675 English headwords with Bengali meanings,
   definitions, parts of speech, synonyms, antonyms and example sentences ship
   with the extension. The answer appears immediately, without a network round
-  trip.
+  trip. If an AI provider fails, its answer is simply skipped and the offline
+  one stays on screen.
 - **Bengali ⇄ English** — type a Bengali word and get its English headword, or
   type an English word and get the Bengali meaning.
 - **AI upgrade** — Groq, OpenRouter and Gemini are queried concurrently; the
   first good answer wins. Any provider can be enabled, and a failure in one
   never affects the others.
+- **Transcription and pronunciation** — the AI answer carries the word in the
+  other script (*cucumber* → কুকুম্বার, বই → *boi*) and a pronunciation guide,
+  not just a translation.
 - **Search history and saved words** — stored locally in IndexedDB, with a
   search direction and the source of each answer.
 - **Pronunciation** — uses the Web Speech API with the right voice for the

@@ -45,6 +45,9 @@
 - [x] search history (IndexedDB) + saved words
 - [x] pronunciation (Web Speech API)
 - [x] one history row per search (keyed on the original query / requestId)
+- [x] type-ahead suggestions from the offline dictionary (prefix + typo tolerant)
+- [x] clear button in the search field
+- [x] AI answer carries a transcription (other script) and a pronunciation guide
 - [ ] export history/saved as CSV/JSON
 - [ ] full bilingual sentence translation view
 
@@ -52,9 +55,9 @@
 - [ ] Supabase optional auth + cloud sync of saved words
 
 ## Phase 8 QA
-- [x] vitest suite (81 tests, 3 live-API tests skipped) covering the coordinator,
-      the offline dictionary, the providers, the history store, the overlay, the
-      service worker and the content script
+- [x] vitest suite (102 tests, 3 live-API tests skipped) covering the
+      coordinator, the offline dictionary, the type-ahead, the providers, the
+      history store, the overlay, the service worker and the content script
 - [x] type-check + production build green
 - [x] built-artifact check: `dist/dictionary.json.gz` present, content bundle free
       of dictionary data, service-worker load path simulated
