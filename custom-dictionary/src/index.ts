@@ -25,8 +25,8 @@ export {
 };
 export { LookupCoordinator } from './lookup';
 export { loadOfflineDictionary };
-export { suggestWords } from './suggest';
-
+export { SuggestEngine } from './suggest';
+export type { SuggestResponse } from './suggest';
 export const VERSION = '0.1.0';
 
 /**

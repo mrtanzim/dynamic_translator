@@ -51,7 +51,7 @@
 // | `scripts/builders/relations.ts` | Complete | synonym/antonym inheritance within same POS |
 // | `scripts/build-dict.ts` | Complete | main orchestration — read sources, normalize, match WordNet synsets, serialize columnar JSON, gzip output |
 // | `scripts/build-dictionary.mjs` | Complete | ESM entry point — imports and runs build-dict.ts |
-// | `src/suggest.ts` | Complete | Type-ahead suggestion engine — prefix + fuzzy matching |
+// | `src/suggest.ts` | Complete | Type-ahead suggestion engine — prefix + fuzzy matching, stale-request dropping via SuggestEngine |
 // | `tests/suggest.test.ts` | Complete | suggest() tests — exact, prefix, typo, empty, limit, Bengali |
 // | `src/service-worker.ts` | Complete | VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |
 // | `tests/suggest.test.ts` | Complete | suggest() tests — exact, prefix, typo, empty, limit |

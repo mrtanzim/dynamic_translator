@@ -93,38 +93,38 @@ const dictionary = buildDictionary(entries);
 describe('type-ahead suggestions', () => {
   it('suggests exact dictionary word', () => {
     const list = suggestWords(dictionary, 'cucumber', 8);
-    expect(list[0]?.word).toBe('cucumber');
+    expect(list.suggestions[0]?.word).toBe('cucumber');
   });
 
   it('suggests prefix matches', () => {
     const list = suggestWords(dictionary, 'cucu', 8);
-    expect(list.map((s) => s.word)).toContain('cucumber');
+    expect(list.suggestions.map((s) => s.word)).toContain('cucumber');
   });
 
   it('finds misspelled word (typo tolerance)', () => {
     const list = suggestWords(dictionary, 'cucnber', 8);
-    expect(list.map((s) => s.word)).toContain('cucumber');
+    expect(list.suggestions.map((s) => s.word)).toContain('cucumber');
   });
 
   it('returns empty list for empty query', () => {
     const list = suggestWords(dictionary, '', 8);
-    expect(list).toEqual([]);
+    expect(list.suggestions).toEqual([]);
   });
 
   it('respects limit', () => {
     const list = suggestWords(dictionary, 'a', 1);
-    expect(list.length).toBeLessThanOrEqual(1);
+    expect(list.suggestions.length).toBeLessThanOrEqual(1);
   });
 
   it('includes Bengali translations as hints', () => {
     const list = suggestWords(dictionary, 'cucumber', 1);
-    expect(list[0]?.hint).toBe('শসা');
+    expect(list.suggestions[0]?.hint).toBe('শসা');
   });
 
   it('suggests Bengali words for Bengali query', () => {
     const list = suggestWords(dictionary, 'বই', 8);
-    expect(list.map((s) => s.word)).toContain('book');
-    expect(list[0]?.bengali).toBe(true);
-    expect(list[0]?.headword).toBe('book');
+    expect(list.suggestions.map((s) => s.word)).toContain('book');
+    expect(list.suggestions[0]?.bengali).toBe(true);
+    expect(list.suggestions[0]?.headword).toBe('book');
   });
 });
