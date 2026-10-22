@@ -41,7 +41,7 @@
 - [x] Implement `scripts/builders/columnar.ts`: columnar JSON serialization with SEP joining
 - [x] Implement `scripts/builders/relations.ts`: synonym/antonym inheritance within same POS
 - [x] Implement `scripts/build-dict.ts`: main orchestration — read sources, normalize, match WordNet synsets, serialize columnar JSON, gzip output
-- [ ] Implement `scripts/build-dictionary.mjs`: ESM entry point that imports and runs `build-dict.ts`
+- [x] Implement `scripts/build-dictionary.mjs`: ESM entry point that imports and runs `build-dict.ts`
 - [ ] Add `npm run build:dictionary` script to `package.json`
 - [ ] Verify build produces `src/dictionary/generated.json` and `public/dictionary.json.gz`
 - [ ] Verify `DATASET_VERSION` = 4 and runtime loader checks it
