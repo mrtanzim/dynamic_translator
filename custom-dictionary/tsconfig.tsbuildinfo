@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/indexer.ts","./src/loader.ts","./src/lookup.ts","./src/types.ts"],"version":"6.0.3"}
+{"root":["./src/index.ts","./src/indexer.ts","./src/loader.ts","./src/lookup.ts","./src/service-worker.ts","./src/types.ts"],"version":"6.0.3"}

@@ -14,6 +14,7 @@
 
 import { OfflineDictionary } from './indexer';
 import { loadOfflineDictionary } from './loader';
+import { LookupCoordinator } from './lookup';
 import type { DictionaryDataset, DictionaryEntry, LookupResult, SuggestionPayload } from './types';
 
 export {
@@ -24,6 +25,8 @@ export {
 };
 export { LookupCoordinator } from './lookup';
 export { loadOfflineDictionary };
+
+export const VERSION = '0.1.0';
 
 /**
  * Create a LookupCoordinator from a loaded dictionary dataset.
