@@ -47,6 +47,7 @@
 - [x] one history row per search (keyed on the original query / requestId)
 - [x] type-ahead suggestions from the offline dictionary (prefix + typo tolerant)
 - [x] clear button in the search field
+- [x] thin, glass-themed scrollbars (styled inside the shadow root)
 - [x] AI answer carries a transcription (other script) and a pronunciation guide
 - [ ] export history/saved as CSV/JSON
 - [ ] full bilingual sentence translation view

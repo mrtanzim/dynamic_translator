@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import { Overlay } from './Overlay'
+import { OVERLAY_STYLES } from './styles'
 
 /** The id of the host element the overlay is rendered into. */
 export const HOST_ID = 'vocabflow-host'
@@ -25,6 +26,12 @@ export function mountOverlay(onClose: () => void) {
   host.id = HOST_ID
   const shadow = host.attachShadow({ mode: 'open' })
   document.body.appendChild(host)
+
+  // The stylesheet lives inside the shadow root, so the scrollbar rules
+  // cannot reach the scrollbars of the host page.
+  const style = document.createElement('style')
+  style.textContent = OVERLAY_STYLES
+  shadow.appendChild(style)
 
   const container = document.createElement('div')
   shadow.appendChild(container)

@@ -72,6 +72,18 @@ describe('content script lifecycle', () => {
     expect(document.querySelectorAll('#vocabflow-host')).toHaveLength(0)
   })
 
+  it('injects its stylesheet into the shadow root', async () => {
+    const listener = await loadContentScript()
+    listener({ type: TOGGLE_MESSAGE })
+
+    // The scrollbar rules live inside the shadow root, so they can never
+    // reach the scrollbars of the host page.
+    const host = document.querySelector('#vocabflow-host')
+    const style = host?.shadowRoot?.querySelector('style')?.textContent ?? ''
+    expect(style).toContain('::-webkit-scrollbar')
+    expect(style).toContain('scrollbar-width: thin')
+  })
+
   it('does not register a second listener when injected twice', async () => {
     const listener = await loadContentScript()
     // A second injection into the same frame must reuse the existing state

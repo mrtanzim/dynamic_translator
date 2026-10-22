@@ -8,13 +8,21 @@ Noto Sans Bengali + system sans. Compact hierarchy.
 Overlay 360-390w, min 300x260, max viewport. Header/search/results/actions. Internal scroll for long results; header+search sticky.
 ## Glassmorphism
 Translucent dark glass, subtle blur, thin borders, soft shadows. Solid fallback. No neon/glow/pink-purple. Reduced motion respected.
+## Scrollbars
+Thin (6 px) and barely visible: a transparent track, a translucent slate thumb that turns accent-blue on hover, no arrow buttons. The scrollbar is styled from inside the shadow root, so the page it is injected into keeps its own. The overlay declares `color-scheme: dark`, so the native fallback is dark as well and never a white bar.
 ## Components
 - **Header** — product name (accent), three-dot menu, close button. Draggable.
 - **Menu** — AI Providers, Search History, Saved Words, Translation Settings, Help / About.
-- **Search input** — single field; live lookup after a 400 ms debounce, Enter forces an immediate lookup.
+- **Search input** — single field with a cross button on the right that clears
+  the word, the result and the error; live lookup after a 300 ms debounce,
+  Enter forces an immediate lookup.
+- **Type-ahead list** — drops below the search field while typing: the word,
+  a muted hint (the Bengali meaning, or the English headword of a Bengali
+  word), arrow keys to walk it, Enter to take it, Escape to close it.
 - **Result body** — main word (accent), part of speech, Bengali meaning, English definition,
-  synonyms row, antonyms row, example card (en + bn), source label
-  (`Offline dictionary` for the provisional result, provider name for AI results).
+   transcription (the word in the other script), pronunciation guide,
+   synonyms row, antonyms row, example card (en + bn), source label
+   (`Offline dictionary` for the provisional result, provider name for AI results).
 - **Action row** — Pronounce (Web Speech API), Save (toggles the saved flag in history).
 - **Providers view** — per provider: enable checkbox, masked API key with show/hide,
   model select, Test (live connection check), Save, Remove, and a link to the

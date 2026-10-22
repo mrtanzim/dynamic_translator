@@ -8,6 +8,8 @@
 - Shadow DOM host + React root lifecycle (`src/ui/mount.tsx`) — the host element
   is created and removed together with the React tree.
 - React UI rendered inside the shadow root (`src/ui/Overlay.tsx`)
+- The overlay stylesheet (`src/ui/styles.ts`) is injected into the shadow root,
+  so the thin scrollbars cannot reach the scrollbars of the host page.
 
 ## Messaging
 - `VOCABFLOW_TOGGLE` — service worker → content script, show/hide the overlay.

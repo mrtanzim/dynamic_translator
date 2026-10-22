@@ -41,6 +41,11 @@
   content script, so `process.env.NODE_ENV` is replaced by a Rollup plugin.
 - The overlay position write is debounced by 300 ms and flushed when the
   overlay closes; a drag must not produce hundreds of storage writes.
+- The overlay stylesheet is injected into the shadow root (`src/ui/styles.ts`),
+  because `::-webkit-scrollbar` rules only reach the shadow tree from there.
+  The scrollbar is 6 px wide, has a transparent track and a translucent slate
+  thumb; `:host { color-scheme: dark }` keeps the native fallback dark instead
+  of the light bar Chrome draws on a light page.
 - The type-ahead is served by the offline dictionary through the
   `VOCABFLOW_SUGGEST` message, so it needs no provider and no network. The
   ranking is forgiving on purpose: exact word, then synonym/antonym, then
