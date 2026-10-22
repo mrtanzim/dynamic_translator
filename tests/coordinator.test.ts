@@ -143,6 +143,52 @@ describe('LookupCoordinator', () => {
     expect(ai && ai.type === 'AI_RESULT' && ai.result.source).toBe('groq')
   })
 
+  it('replaces the offline result even when the AI result carries fewer fields', async () => {
+    // The offline entry has more populated fields than this AI result, so a
+    // pure completeness comparison would keep the offline one. The offline
+    // result is provisional: the first valid provider result always wins.
+    sendMessage.mockImplementation(async (req: { type?: string }) => {
+      if (req.type === OFFLINE_LOOKUP_MESSAGE) {
+        return { ok: true, result: offlineEntry('hello', 'হ্যালো') }
+      }
+      return {
+        ok: true,
+        result: {
+          word: 'hello',
+          query: 'hello',
+          source: 'groq',
+          requestId: 'x',
+          timestamp: 1,
+          englishDefinition: 'a greeting',
+        } satisfies LookupResult,
+      }
+    })
+    const events: LookupEvent[] = []
+    const c = new LookupCoordinator({ onEvent: (e) => events.push(e) })
+    await c.lookup('hello', settings)
+    const ai = events.find((e) => e.type === 'AI_RESULT')
+    expect(ai, 'expected the AI result to replace the offline one').toBeTruthy()
+    expect(ai && ai.type === 'AI_RESULT' && ai.result.source).toBe('groq')
+  })
+
+  it('never lets the offline result replace a provider result', async () => {
+    // The offline lookup resolves after the provider did, so the provisional
+    // result must not overwrite the accepted one.
+    const slowOffline = deferred<{ ok: boolean; result: unknown }>()
+    sendMessage.mockImplementation(async (req: { type?: string }) => {
+      if (req.type === OFFLINE_LOOKUP_MESSAGE) return slowOffline.promise
+      return { ok: true, result: aiResult('groq') }
+    })
+    const events: LookupEvent[] = []
+    const c = new LookupCoordinator({ onEvent: (e) => events.push(e) })
+    const p = c.lookup('hello', settings)
+    await new Promise((r) => setTimeout(r, 10))
+    slowOffline.resolve({ ok: true, result: offlineEntry('hello', 'হ্যালো') })
+    await p
+    const local = events.find((e) => e.type === 'LOCAL_RESULT')
+    expect(local, 'the offline result must not be shown once a provider answered').toBeUndefined()
+  })
+
   it('keeps a superior result when a later inferior response arrives', async () => {
     const slow = deferred<{ ok: boolean; result: LookupResult }>()
     sendMessage.mockImplementation((req: { type?: string; provider: string }) => {

@@ -9,19 +9,18 @@ import { LOOKUP_MESSAGE, SEED_MESSAGE, type AiLookupRequest, type AiLookupRespon
 import { loadSettings, type ProviderId, type ProviderSettings } from '../storage/settings'
 import type { LookupEvent, LookupResult, ResultSource } from '../shared/types'
 
-const PRIORITY: ResultSource[] = ['groq', 'openrouter', 'gemini']
+/**
+ * Provider ranking, best first.
+ *
+ * The offline dictionary is listed last on purpose: it is the provisional
+ * result and must never outrank a real provider. Without it,
+ * `PRIORITY.indexOf('offline')` would be -1, which wins every tie-break
+ * against a provider.
+ */
+const PRIORITY: ResultSource[] = ['groq', 'openrouter', 'gemini', 'offline']
 
 /** How long the offline dictionary lookup may take before it is given up on. */
 const OFFLINE_TIMEOUT_MS = 3000
-
-/**
- * How long the AI result may wait for the canonical headword.
- *
- * The headword is a display detail, so it must never delay the AI result
- * noticeably; when the offline dictionary is slow the result is shown
- * without it.
- */
-const HEADWORD_WAIT_MS = 1500
 
 export interface CoordinatorOptions {
   onEvent: (e: LookupEvent) => void
@@ -72,6 +71,21 @@ export class LookupCoordinator {
     const curRank = PRIORITY.indexOf(current.source)
     if (cRank !== curRank) return cRank < curRank
     return candidate.timestamp > current.timestamp
+  }
+
+  /**
+   * Decides whether a provider result may replace the current best one.
+   *
+   * The offline dictionary result is provisional: the first valid provider
+   * result always replaces it, even when the offline entry happens to carry
+   * more fields. Later provider results only replace the accepted one when
+   * they are strictly better.
+   */
+  private accepts(result: LookupResult): boolean {
+    const best = this.best
+    if (best === null) return true
+    if (best.source === 'offline') return true
+    return this.isBetter(result, best)
   }
 
   /**
@@ -186,21 +200,13 @@ export class LookupCoordinator {
     const settingsPromise = settings ? Promise.resolve(settings) : this.loadSeededSettings()
 
     // A single offline round trip serves two purposes: it produces the
-    // provisional result and it resolves the canonical headword. The AI
-    // results are stamped with that headword so that the displayed word does
-    // not change when the AI result replaces the offline one.
+    // provisional result and it resolves the canonical headword. The headword
+    // is read without awaiting the lookup, so a slow offline dictionary can
+    // never delay a provider result.
     const offlinePromise = this.fetchOffline(query, bengaliInput)
-    const headwordPromise = offlinePromise.then(
-      (hit) => hit?.headword,
-      () => undefined,
-    )
-    // The headword only decorates the result, so the wait for it is capped:
-    // a slow offline dictionary must never delay the AI result.
-    const headwordWithDeadline = Promise.race([
-      headwordPromise,
-      new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), HEADWORD_WAIT_MS)),
-    ])
+    let headword: string | undefined
     const offlineJob = offlinePromise.then((hit) => {
+      headword = hit?.headword
       if (!hit) return
       if (this.currentId !== requestId) return // stale
       const source = hit.entry
@@ -220,9 +226,10 @@ export class LookupCoordinator {
         antonyms: source.ant,
         exampleEn: source.ex,
       }
-      // An AI result that already arrived may be better; keep the best one.
+      // The offline result is provisional: it is only shown while no provider
+      // has answered yet, and it never replaces a provider result.
       const best = this.best
-      if (best === null || this.isBetter(offlineResult, best)) {
+      if (best === null || best.source === 'offline') {
         this.best = offlineResult
         this.emit({ type: 'LOCAL_RESULT', result: offlineResult })
       }
@@ -253,20 +260,20 @@ export class LookupCoordinator {
         try {
           const raw = await job.run()
           if (this.currentId !== requestId) return // stale
-          // The headword only decorates the result, so waiting for it cannot
-          // delay the provider call itself.
-          const headword = await headwordWithDeadline
           const result: LookupResult = {
             ...raw,
             word: query,
             query,
+            // The headword is a display detail from the offline dictionary.
+            // It is used when it is already known and simply left out when
+            // the dictionary has not answered yet — a provider result is
+            // never delayed for it.
             headword: headword ?? raw.headword,
           }
-          // Only a strictly better result is accepted, so a late, inferior AI
-          // response can never overwrite a superior offline or AI result.
-          const best = this.best
-          const replace = best === null || this.isBetter(result, best)
-          if (replace) {
+          // The first valid provider result always replaces the provisional
+          // offline result; later provider results only replace the accepted
+          // one when they are strictly better.
+          if (this.accepts(result)) {
             this.best = result
             this.cache.set(normalized, result)
             // Only the accepted (best-so-far) AI result is surfaced, so a late,
