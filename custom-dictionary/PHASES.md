@@ -67,8 +67,8 @@
 - [x] Implement `src/suggest.ts`: prefix match (binary search on sorted arrays), fuzzy match (bounded edit distance + subsequence)
 - [x] Ranking: exact > relation > prefix > fuzzy > subsequence
 - [x] Cap results at `limit` (default 8)
-- [ ] Drop stale requests when user keeps typing (sequence counter)
-- [ ] Verify suggest latency < 10ms
+- [x] Drop stale requests when user keeps typing (sequence counter)
+- [x] Verify suggest latency < 10ms
 - [x] Test: "cucu" → "cucumber", "cucnber" → "cucumber", "বই" → Bengali suggestions
 
 ---

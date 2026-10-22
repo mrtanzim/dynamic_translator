@@ -51,11 +51,8 @@
 // | `scripts/builders/relations.ts` | Complete | synonym/antonym inheritance within same POS |
 // | `scripts/build-dict.ts` | Complete | main orchestration — read sources, normalize, match WordNet synsets, serialize columnar JSON, gzip output |
 // | `scripts/build-dictionary.mjs` | Complete | ESM entry point — imports and runs build-dict.ts |
-// | `src/index.ts` | Complete | Public API exports — LookupCoordinator, LookupResult, DictionaryDataset, SuggestionPayload |
-// | `src/loader.ts` | Complete | fetch gzipped dataset, DecompressionStream, memoized load |
-// | `src/indexer.ts` | Complete | OfflineDictionary class — build byHeadword, byNormalized, byBengali, byRelation, englishWords, bengaliWords |
-// | `src/lookup.ts` | Complete | lookup(), lookupBengali(), headword resolution |
 // | `src/suggest.ts` | Complete | Type-ahead suggestion engine — prefix + fuzzy matching |
+// | `tests/suggest.test.ts` | Complete | suggest() tests — exact, prefix, typo, empty, limit, Bengali |
 // | `src/service-worker.ts` | Complete | VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |
 // | `tests/suggest.test.ts` | Complete | suggest() tests — exact, prefix, typo, empty, limit |
 // | `src/service-worker.ts` | Phase 2 micro-task 6 — VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |

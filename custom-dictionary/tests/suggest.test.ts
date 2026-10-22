@@ -120,4 +120,11 @@ describe('type-ahead suggestions', () => {
     const list = suggestWords(dictionary, 'cucumber', 1);
     expect(list[0]?.hint).toBe('শসা');
   });
+
+  it('suggests Bengali words for Bengali query', () => {
+    const list = suggestWords(dictionary, 'বই', 8);
+    expect(list.map((s) => s.word)).toContain('book');
+    expect(list[0]?.bengali).toBe(true);
+    expect(list[0]?.headword).toBe('book');
+  });
 });
