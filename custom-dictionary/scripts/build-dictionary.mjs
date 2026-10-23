@@ -3,53 +3,50 @@
 // Usage:
 //   npm run build:dictionary
 //
-// This script imports and runs build-dict.ts, which orchestrates the full
-// pipeline:
-//   1. Load Bengali dictionary from Wiktionary JSONL
-//   2. Load WordNet synsets/antonyms/examples
-//   3. Load CMUdict pronunciations (ARPAbet → IPA)
-//   4. Build LookupResult entries per headword
-//   5. Apply curated.json overrides
-//   6. Serialize to columnar JSON + gzip artifact
-//
-// @module scripts/build-dictionary.mjs
+// This uses node --experimental-strip-types (or tsx/ts-node) to import
+// build-dict.ts. PHASES 1-4 complete — this script orchestrates all sources.
 
-import { buildDictionary } from './build-dict.ts'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import path from 'node:path'
 
-const root = new URL('.', import.meta.url).pathname
-const bengaliRoot = new URL('../node_modules/bn-en-dictionary', import.meta.url).pathname
-const wordnetRoot = new URL('../node_modules/wordnet-db', import.meta.url).pathname
-const cmudictRoot = new URL('../node_modules/cmu-pronouncing-dictionary', import.meta.url).pathname
-const curatedPath = new URL('./src/dictionary/curated.json', root).pathname
-const outputPath = new URL('./public/dictionary.json.gz', root).pathname
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const root = path.resolve(__dirname, '..')
 
-async function main() {
-  console.log('Starting VocabFlow offline dictionary build...')
-  console.log(`  Bengali: ${bengaliRoot}`)
-  console.log(`  WordNet: ${wordnetRoot}`)
-  console.log(`  CMUdict: ${cmudictRoot}`)
-  console.log(`  Curated: ${curatedPath}`)
-  console.log(`  Output:  ${outputPath}`)
-  console.log('')
+// Import build-dict.ts via file:// URL so Windows absolute paths work
+const buildDictUrl = pathToFileURL(path.join(__dirname, 'build-dict.ts')).href
+const { buildDictionary } = await import(buildDictUrl)
 
-  const result = await buildDictionary({
-    bengaliRoot,
-    wordnetRoot,
-    cmudictRoot,
-    curatedPath,
-    outputPath,
-  })
+const bengaliRoot  = path.join(root, 'node_modules', 'bn-en-dictionary')
+const wordnetRoot  = path.join(root, 'node_modules', 'wordnet-db')
+const cmudictRoot  = path.join(root, 'node_modules', 'cmu-pronouncing-dictionary')
+// Use the extension's curated dictionary (the single source of truth)
+const curatedPath  = path.join(root, '..', 'src', 'dictionary', 'curated.json')
+const outputPath   = path.join(root, 'public', 'dictionary.json.gz')
 
-  console.log('')
-  console.log('Build complete!')
-  console.log(`  Entries:        ${result.entries}`)
-  console.log(`  With synonyms:  ${result.withSynonyms}`)
-  console.log(`  With antonyms:  ${result.withAntonyms}`)
-  console.log(`  With examples:  ${result.withExamples}`)
-  console.log(`  With IPA:       ${result.withPronunciation}`)
-}
+console.log('VocabFlow custom dictionary build')
+console.log('==================================')
+console.log(`Bengali:  ${bengaliRoot}`)
+console.log(`WordNet:  ${wordnetRoot}`)
+console.log(`CMUdict:  ${cmudictRoot}`)
+console.log(`Curated:  ${curatedPath}`)
+console.log(`Output:   ${outputPath}`)
+console.log('')
 
-main().catch((err) => {
+const result = await buildDictionary({
+  bengaliRoot,
+  wordnetRoot,
+  cmudictRoot,
+  curatedPath,
+  outputPath,
+}).catch((err) => {
   console.error('Build failed:', err)
   process.exit(1)
 })
+
+console.log('')
+console.log('Build complete!')
+console.log(`  Entries:        ${result.entries}`)
+console.log(`  With synonyms:  ${result.withSynonyms}`)
+console.log(`  With antonyms:  ${result.withAntonyms}`)
+console.log(`  With examples:  ${result.withExamples}`)
+console.log(`  With IPA:       ${result.withPronunciation}`)

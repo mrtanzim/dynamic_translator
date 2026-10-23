@@ -9,7 +9,7 @@
 // instance and performs lookups without side effects, so it can be reused
 // by both the service worker (runtime) and unit tests.
 
-import { OfflineDictionary } from './indexer';
+import { OfflineDictionary, type IndexEntry } from './indexer';
 import type { LookupResult } from './types';
 
 /**

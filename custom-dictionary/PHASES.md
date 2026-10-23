@@ -2,12 +2,12 @@
 
 ## Current Status
 
-**Phase 0:** Project setup (folder structure, config files, this document) — IN PROGRESS  
-**Phase 1:** Core build script + dataset format — NOT STARTED  
-**Phase 2:** Runtime lookup engine + service worker bridge — NOT STARTED  
-**Phase 3:** Type-ahead suggestion engine — NOT STARTED  
-**Phase 4:** Pronunciation (IPA) + romanization — NOT STARTED  
-**Phase 5:** Tests + CI — NOT STARTED  
+**Phase 0:** Project setup — ✅ COMPLETE  
+**Phase 1:** Core build script + dataset format — ✅ COMPLETE  
+**Phase 2:** Runtime lookup engine + service worker bridge — ✅ COMPLETE  
+**Phase 3:** Type-ahead suggestion engine — ✅ COMPLETE  
+**Phase 4:** Pronunciation (IPA) + romanization — ✅ COMPLETE  
+**Phase 5:** Tests + CI — ✅ COMPLETE  
 **Phase 6:** Integration with Translator extension — NOT STARTED  
 **Phase 7:** Polish, docs, release — NOT STARTED
 

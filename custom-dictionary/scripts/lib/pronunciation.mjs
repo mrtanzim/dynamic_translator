@@ -11,6 +11,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 /** ARPAbet phoneme -> IPA mapping. */
 const ARPABET_TO_IPA = {
@@ -115,7 +116,7 @@ export async function loadPronunciations(packageRoot) {
     throw new Error(`CMU pronouncing dictionary not found at ${modulePath}`)
   }
 
-  const mod = await import(modulePath)
+  const mod = await import(pathToFileURL(modulePath).href)
   const dictionary = mod.default?.dictionary ?? mod.dictionary
   if (!dictionary) {
     throw new Error(`CMU pronouncing dictionary export 'dictionary' not found`)

@@ -11,7 +11,7 @@ import { describe, expect, it, beforeAll } from 'vitest';
 import { loadOfflineDictionarySync } from '../src/loader';
 import { OfflineDictionary } from '../src/indexer';
 
-const DATASET_VERSION = 4;
+const _DATASET_VERSION = 4;
 
 describe('offline dictionary dataset', () => {
   let dictionary: OfflineDictionary;

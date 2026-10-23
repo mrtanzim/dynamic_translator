@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Offline-first custom dictionary package system for VocabFlow",
   "scripts": {
-    "build:dictionary": "node scripts/build-dictionary.mjs",
+    "build:dictionary": "node --import tsx/esm scripts/build-dictionary.mjs",
     "test": "vitest run",
     "lint": "oxlint",
     "typecheck": "tsc -b"
@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/node": "^24.19.2",
     "oxlint": "^1.88.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
