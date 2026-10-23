@@ -9,7 +9,7 @@
 **Phase 4:** Pronunciation (IPA) + romanization — ✅ COMPLETE  
 **Phase 5:** Tests + CI — ✅ COMPLETE  
 **Phase 6:** Integration with Translator extension — ✅ COMPLETE  
-**Phase 7:** Polish, docs, release — NOT STARTED
+**Phase 7:** Polish, docs, release — ✅ COMPLETE
 
 ---
 
