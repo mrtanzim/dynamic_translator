@@ -109,13 +109,13 @@ export function arpabetToIPA(arpabet) {
  * @param {string} packageRoot path to the `cmu-pronouncing-dictionary` package directory
  * @returns {Map<string, string>} word -> IPA pronunciation
  */
-export function loadPronunciations(packageRoot) {
+export async function loadPronunciations(packageRoot) {
   const modulePath = path.join(packageRoot, 'index.js')
   if (!fs.existsSync(modulePath)) {
     throw new Error(`CMU pronouncing dictionary not found at ${modulePath}`)
   }
 
-  const mod = require(modulePath)
+  const mod = await import(modulePath)
   const dictionary = mod.default?.dictionary ?? mod.dictionary
   if (!dictionary) {
     throw new Error(`CMU pronouncing dictionary export 'dictionary' not found`)
