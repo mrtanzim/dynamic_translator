@@ -582,7 +582,11 @@ export function Overlay({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            <div style={{ marginTop: 8, fontSize: 11, color: '#AAB8C8' }}>Source: {result.source === 'offline' ? 'Offline dictionary' : result.source}</div>
+            <div style={{ marginTop: 8, fontSize: 11, color: '#AAB8C8' }}>
+              Source: {result.source === 'offline'
+                ? '📖 Offline dictionary'
+                : `🤖 ${result.source}`}
+            </div>
             <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
               <button onClick={() => speakWord(result.query)} style={actionBtn}>🔊 Pronounce</button>
               <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>

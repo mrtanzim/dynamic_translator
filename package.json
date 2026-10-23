@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:dictionary": "node scripts/build-dictionary.mjs",
+    "build:custom-dictionary": "node --import tsx/esm custom-dictionary/scripts/build-dictionary.mjs",
     "prebuild": "npm run build:dictionary",
     "test": "vitest run",
     "lint": "oxlint",

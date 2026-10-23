@@ -239,6 +239,12 @@ export class LookupCoordinator {
         // All Bengali meanings of the headword, not just the first one.
         bengaliMeaning: bengaliMeanings.join(', '),
         englishDefinition: source.def,
+        // Offline dictionary has one definition — surface it in both the
+        // formal slot (so the dual-register UI still shows something useful)
+        // and the legacy englishDefinition slot for backward compatibility.
+        formalMeaning: source.def || undefined,
+        // Example sentence from the dataset used as conversational example.
+        exampleConversational: source.ex || undefined,
         // The Latin-script spelling of the Bengali word the user typed. It
         // comes from the dataset, so the offline answer carries it even when
         // no AI provider is reachable.
