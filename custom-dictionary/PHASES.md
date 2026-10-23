@@ -75,8 +75,8 @@
 
 ## Phase 4 — Pronunciation (IPA) + Romanization
 
-- [ ] Verify CMUdict ARPAbet → IPA covers ≥ 75% of headwords
-- [ ] Add `pron` column to dataset and `pronunciation` field to `LookupResult`
+- [x] Verify CMUdict ARPAbet → IPA covers ≥ 75% of headwords (78.5% — 5242/6675)
+- [x] Add `pron` column to dataset and `pronunciation` field to `LookupResult`
 - [ ] Verify Bengali romanization (`trans`, `transAlt`) is loaded and returned
 - [ ] Implement Latin→Bengali transliteration for English headwords (optional stretch)
 - [ ] Verify offline result carries `pronunciation` and `transcription` for Bengali queries

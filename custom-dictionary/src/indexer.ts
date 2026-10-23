@@ -123,6 +123,11 @@ export class OfflineDictionary {
     return this.byHeadword.size
   }
 
+  /** All English headwords in the dictionary. */
+  getAllHeadwords(): string[] {
+    return [...this.byHeadword.keys()]
+  }
+
   /**
    * Looks up an English word.
    *
@@ -132,10 +137,31 @@ export class OfflineDictionary {
   lookup(q: string): IndexEntry | null {
     const n = normalizeHeadword(q)
     if (!n) return null
+
+    // First check if this word is an antonym of some headword
+    const relation = this.byRelation.get(n)
+    if (relation) {
+      const entry = this.byHeadword.get(relation)
+      if (entry) return entry
+    }
+
+    // Then check if it's a direct headword
     const direct = this.byNormalized.get(n)
     if (direct) return direct
-    const relation = this.byRelation.get(n)
-    return relation ? (this.byHeadword.get(relation) ?? null) : null
+
+    return null
+  }
+
+  /**
+   * Returns the headword that a given word is an antonym of.
+   *
+   * @param q - The word to look up
+   * @returns The headword that this word is an antonym of, or null
+   */
+  getAntonymHeadword(q: string): string | null {
+    const n = normalizeHeadword(q)
+    if (!n) return null
+    return this.byRelation.get(n) ?? null
   }
 
   /**

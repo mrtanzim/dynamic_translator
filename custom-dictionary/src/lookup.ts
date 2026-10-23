@@ -9,8 +9,23 @@
 // instance and performs lookups without side effects, so it can be reused
 // by both the service worker (runtime) and unit tests.
 
-import { OfflineDictionary, type IndexEntry } from './indexer';
+import { OfflineDictionary } from './indexer';
 import type { LookupResult } from './types';
+
+/**
+ * Normalize a text string for lookup: NFC normalize, trim, lowercase,
+ * strip punctuation, collapse whitespace.
+ */
+function normalizeHeadword(headword: string): string {
+  if (!headword) return ''
+  return headword
+    .normalize('NFC')
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\p{M}\s]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
 /**
  * Centralised lookup orchestration.
@@ -34,10 +49,20 @@ export class LookupCoordinator {
    * @returns A LookupResult or null if not found
    */
   lookup(query: string): LookupResult | null {
-    const entry = this.dictionary.lookup(query);
-    if (!entry) return null;
+    const n = normalizeHeadword(query)
 
-    return this.buildResult(query, entry);
+    // First check if this word is an antonym of some headword
+    const relation = this.dictionary.getAntonymHeadword(n)
+    if (relation) {
+      const entry = this.dictionary.lookup(relation)
+      if (entry) return this.buildResult(query, entry)
+    }
+
+    // Then check if it's a direct headword
+    const direct = this.dictionary.lookup(n)
+    if (direct) return this.buildResult(query, direct)
+
+    return null
   }
 
   /**
@@ -75,7 +100,7 @@ export class LookupCoordinator {
     return {
       word: query,
       query,
-      headword: entry.headword !== query ? entry.headword : undefined,
+      headword: entry.headword,
       source: 'offline',
       requestId: '',
       timestamp: Date.now(),

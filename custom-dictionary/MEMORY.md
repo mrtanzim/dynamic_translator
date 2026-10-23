@@ -7,7 +7,7 @@
 //
 // ## 2. Current Status
 //
-// **Phase:** Phase 2 — Runtime Lookup Engine + Service Worker Bridge (Phase 1 complete)
+// **Phase:** Phase 3 complete, Phase 4 in progress
 // **Last updated:** 2026-10-22
 // **Active branch:** master
 // **Folder:** E:\Special NEED\Translator extention\custom-dictionary/
@@ -40,8 +40,15 @@
 // | `tsconfig.json` | Complete | Strict TypeScript config |
 // | `vitest.config.ts` | Complete | Vitest config pointing to tests/ |
 // | `oxlint.config.json` | Complete | Lint config |
-// | `src/index.ts` | Complete | Public API placeholder (`VERSION = '0.1.0'`) |
-// | `tests/placeholder.test.ts` | Complete | Placeholder test (2 passing) |
+// | `src/index.ts` | Complete | Public API exports — LookupCoordinator, LookupResult, DictionaryDataset, SuggestionPayload |
+// | `src/types.ts` | Complete | LookupResult, DictionaryDataset, SuggestionPayload types |
+// | `src/loader.ts` | Complete | fetch gzipped dataset, DecompressionStream, memoized load |
+// | `src/indexer.ts` | Complete | OfflineDictionary class — build byHeadword, byNormalized, byBengali, byRelation, englishWords, bengaliWords |
+// | `src/lookup.ts` | Complete | lookup(), lookupBengali(), headword resolution |
+// | `src/suggest.ts` | Complete | Type-ahead suggestion engine — prefix + fuzzy matching, stale-request dropping via SuggestEngine |
+// | `src/service-worker.ts` | Complete | VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |
+// | `tests/suggest.test.ts` | Complete | suggest() tests — exact, prefix, typo, empty, limit, Bengali |
+// | `tests/dataset.test.ts` | Complete | dataset tests — 6675 entries, 5242 with pronunciation (78.5%), 3638 synonyms, 720 antonyms |
 // | `scripts/lib/bengali.mjs` | Complete | read Wiktionary JSONL, group by headword |
 // | `scripts/lib/wordnet.mjs` | Complete | read WordNet data/index, extract synonyms, antonyms, examples |
 // | `scripts/lib/pronunciation.mjs` | Complete | CMUdict ARPAbet → IPA conversion |
@@ -51,12 +58,13 @@
 // | `scripts/builders/relations.ts` | Complete | synonym/antonym inheritance within same POS |
 // | `scripts/build-dict.ts` | Complete | main orchestration — read sources, normalize, match WordNet synsets, serialize columnar JSON, gzip output |
 // | `scripts/build-dictionary.mjs` | Complete | ESM entry point — imports and runs build-dict.ts |
-// | `src/suggest.ts` | Complete | Type-ahead suggestion engine — prefix + fuzzy matching, stale-request dropping via SuggestEngine |
-// | `src/service-worker.ts` | Complete | VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |
-// | `tests/suggest.test.ts` | Complete | suggest() tests — exact, prefix, typo, empty, limit, Bengali, latency (<10ms p95) |
-// | `src/service-worker.ts` | Complete | VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |
-// | `tests/suggest.test.ts` | Complete | suggest() tests — exact, prefix, typo, empty, limit |
-// | `src/service-worker.ts` | Phase 2 micro-task 6 — VOCABFLOW_DICT_LOOKUP, VOCABFLOW_DICT_SUGGEST message handlers |
+//
+// ## 5. Files NOT Yet Created
+//
+// | File | Why blocked |
+// |------|-----------|
+// | `tests/lookup.test.ts` | Phase 5 — lookup tests not yet written |
+// | `tests/build.test.ts` | Phase 5 — build script tests not yet written |
 //
 // ## 6. Known Constraints
 //
@@ -72,7 +80,7 @@
 //
 // ## 8. Next Immediate Action
 //
-// Implement `src/types.ts`: LookupResult, DictionaryDataset, SuggestionPayload types.
+// Write `tests/lookup.test.ts` — test coordinator lookup, history, synonyms, antonyms, pronunciation.
 //
 // ## 9. AI Contribution Instructions
 //
@@ -83,6 +91,5 @@
 // 5. Update `MEMORY.md` with decisions made and bugs fixed.
 // 6. Mark the micro-task complete in `PHASES.md`.
 // 7. Report completion.
-//
 //
 // *Last updated:* 2026-10-22
