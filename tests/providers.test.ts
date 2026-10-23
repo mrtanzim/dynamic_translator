@@ -150,8 +150,13 @@ describe('provider prompt', () => {
   })
 
   it('asks for the script the learner cannot read yet', () => {
-    expect(buildUserPrompt('cucumber', false)).toContain('Bengali script')
-    expect(buildUserPrompt('বই', true)).toContain('Latin script')
+    // System prompt must contain both transcription and pronunciation fields
+    expect(SYSTEM_PROMPT).toContain('transcription')
+    expect(SYSTEM_PROMPT).toContain('Bengali script')
+    expect(SYSTEM_PROMPT).toContain('Latin script')
+    // User prompts must mention the query correctly
+    expect(buildUserPrompt('cucumber', false)).toContain('cucumber')
+    expect(buildUserPrompt('বই', true)).toContain('বই')
   })
 
   it('carries the transcription and the pronunciation into the result', async () => {
