@@ -83,6 +83,8 @@
 
 ---
 
+---
+
 ## Phase 5 — Tests + CI
 
 - [ ] `tests/dataset.test.ts`: column lengths match, version check, gzip round-trip
