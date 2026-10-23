@@ -28,6 +28,23 @@ export interface LookupResult {
   bengaliMeaning?: string
   englishDefinition?: string
   /**
+   * Formal / written-English meaning — suited for IELTS writing & reading.
+   * e.g. "organization" → "A structured group formed for a specific purpose."
+   */
+  formalMeaning?: string
+  /**
+   * Conversational / spoken meaning — how the word is actually used in
+   * everyday speech, anime subtitles, casual dialogue.
+   * e.g. "organization" → "A company or group people belong to."
+   */
+  conversationalMeaning?: string
+  /**
+   * Short note on which register to prefer and why.
+   * e.g. "Use 'organisation' in formal writing (IELTS); say 'company/group'
+   * in conversation."
+   */
+  usageNote?: string
+  /**
    * The word written in the other script.
    *
    * An English word in Bengali script ("cucumber" -> "কুকুম্বার") and a
@@ -41,6 +58,10 @@ export interface LookupResult {
   antonyms?: string[]
   exampleEn?: string
   exampleBn?: string
+  /** Formal example sentence (IELTS / writing register). */
+  exampleFormal?: string
+  /** Conversational example sentence (spoken / anime register). */
+  exampleConversational?: string
   partOfSpeech?: string
   source: ResultSource
   requestId: string

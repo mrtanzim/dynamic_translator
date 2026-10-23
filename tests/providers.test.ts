@@ -150,8 +150,8 @@ describe('provider prompt', () => {
   })
 
   it('asks for the script the learner cannot read yet', () => {
-    expect(buildUserPrompt('cucumber', false)).toContain('Bengali-script transcription')
-    expect(buildUserPrompt('বই', true)).toContain('Latin-script transcription')
+    expect(buildUserPrompt('cucumber', false)).toContain('Bengali script')
+    expect(buildUserPrompt('বই', true)).toContain('Latin script')
   })
 
   it('carries the transcription and the pronunciation into the result', async () => {

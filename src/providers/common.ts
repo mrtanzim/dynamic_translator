@@ -3,35 +3,51 @@ import type { LookupResult, ResultSource } from '../shared/types'
 /**
  * The system prompt every provider uses.
  *
- * It asks for more than a translation: a learner needs to know how the word
- * is written in the other script and how it is pronounced, otherwise an
- * English word is unreadable for them and a Bengali word is unpronounceable.
+ * Asks for two registers of meaning — formal (IELTS / writing) and
+ * conversational (spoken / anime subtitles) — so the learner knows both
+ * how to write the word correctly and how it sounds in real dialogue.
  */
-export const SYSTEM_PROMPT = `You are a bilingual English-Bengali vocabulary assistant for Bengali-native English learners.
+export const SYSTEM_PROMPT = `You are a bilingual English-Bengali vocabulary assistant for Bengali-native English learners preparing for IELTS and learning through anime/media.
+
 Return ONLY a JSON object with this exact shape:
-{"bengaliMeaning": string, "englishDefinition": string, "transcription": string, "pronunciation": string, "synonyms": string[], "antonyms": string[], "exampleEn": string, "exampleBn": string, "partOfSpeech": string}
+{
+  "bengaliMeaning": string,
+  "partOfSpeech": string,
+  "formalMeaning": string,
+  "conversationalMeaning": string,
+  "usageNote": string,
+  "transcription": string,
+  "pronunciation": string,
+  "synonyms": string[],
+  "antonyms": string[],
+  "exampleFormal": string,
+  "exampleConversational": string,
+  "exampleBn": string,
+  "englishDefinition": string
+}
 
 Field rules:
-- bengaliMeaning: the Bengali translation of the query, in natural Bengali.
-- englishDefinition: one or two short sentences that explain the word in English.
-- transcription: the query written in the OTHER script, so that the learner can read it.
-  For an English query give the Bengali script ("cucumber" -> "কুকুম্বার");
-  for a Bengali query give the Latin script ("বই" -> "boi").
-  Use the common everyday spelling, not a scholarly transliteration, and never translate the word here.
-- pronunciation: how the word is pronounced, in IPA or in a plain respelling
-  ("cucumber" -> "/kʌmˈbʌmbər/" or "kuhm-BUM-ber"). Never leave it empty when the word can be pronounced.
-- synonyms and antonyms: English words only. Leave them empty when the word has none.
-- exampleEn: an English sentence that uses the word naturally.
-- exampleBn: the same sentence in Bengali.
-- partOfSpeech: the most common part of speech, e.g. "noun", "verb", "adjective".
+- bengaliMeaning: the natural Bengali translation a Bangladeshi would use.
+- partOfSpeech: e.g. "noun", "verb", "adjective", "adverb".
+- formalMeaning: 1–2 sentences defining the word in formal/written English (IELTS register). Use precise vocabulary.
+- conversationalMeaning: how the word is actually used in everyday speech, casual dialogue or anime subtitles. Keep it simple and natural.
+- usageNote: one sentence advising the learner WHEN to use which register, e.g. "Use this word in formal writing; in conversation say '...' instead." If both registers are the same, say so.
+- transcription: the query written in the OTHER script only (no translation). English query → Bengali script ("cucumber" → "কুকুম্বার"). Bengali query → Latin script ("বই" → "boi"). Use everyday spelling.
+- pronunciation: IPA or plain respelling (e.g. "/ɔːrɡənaɪˈzeɪʃən/" or "or-guh-ny-ZAY-shun"). Never leave empty.
+- synonyms: English synonyms, formal ones first. Leave empty if none.
+- antonyms: English antonyms. Always include if they exist — never leave empty when antonyms are real. Leave empty only if there are genuinely none.
+- exampleFormal: a sentence using the word in a formal/written context (IELTS essay style).
+- exampleConversational: a sentence using the word in casual speech or anime-style dialogue.
+- exampleBn: Bengali translation of exampleConversational (the casual one).
+- englishDefinition: a single concise definition sentence (kept for backward compatibility).
 
-Use the direction implied by the user query (English->Bengali or Bengali->English).
-If a field is unknown, use an empty string or empty array. Never invent synonyms or antonyms.`
+Direction: use the direction implied by the query (English→Bengali or Bengali→English).
+If a field is truly unknown use "" or []. Never invent synonyms or antonyms.`
 
 export function buildUserPrompt(query: string, isBengaliInput: boolean): string {
   return isBengaliInput
-    ? `Query (Bengali): "${query}"\nGive the English translation, a short English definition, the Latin-script transcription, the pronunciation, synonyms, antonyms and an example sentence with its English translation.`
-    : `Query (English): "${query}"\nGive the Bengali meaning, a short English definition, the Bengali-script transcription, the pronunciation, synonyms, antonyms and an example sentence with its Bengali translation.`
+    ? `Query (Bengali): "${query}"\nProvide the English translation with both formal and conversational meanings, transcription in Latin script, pronunciation, synonyms, antonyms, and example sentences.`
+    : `Query (English): "${query}"\nProvide the Bengali meaning with both formal (IELTS) and conversational (spoken/anime) English meanings, transcription in Bengali script, pronunciation, synonyms, antonyms, and example sentences.`
 }
 
 export function parseAiJson(text: string): Partial<LookupResult> | null {
@@ -47,11 +63,16 @@ export function parseAiJson(text: string): Partial<LookupResult> | null {
     return {
       bengaliMeaning: str(obj.bengaliMeaning),
       englishDefinition: str(obj.englishDefinition),
+      formalMeaning: str(obj.formalMeaning),
+      conversationalMeaning: str(obj.conversationalMeaning),
+      usageNote: str(obj.usageNote),
       transcription: str(obj.transcription),
       pronunciation: str(obj.pronunciation),
       synonyms: arr(obj.synonyms),
       antonyms: arr(obj.antonyms),
-      exampleEn: str(obj.exampleEn),
+      exampleEn: str(obj.exampleEn) ?? str(obj.exampleConversational),
+      exampleConversational: str(obj.exampleConversational),
+      exampleFormal: str(obj.exampleFormal),
       exampleBn: str(obj.exampleBn),
       partOfSpeech: str(obj.partOfSpeech),
     }

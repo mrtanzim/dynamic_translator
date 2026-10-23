@@ -496,39 +496,94 @@ export function Overlay({ onClose }: { onClose: () => void }) {
         {result && (
           <>
             <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700 }}>{result.query}</div>
-            {result.headword && (
+            {result.headword && result.headword !== result.query && (
               <div style={{ color: '#AAB8C8', fontSize: 12, marginTop: 2 }}>
                 {isBengali(result.query) ? 'English' : 'Headword'}: {result.headword}
               </div>
             )}
             {result.partOfSpeech && <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>{result.partOfSpeech}</div>}
-            {result.bengaliMeaning && <div style={{ marginTop: 6 }}>{result.bengaliMeaning}</div>}
-            {result.englishDefinition && <div style={{ color: '#AAB8C8', marginTop: 6 }}>{result.englishDefinition}</div>}
+
+            {/* Bengali meaning */}
+            {result.bengaliMeaning && (
+              <div style={{ marginTop: 6, fontSize: 15, fontWeight: 600 }}>{result.bengaliMeaning}</div>
+            )}
+
+            {/* Transcription + Pronunciation */}
             {result.transcription && (
-              <div style={{ marginTop: 6 }}>
+              <div style={{ marginTop: 4, fontSize: 12 }}>
                 <span style={{ color: '#AAB8C8' }}>
                   {isBengali(result.query) ? 'In Latin script' : 'In Bengali script'}:
                 </span>{' '}
-                {result.transcription}
+                <span style={{ color: '#E2C97E' }}>{result.transcription}</span>
               </div>
             )}
             {result.pronunciation && (
-              <div style={{ color: '#AAB8C8', marginTop: 4 }}>Pronunciation: {result.pronunciation}</div>
+              <div style={{ color: '#AAB8C8', marginTop: 2, fontSize: 12 }}>Pronunciation: {result.pronunciation}</div>
             )}
-            {result.synonyms && result.synonyms.length > 0 && (
-              <div style={{ marginTop: 6 }}>Synonyms: {result.synonyms.join(', ')}</div>
+
+            {/* Formal meaning */}
+            {result.formalMeaning && (
+              <div style={{ marginTop: 10, padding: '7px 10px', borderRadius: 8, background: 'rgba(101,207,255,0.07)', borderLeft: '3px solid #65CFFF' }}>
+                <div style={{ color: '#65CFFF', fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 3 }}>✍ FORMAL / WRITING (IELTS)</div>
+                <div style={{ fontSize: 13 }}>{result.formalMeaning}</div>
+                {result.exampleFormal && (
+                  <div style={{ marginTop: 5, color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>"{result.exampleFormal}"</div>
+                )}
+              </div>
             )}
-            {result.antonyms && result.antonyms.length > 0 && (
-              <div style={{ marginTop: 6 }}>Antonyms: {result.antonyms.join(', ')}</div>
+
+            {/* Conversational meaning */}
+            {result.conversationalMeaning && (
+              <div style={{ marginTop: 6, padding: '7px 10px', borderRadius: 8, background: 'rgba(255,180,100,0.07)', borderLeft: '3px solid #E2A44A' }}>
+                <div style={{ color: '#E2A44A', fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 3 }}>🗣 CONVERSATIONAL / SPOKEN</div>
+                <div style={{ fontSize: 13 }}>{result.conversationalMeaning}</div>
+                {(result.exampleConversational ?? result.exampleEn) && (
+                  <div style={{ marginTop: 5, color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>
+                    "{result.exampleConversational ?? result.exampleEn}"
+                  </div>
+                )}
+                {result.exampleBn && (
+                  <div style={{ marginTop: 3, color: '#AAB8C8', fontSize: 12 }}>{result.exampleBn}</div>
+                )}
+              </div>
             )}
-            {result.exampleEn && (
-              <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: 'rgba(16,21,29,0.55)', fontStyle: 'italic' }}>
+
+            {/* Fallback: old-style definition when no formal/conversational split */}
+            {!result.formalMeaning && !result.conversationalMeaning && result.englishDefinition && (
+              <div style={{ color: '#AAB8C8', marginTop: 6, fontSize: 13 }}>{result.englishDefinition}</div>
+            )}
+            {!result.formalMeaning && !result.conversationalMeaning && result.exampleEn && (
+              <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: 'rgba(16,21,29,0.55)', fontStyle: 'italic', fontSize: 13 }}>
                 {result.exampleEn}
                 {result.exampleBn && <div style={{ marginTop: 4, fontStyle: 'normal' }}>{result.exampleBn}</div>}
               </div>
             )}
-            <div style={{ marginTop: 8, fontSize: 12, color: '#AAB8C8' }}>Source: {result.source === 'offline' ? 'Offline dictionary' : result.source}</div>
-            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+
+            {/* Usage note */}
+            {result.usageNote && (
+              <div style={{ marginTop: 6, padding: '5px 8px', borderRadius: 6, background: 'rgba(148,163,184,0.08)', fontSize: 12, color: '#C5D1DC', fontStyle: 'italic' }}>
+                💡 {result.usageNote}
+              </div>
+            )}
+
+            {/* Synonyms */}
+            {result.synonyms && result.synonyms.length > 0 && (
+              <div style={{ marginTop: 8, fontSize: 12 }}>
+                <span style={{ color: '#AAB8C8' }}>Synonyms: </span>
+                <span style={{ color: '#A8D8A8' }}>{result.synonyms.join(', ')}</span>
+              </div>
+            )}
+
+            {/* Antonyms */}
+            {result.antonyms && result.antonyms.length > 0 && (
+              <div style={{ marginTop: 4, fontSize: 12 }}>
+                <span style={{ color: '#AAB8C8' }}>Antonyms: </span>
+                <span style={{ color: '#E58A8A' }}>{result.antonyms.join(', ')}</span>
+              </div>
+            )}
+
+            <div style={{ marginTop: 8, fontSize: 11, color: '#AAB8C8' }}>Source: {result.source === 'offline' ? 'Offline dictionary' : result.source}</div>
+            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
               <button onClick={() => speakWord(result.query)} style={actionBtn}>🔊 Pronounce</button>
               <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>
             </div>
