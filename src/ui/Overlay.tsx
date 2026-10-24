@@ -493,37 +493,39 @@ export function Overlay({ onClose }: { onClose: () => void }) {
         {loading && <div style={{ color: '#AAB8C8', fontSize: 12, marginBottom: 8 }}>Searching…</div>}
         {error && (
           <div style={{ color: '#E58A8A', fontSize: 11, marginBottom: 8, opacity: 0.7 }}>
-            {/* Truncate long rate-limit error messages to one line */}
             {error.length > 80 ? error.slice(0, 80) + '…' : error}
           </div>
         )}
         {!result && !loading && !error && <div style={{ color: '#AAB8C8' }}>Search any word to begin.</div>}
         {result && (() => {
-          // Build the ordered meanings list:
-          //   1st = conversational (spoken / anime)
-          //   2nd = formal (writing / IELTS)
-          //   rest = anything extra
-          const meanings: string[] = []
-          if (result.conversationalMeaning) meanings.push(result.conversationalMeaning)
-          if (result.formalMeaning && result.formalMeaning !== result.conversationalMeaning)
-            meanings.push(result.formalMeaning)
-          if (!meanings.length && result.englishDefinition) meanings.push(result.englishDefinition)
+          // Best single definition — prefer englishDefinition, fall back to
+          // conversational then formal (coordinator maps offline def → formalMeaning)
+          const definition =
+            result.englishDefinition ??
+            result.conversationalMeaning ??
+            result.formalMeaning ??
+            ''
 
-          // Example: prefer conversational, fall back to exampleEn
-          const example = result.exampleConversational ?? result.exampleEn
+          const example   = result.exampleEn ?? result.exampleConversational
           const exampleBn = result.exampleBn
 
           return (
             <>
-              {/* Word + POS */}
-              <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700 }}>{result.query}</div>
+              {/* Word */}
+              <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>
+                {result.query}
+              </div>
+
+              {/* Part of speech */}
               {result.partOfSpeech && (
-                <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic', marginTop: 1 }}>{result.partOfSpeech}</div>
+                <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic', marginBottom: 4 }}>
+                  {result.partOfSpeech}
+                </div>
               )}
 
-              {/* Bengali meaning + transcription */}
+              {/* Bengali meaning + inline transcription */}
               {result.bengaliMeaning && (
-                <div style={{ marginTop: 6, fontSize: 15, fontWeight: 600 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>
                   {result.bengaliMeaning}
                   {result.transcription && (
                     <span style={{ color: '#E2C97E', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>
@@ -535,45 +537,50 @@ export function Overlay({ onClose }: { onClose: () => void }) {
 
               {/* Pronunciation */}
               {result.pronunciation && (
-                <div style={{ color: '#AAB8C8', marginTop: 2, fontSize: 12 }}>
+                <div style={{ color: '#AAB8C8', fontSize: 12, marginBottom: 6 }}>
                   {result.pronunciation}
                 </div>
               )}
 
-              {/* Meanings — conversational first, then formal, no labels/boxes */}
-              {meanings.map((m, i) => (
-                <div key={i} style={{ color: i === 0 ? '#F3F6FA' : '#AAB8C8', marginTop: i === 0 ? 8 : 4, fontSize: 13 }}>
-                  {m}
-                </div>
-              ))}
-
-              {/* Example sentence */}
-              {example && (
-                <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: 'rgba(16,21,29,0.55)', fontStyle: 'italic', fontSize: 13 }}>
-                  {example}
-                  {exampleBn && <div style={{ marginTop: 4, fontStyle: 'normal', color: '#AAB8C8' }}>{exampleBn}</div>}
+              {/* Definition */}
+              {definition && (
+                <div style={{ color: '#D0DAE4', fontSize: 13, marginBottom: 8 }}>
+                  {definition}
                 </div>
               )}
 
-              {/* Synonyms then Antonyms — same line style, no category boxes */}
+              {/* Example */}
+              {example && (
+                <div style={{ padding: '6px 10px', borderRadius: 8, background: 'rgba(16,21,29,0.55)', marginBottom: 8 }}>
+                  <div style={{ color: '#AAB8C8', fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>EXAMPLE</div>
+                  <div style={{ fontStyle: 'italic', fontSize: 13 }}>{example}</div>
+                  {exampleBn && (
+                    <div style={{ marginTop: 4, color: '#AAB8C8', fontSize: 12 }}>{exampleBn}</div>
+                  )}
+                </div>
+              )}
+
+              {/* Synonyms */}
               {result.synonyms && result.synonyms.length > 0 && (
-                <div style={{ marginTop: 8, fontSize: 12 }}>
+                <div style={{ fontSize: 12, marginBottom: 3 }}>
                   <span style={{ color: '#AAB8C8' }}>Synonyms: </span>
                   <span style={{ color: '#A8D8A8' }}>{result.synonyms.join(', ')}</span>
                 </div>
               )}
+
+              {/* Antonyms — right after synonyms */}
               {result.antonyms && result.antonyms.length > 0 && (
-                <div style={{ marginTop: 3, fontSize: 12 }}>
+                <div style={{ fontSize: 12, marginBottom: 8 }}>
                   <span style={{ color: '#AAB8C8' }}>Antonyms: </span>
                   <span style={{ color: '#E58A8A' }}>{result.antonyms.join(', ')}</span>
                 </div>
               )}
 
               {/* Source + actions */}
-              <div style={{ marginTop: 8, fontSize: 11, color: '#6B7A8D' }}>
-                {result.source === 'offline' ? '📖 Offline' : `🤖 ${result.source}`}
+              <div style={{ fontSize: 11, color: '#6B7A8D', marginBottom: 8 }}>
+                Source: {result.source === 'offline' ? '📖 Offline' : `🤖 ${result.source}`}
               </div>
-              <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+              <div style={{ display: 'flex', gap: 6 }}>
                 <button onClick={() => speakWord(result.query)} style={actionBtn}>🔊 Pronounce</button>
                 <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>
               </div>
