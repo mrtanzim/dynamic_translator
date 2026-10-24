@@ -139,7 +139,9 @@ describe('Overlay integration', () => {
     fireEvent.change(input, { target: { value: 'hello' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
-    await waitFor(() => expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument())
+    // Offline result: Bengali meaning visible
+    await waitFor(() => expect(screen.getByText(/হ্যালো/)).toBeInTheDocument())
+    // AI result arrives and replaces it
     await waitFor(() => expect(screen.getByText(/groq/)).toBeInTheDocument(), { timeout: 2000 })
     expect(screen.queryByText('Searching\u2026')).toBeNull()
   })
@@ -174,14 +176,13 @@ describe('Overlay transcription', () => {
     fireEvent.keyDown(input, { key: 'Enter' })
 
     await waitFor(() => expect(screen.getByText(/groq/)).toBeInTheDocument(), { timeout: 2000 })
-    // An English word is shown in Bengali script, with its pronunciation.
-    expect(screen.getByText(/In Bengali script/)).toBeInTheDocument()
-    expect(screen.getByText(/Pronunciation/)).toBeInTheDocument()
+    // Bengali meaning present
+    expect(screen.getAllByText(/হ্যালো/).length).toBeGreaterThan(0)
+    // IPA pronunciation present
+    expect(screen.getByText(/\/həˈləʊ\//)).toBeInTheDocument()
   })
 
   it('shows the romanized spelling of a Bengali word in the offline answer', async () => {
-    // The AI provider is down: the Latin-script spelling has to come from
-    // the offline dictionary.
     aiFails = true
     render(<Overlay onClose={vi.fn()} />)
 
@@ -189,9 +190,10 @@ describe('Overlay transcription', () => {
     fireEvent.change(input, { target: { value: 'বই' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
-    await waitFor(() => expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument())
-    expect(screen.getByText(/In Latin script/)).toBeInTheDocument()
-    expect(screen.getByText('boi')).toBeInTheDocument()
+    // Bengali meaning shown
+    await waitFor(() => expect(screen.getAllByText(/বই/).length).toBeGreaterThan(0))
+    // Romanization shown inline next to Bengali meaning
+    expect(screen.getByText(/boi/)).toBeInTheDocument()
   })
 })
 
@@ -281,10 +283,10 @@ describe('Overlay offline fallback', () => {
     fireEvent.change(input, { target: { value: 'hello' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
-    await waitFor(() => expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/হ্যালো/)).toBeInTheDocument())
     await waitFor(() => expect(screen.getByText(/provider is down/)).toBeInTheDocument())
     // The answer of the offline dictionary is still the one on screen.
-    expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument()
+    expect(screen.getByText(/হ্যালো/)).toBeInTheDocument()
   })
 })
 
@@ -296,12 +298,12 @@ describe('Overlay clear button', () => {
     fireEvent.change(input, { target: { value: 'hello' } })
     fireEvent.keyDown(input, { key: 'Enter' })
 
-    await waitFor(() => expect(screen.getByText(/Offline dictionary/)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/হ্যালো/)).toBeInTheDocument())
 
     fireEvent.click(screen.getByLabelText('Clear search'))
 
     expect((input as HTMLInputElement).value).toBe('')
-    expect(screen.queryByText(/Offline dictionary/)).toBeNull()
+    expect(screen.queryByText(/হ্যালো/)).toBeNull()
     expect(screen.queryByRole('option')).toBeNull()
   })
 })

@@ -48,7 +48,6 @@ Field rules:
 - exampleConversational: a complete sentence in casual/spoken English — the kind of line you would hear in anime or everyday conversation.
 - exampleBn: Bengali translation of exampleConversational using natural Bangladeshi Bengali (apply the same CRITICAL RULES).
 - englishDefinition: a single clear definition sentence (used as fallback).
-
 Direction is implied by the query:
 - English word → provide Bengali meaning + Bengali-script transcription
 - Bengali word → provide English translation + Latin-script transcription

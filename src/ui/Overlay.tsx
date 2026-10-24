@@ -491,108 +491,95 @@ export function Overlay({ onClose }: { onClose: () => void }) {
           </div>
       <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
         {loading && <div style={{ color: '#AAB8C8', fontSize: 12, marginBottom: 8 }}>Searching…</div>}
-        {error && <div style={{ color: '#E58A8A', fontSize: 12, marginBottom: 8 }}>{error}</div>}
-        {!result && !loading && !error && <div style={{ color: '#AAB8C8' }}>Search any word to begin.</div>}
-        {result && (
-          <>
-            <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700 }}>{result.query}</div>
-            {result.headword && result.headword !== result.query && (
-              <div style={{ color: '#AAB8C8', fontSize: 12, marginTop: 2 }}>
-                {isBengali(result.query) ? 'English' : 'Headword'}: {result.headword}
-              </div>
-            )}
-            {result.partOfSpeech && <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>{result.partOfSpeech}</div>}
-
-            {/* Bengali meaning */}
-            {result.bengaliMeaning && (
-              <div style={{ marginTop: 6, fontSize: 15, fontWeight: 600 }}>{result.bengaliMeaning}</div>
-            )}
-
-            {/* Transcription + Pronunciation */}
-            {result.transcription && (
-              <div style={{ marginTop: 4, fontSize: 12 }}>
-                <span style={{ color: '#AAB8C8' }}>
-                  {isBengali(result.query) ? 'In Latin script' : 'In Bengali script'}:
-                </span>{' '}
-                <span style={{ color: '#E2C97E' }}>{result.transcription}</span>
-              </div>
-            )}
-            {result.pronunciation && (
-              <div style={{ color: '#AAB8C8', marginTop: 2, fontSize: 12 }}>Pronunciation: {result.pronunciation}</div>
-            )}
-
-            {/* Formal meaning */}
-            {result.formalMeaning && (
-              <div style={{ marginTop: 10, padding: '7px 10px', borderRadius: 8, background: 'rgba(101,207,255,0.07)', borderLeft: '3px solid #65CFFF' }}>
-                <div style={{ color: '#65CFFF', fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 3 }}>✍ FORMAL / WRITING (IELTS)</div>
-                <div style={{ fontSize: 13 }}>{result.formalMeaning}</div>
-                {result.exampleFormal && (
-                  <div style={{ marginTop: 5, color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>"{result.exampleFormal}"</div>
-                )}
-              </div>
-            )}
-
-            {/* Conversational meaning */}
-            {result.conversationalMeaning && (
-              <div style={{ marginTop: 6, padding: '7px 10px', borderRadius: 8, background: 'rgba(255,180,100,0.07)', borderLeft: '3px solid #E2A44A' }}>
-                <div style={{ color: '#E2A44A', fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 3 }}>🗣 CONVERSATIONAL / SPOKEN</div>
-                <div style={{ fontSize: 13 }}>{result.conversationalMeaning}</div>
-                {(result.exampleConversational ?? result.exampleEn) && (
-                  <div style={{ marginTop: 5, color: '#AAB8C8', fontSize: 12, fontStyle: 'italic' }}>
-                    "{result.exampleConversational ?? result.exampleEn}"
-                  </div>
-                )}
-                {result.exampleBn && (
-                  <div style={{ marginTop: 3, color: '#AAB8C8', fontSize: 12 }}>{result.exampleBn}</div>
-                )}
-              </div>
-            )}
-
-            {/* Fallback: old-style definition when no formal/conversational split */}
-            {!result.formalMeaning && !result.conversationalMeaning && result.englishDefinition && (
-              <div style={{ color: '#AAB8C8', marginTop: 6, fontSize: 13 }}>{result.englishDefinition}</div>
-            )}
-            {!result.formalMeaning && !result.conversationalMeaning && result.exampleEn && (
-              <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: 'rgba(16,21,29,0.55)', fontStyle: 'italic', fontSize: 13 }}>
-                {result.exampleEn}
-                {result.exampleBn && <div style={{ marginTop: 4, fontStyle: 'normal' }}>{result.exampleBn}</div>}
-              </div>
-            )}
-
-            {/* Usage note */}
-            {result.usageNote && (
-              <div style={{ marginTop: 6, padding: '5px 8px', borderRadius: 6, background: 'rgba(148,163,184,0.08)', fontSize: 12, color: '#C5D1DC', fontStyle: 'italic' }}>
-                💡 {result.usageNote}
-              </div>
-            )}
-
-            {/* Synonyms */}
-            {result.synonyms && result.synonyms.length > 0 && (
-              <div style={{ marginTop: 8, fontSize: 12 }}>
-                <span style={{ color: '#AAB8C8' }}>Synonyms: </span>
-                <span style={{ color: '#A8D8A8' }}>{result.synonyms.join(', ')}</span>
-              </div>
-            )}
-
-            {/* Antonyms */}
-            {result.antonyms && result.antonyms.length > 0 && (
-              <div style={{ marginTop: 4, fontSize: 12 }}>
-                <span style={{ color: '#AAB8C8' }}>Antonyms: </span>
-                <span style={{ color: '#E58A8A' }}>{result.antonyms.join(', ')}</span>
-              </div>
-            )}
-
-            <div style={{ marginTop: 8, fontSize: 11, color: '#AAB8C8' }}>
-              Source: {result.source === 'offline'
-                ? '📖 Offline dictionary'
-                : `🤖 ${result.source}`}
-            </div>
-            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-              <button onClick={() => speakWord(result.query)} style={actionBtn}>🔊 Pronounce</button>
-              <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>
-            </div>
-          </>
+        {error && (
+          <div style={{ color: '#E58A8A', fontSize: 11, marginBottom: 8, opacity: 0.7 }}>
+            {/* Truncate long rate-limit error messages to one line */}
+            {error.length > 80 ? error.slice(0, 80) + '…' : error}
+          </div>
         )}
+        {!result && !loading && !error && <div style={{ color: '#AAB8C8' }}>Search any word to begin.</div>}
+        {result && (() => {
+          // Build the ordered meanings list:
+          //   1st = conversational (spoken / anime)
+          //   2nd = formal (writing / IELTS)
+          //   rest = anything extra
+          const meanings: string[] = []
+          if (result.conversationalMeaning) meanings.push(result.conversationalMeaning)
+          if (result.formalMeaning && result.formalMeaning !== result.conversationalMeaning)
+            meanings.push(result.formalMeaning)
+          if (!meanings.length && result.englishDefinition) meanings.push(result.englishDefinition)
+
+          // Example: prefer conversational, fall back to exampleEn
+          const example = result.exampleConversational ?? result.exampleEn
+          const exampleBn = result.exampleBn
+
+          return (
+            <>
+              {/* Word + POS */}
+              <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700 }}>{result.query}</div>
+              {result.partOfSpeech && (
+                <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic', marginTop: 1 }}>{result.partOfSpeech}</div>
+              )}
+
+              {/* Bengali meaning + transcription */}
+              {result.bengaliMeaning && (
+                <div style={{ marginTop: 6, fontSize: 15, fontWeight: 600 }}>
+                  {result.bengaliMeaning}
+                  {result.transcription && (
+                    <span style={{ color: '#E2C97E', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>
+                      {result.transcription}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Pronunciation */}
+              {result.pronunciation && (
+                <div style={{ color: '#AAB8C8', marginTop: 2, fontSize: 12 }}>
+                  {result.pronunciation}
+                </div>
+              )}
+
+              {/* Meanings — conversational first, then formal, no labels/boxes */}
+              {meanings.map((m, i) => (
+                <div key={i} style={{ color: i === 0 ? '#F3F6FA' : '#AAB8C8', marginTop: i === 0 ? 8 : 4, fontSize: 13 }}>
+                  {m}
+                </div>
+              ))}
+
+              {/* Example sentence */}
+              {example && (
+                <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: 'rgba(16,21,29,0.55)', fontStyle: 'italic', fontSize: 13 }}>
+                  {example}
+                  {exampleBn && <div style={{ marginTop: 4, fontStyle: 'normal', color: '#AAB8C8' }}>{exampleBn}</div>}
+                </div>
+              )}
+
+              {/* Synonyms then Antonyms — same line style, no category boxes */}
+              {result.synonyms && result.synonyms.length > 0 && (
+                <div style={{ marginTop: 8, fontSize: 12 }}>
+                  <span style={{ color: '#AAB8C8' }}>Synonyms: </span>
+                  <span style={{ color: '#A8D8A8' }}>{result.synonyms.join(', ')}</span>
+                </div>
+              )}
+              {result.antonyms && result.antonyms.length > 0 && (
+                <div style={{ marginTop: 3, fontSize: 12 }}>
+                  <span style={{ color: '#AAB8C8' }}>Antonyms: </span>
+                  <span style={{ color: '#E58A8A' }}>{result.antonyms.join(', ')}</span>
+                </div>
+              )}
+
+              {/* Source + actions */}
+              <div style={{ marginTop: 8, fontSize: 11, color: '#6B7A8D' }}>
+                {result.source === 'offline' ? '📖 Offline' : `🤖 ${result.source}`}
+              </div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                <button onClick={() => speakWord(result.query)} style={actionBtn}>🔊 Pronounce</button>
+                <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>
+              </div>
+            </>
+          )
+        })()}
       </div>
         </>
       )}
