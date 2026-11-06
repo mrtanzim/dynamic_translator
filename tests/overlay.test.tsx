@@ -6,8 +6,9 @@ import { vi, beforeEach, afterEach, describe, it, expect } from 'vitest'
 import { Overlay } from '../src/ui/Overlay'
 import type { LookupResult } from '../src/shared/types'
 
-const { addHistory, listSaved, updateHistory, pruneHistory } = vi.hoisted(() => ({
+const { addHistory, listHistory, listSaved, updateHistory, pruneHistory } = vi.hoisted(() => ({
   addHistory: vi.fn().mockResolvedValue(1),
+  listHistory: vi.fn().mockResolvedValue([]),
   listSaved: vi.fn().mockResolvedValue([]),
   updateHistory: vi.fn().mockResolvedValue(undefined),
   pruneHistory: vi.fn().mockResolvedValue(undefined),
@@ -15,6 +16,7 @@ const { addHistory, listSaved, updateHistory, pruneHistory } = vi.hoisted(() => 
 
 vi.mock('../src/storage/history', () => ({
   addHistory,
+  listHistory,
   listSaved,
   updateHistory,
   pruneHistory,
@@ -230,6 +232,28 @@ describe('Overlay menu', () => {
 
     await waitFor(() => expect(screen.getByPlaceholderText('Search any word')).toBeInTheDocument())
     expect((screen.getByPlaceholderText('Search any word') as HTMLInputElement).value).toBe('hello')
+  })
+
+  it('navigates to History and Saved views and returns home by clicking brand', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    // Open History
+    fireEvent.click(screen.getByTitle('Menu'))
+    fireEvent.click(screen.getByText('History'))
+    await waitFor(() => expect(screen.getByText('Search History')).toBeInTheDocument())
+
+    // Click brand to return home
+    fireEvent.click(screen.getByTitle('VocabFlow Home (Search)'))
+    await waitFor(() => expect(screen.getByPlaceholderText('Search any word')).toBeInTheDocument())
+
+    // Open Saved Words
+    fireEvent.click(screen.getByTitle('Menu'))
+    fireEvent.click(screen.getByText('Saved Words'))
+    await waitFor(() => expect(screen.getByText('Saved Words')).toBeInTheDocument())
+
+    // Click back button to return home
+    fireEvent.click(screen.getByText('← Back to Search'))
+    await waitFor(() => expect(screen.getByPlaceholderText('Search any word')).toBeInTheDocument())
   })
 })
 

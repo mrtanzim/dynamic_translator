@@ -134,16 +134,16 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t)
   }, [toast])
 
-  // Close dropdown menu when clicking outside
+  // Close dropdown menu when clicking outside (Shadow DOM aware)
   useEffect(() => {
     if (!menuOpen) return
     const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node | null
+      const path = typeof e.composedPath === 'function' ? e.composedPath() : []
       if (
         menuRef.current &&
-        !menuRef.current.contains(target) &&
+        !path.includes(menuRef.current) &&
         menuBtnRef.current &&
-        !menuBtnRef.current.contains(target)
+        !path.includes(menuBtnRef.current)
       ) {
         setMenuOpen(false)
       }
@@ -364,7 +364,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   }
 
   const onHeaderDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('button,input')) return
+    if ((e.target as HTMLElement).closest('button,input,.menu-panel')) return
     dragging.current = true
     start.current = { mx: e.clientX, my: e.clientY, pos }
     const move = (ev: MouseEvent) => {
@@ -526,12 +526,17 @@ export function Overlay({ onClose }: { onClose: () => void }) {
 
         {/* Dropdown Menu */}
         {menuOpen && (
-          <div ref={menuRef} className="menu-panel">
+          <div
+            ref={menuRef}
+            className="menu-panel"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             {menuEntries.map((m) => (
               <button
                 key={m.id}
                 type="button"
                 className={`menu-item ${m.id === view ? 'active' : ''}`}
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={() => {
                   if (m.id === 'account') {
                     setToast('Account & Cloud Sync — Upcoming in v1.1.0!')
