@@ -22,6 +22,11 @@ export {
 } from './dataset'
 export type { OfflineEntryPayload, SuggestionPayload }
 
+function isContextInvalid(err: unknown): boolean {
+  const str = String(err)
+  return str.includes('Extension context invalidated') || str.includes('context invalid')
+}
+
 /**
  * Asks the service worker for a dictionary entry.
  *
@@ -35,14 +40,20 @@ export async function offlineLookup(
   query: string,
   bengali = false,
 ): Promise<OfflineEntryPayload | null> {
-  const response = (await chrome.runtime.sendMessage({
-    type: OFFLINE_LOOKUP_MESSAGE,
-    query,
-    isBengali: bengali,
-  })) as OfflineLookupResponse | undefined
-  if (!response) return null
-  if (!response.ok) throw new Error(response.error)
-  return response.result
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) return null
+    const response = (await chrome.runtime.sendMessage({
+      type: OFFLINE_LOOKUP_MESSAGE,
+      query,
+      isBengali: bengali,
+    })) as OfflineLookupResponse | undefined
+    if (!response) return null
+    if (!response.ok) throw new Error(response.error)
+    return response.result
+  } catch (err) {
+    if (isContextInvalid(err)) return null
+    throw err
+  }
 }
 
 /**
@@ -71,14 +82,18 @@ export async function suggestWords(
   query: string,
   limit = 8,
 ): Promise<SuggestionPayload[]> {
-  const response = (await chrome.runtime.sendMessage({
-    type: SUGGEST_MESSAGE,
-    query,
-    limit,
-  })) as SuggestResponse | undefined
-  if (!response) return []
-  if (!response.ok) throw new Error(response.error)
-  return response.suggestions
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) return []
+    const response = (await chrome.runtime.sendMessage({
+      type: SUGGEST_MESSAGE,
+      query,
+      limit,
+    })) as SuggestResponse | undefined
+    if (!response) return []
+    if (!response.ok) throw new Error(response.error)
+    return response.suggestions
+  } catch (err) {
+    if (isContextInvalid(err)) return []
+    throw err
+  }
 }
-
-

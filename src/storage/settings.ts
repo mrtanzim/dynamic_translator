@@ -10,18 +10,6 @@ export type ProviderSettings = Record<ProviderId, ProviderConfig>
 
 /**
  * Default model per provider.
- *
- * The Groq default is `qwen/qwen3.8-27b`: it is a current, fast and
- * JSON-mode capable model on Groq, and it is reachable with the seeded key.
- *
- * The Gemini default is `gemini-3.8-flash`. The whole Gemini 2.x line was
- * shut down on 2026-06-01, and `gemini-2.5-flash` has been returning 404
- * since 2026-07, so the previous 2.0/2.5 defaults could never succeed.
- *
- * The OpenRouter default is `qwen/qwen3.8-flash`: it is cheap, supports
- * `response_format`, and — unlike the previous `openai/gpt-4o-mini` and
- * `anthropic/claude-3.5-sonnet` defaults — is still in the OpenRouter
- * catalog.
  */
 export const DEFAULT_MODELS: Record<ProviderId, string> = {
   groq: 'qwen/qwen3.8-27b',
@@ -31,14 +19,6 @@ export const DEFAULT_MODELS: Record<ProviderId, string> = {
 
 /**
  * Selectable models per provider.
- *
- * Groq model access is account-scoped, so the list here is only a curated
- * set of known-good choices; the live list can also be fetched from the
- * provider (see `src/providers/groq/models.ts`).
- *
- * Retired models are deliberately absent: `llama-3.3-70b-versatile` and
- * `llama-3.1-8b-instant` were shut down on 2026-08-16, `gemini-2.0-flash`
- * on 2026-06-01, and `gemini-2.5-flash` is no longer served at all.
  */
 export const PROVIDER_MODELS: Record<ProviderId, string[]> = {
   groq: [
@@ -66,18 +46,34 @@ const SETTINGS_KEY = 'vocabflow.providers'
 
 export function loadSettings(): Promise<ProviderSettings> {
   return new Promise((resolve) => {
-    chrome.storage.local.get(SETTINGS_KEY, (r) => {
-      const stored = r?.[SETTINGS_KEY] as Partial<ProviderSettings> | undefined
-      resolve({
-        groq: { ...DEFAULT_SETTINGS.groq, ...stored?.groq },
-        openrouter: { ...DEFAULT_SETTINGS.openrouter, ...stored?.openrouter },
-        gemini: { ...DEFAULT_SETTINGS.gemini, ...stored?.gemini },
+    try {
+      if (typeof chrome === 'undefined' || !chrome?.storage?.local) {
+        resolve(DEFAULT_SETTINGS)
+        return
+      }
+      chrome.storage.local.get(SETTINGS_KEY, (r) => {
+        if (chrome.runtime?.lastError) {
+          resolve(DEFAULT_SETTINGS)
+          return
+        }
+        const stored = r?.[SETTINGS_KEY] as Partial<ProviderSettings> | undefined
+        resolve({
+          groq: { ...DEFAULT_SETTINGS.groq, ...stored?.groq },
+          openrouter: { ...DEFAULT_SETTINGS.openrouter, ...stored?.openrouter },
+          gemini: { ...DEFAULT_SETTINGS.gemini, ...stored?.gemini },
+        })
       })
-    })
+    } catch {
+      resolve(DEFAULT_SETTINGS)
+    }
   })
 }
 
 export async function saveSettings(s: ProviderSettings): Promise<void> {
-  await chrome.storage.local.set({ [SETTINGS_KEY]: s })
+  try {
+    if (typeof chrome === 'undefined' || !chrome?.storage?.local) return
+    await chrome.storage.local.set({ [SETTINGS_KEY]: s })
+  } catch {
+    // Ignore invalidated context
+  }
 }
-

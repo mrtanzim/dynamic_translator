@@ -33,7 +33,9 @@ export function ProvidersView() {
   useEffect(() => {
     void (async () => {
       try {
-        await chrome.runtime.sendMessage({ type: SEED_MESSAGE })
+        if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
+          await chrome.runtime.sendMessage({ type: SEED_MESSAGE })
+        }
       } catch {
         // The service worker may not be ready; the stored settings are used.
       }
@@ -57,6 +59,10 @@ export function ProvidersView() {
       setStatus((s) => ({ ...s, [id]: { state: 'error', message: 'API key required' } }))
       return
     }
+    if (typeof chrome === 'undefined' || !chrome.runtime?.id) {
+      setStatus((s) => ({ ...s, [id]: { state: 'error', message: 'Extension reloaded. Please refresh tab.' } }))
+      return
+    }
     setStatus((s) => ({ ...s, [id]: { state: 'testing' } }))
     try {
       const request: AiLookupRequest = {
@@ -68,7 +74,12 @@ export function ProvidersView() {
         apiKey: cfg.apiKey,
         requestId: 'test',
       }
-      const response = (await chrome.runtime.sendMessage(request)) as AiLookupResponse | undefined
+      const response = (await chrome.runtime.sendMessage(request).catch((e) => {
+        if (String(e).includes('Extension context invalidated')) {
+          throw new Error('Extension reloaded. Please refresh tab.')
+        }
+        throw e
+      })) as AiLookupResponse | undefined
       if (!response) throw new Error('No response from VocabFlow service worker')
       if (!response.ok) throw new Error(response.error)
       setStatus((s) => ({ ...s, [id]: { state: 'ok', message: 'Connection successful' } }))
@@ -83,10 +94,19 @@ export function ProvidersView() {
       setModelsStatus((s) => ({ ...s, [id]: { state: 'error', message: 'API key required' } }))
       return
     }
+    if (typeof chrome === 'undefined' || !chrome.runtime?.id) {
+      setModelsStatus((s) => ({ ...s, [id]: { state: 'error', message: 'Extension reloaded. Please refresh tab.' } }))
+      return
+    }
     setModelsStatus((s) => ({ ...s, [id]: { state: 'testing' } }))
     try {
       const request: ListModelsRequest = { type: LIST_MODELS_MESSAGE, provider: id, apiKey: key }
-      const response = (await chrome.runtime.sendMessage(request)) as ListModelsResponse | undefined
+      const response = (await chrome.runtime.sendMessage(request).catch((e) => {
+        if (String(e).includes('Extension context invalidated')) {
+          throw new Error('Extension reloaded. Please refresh tab.')
+        }
+        throw e
+      })) as ListModelsResponse | undefined
       if (!response) throw new Error('No response from VocabFlow service worker')
       if (!response.ok) throw new Error(response.error)
       setLiveModels((m) => ({ ...m, [id]: response.models }))

@@ -14,13 +14,30 @@ export const APP_SETTINGS_KEY = 'vocabflow.settings'
 
 export function loadAppSettings(): Promise<AppSettings> {
   return new Promise((resolve) => {
-    chrome.storage.local.get(APP_SETTINGS_KEY, (r) => {
-      const stored = r?.[APP_SETTINGS_KEY] as Partial<AppSettings> | undefined
-      resolve({ ...DEFAULT_APP_SETTINGS, ...stored })
-    })
+    try {
+      if (typeof chrome === 'undefined' || !chrome?.storage?.local) {
+        resolve(DEFAULT_APP_SETTINGS)
+        return
+      }
+      chrome.storage.local.get(APP_SETTINGS_KEY, (r) => {
+        if (chrome.runtime?.lastError) {
+          resolve(DEFAULT_APP_SETTINGS)
+          return
+        }
+        const stored = r?.[APP_SETTINGS_KEY] as Partial<AppSettings> | undefined
+        resolve({ ...DEFAULT_APP_SETTINGS, ...stored })
+      })
+    } catch {
+      resolve(DEFAULT_APP_SETTINGS)
+    }
   })
 }
 
 export async function saveAppSettings(s: AppSettings): Promise<void> {
-  await chrome.storage.local.set({ [APP_SETTINGS_KEY]: s })
+  try {
+    if (typeof chrome === 'undefined' || !chrome?.storage?.local) return
+    await chrome.storage.local.set({ [APP_SETTINGS_KEY]: s })
+  } catch {
+    // Ignore invalidated context
+  }
 }

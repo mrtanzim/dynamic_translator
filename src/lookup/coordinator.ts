@@ -130,7 +130,12 @@ export class LookupCoordinator {
       apiKey,
       requestId,
     }
-    const response = (await chrome.runtime.sendMessage(request)) as AiLookupResponse | undefined
+    const response = (await chrome.runtime.sendMessage(request).catch((err) => {
+      if (String(err).includes('Extension context invalidated')) {
+        throw new Error('Extension reloaded. Please refresh this page.')
+      }
+      throw err
+    })) as AiLookupResponse | undefined
     if (!response) throw new Error('No response from VocabFlow service worker')
     if (!response.ok) throw new Error(response.error)
     return response.result

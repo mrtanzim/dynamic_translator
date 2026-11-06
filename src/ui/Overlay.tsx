@@ -115,9 +115,16 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const resultRef = useRef<LookupResult | null>(null)
 
   useEffect(() => {
-    chrome.storage.local.get(STORAGE_KEY, (r) => {
-      if (r?.[STORAGE_KEY]) setPos(clamp(r[STORAGE_KEY] as Pos))
-    })
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+        chrome.storage.local.get(STORAGE_KEY, (r) => {
+          if (chrome.runtime?.lastError) return
+          if (r?.[STORAGE_KEY]) setPos(clamp(r[STORAGE_KEY] as Pos))
+        })
+      }
+    } catch {
+      // ignore
+    }
   }, [])
 
   useEffect(() => {
@@ -256,13 +263,25 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   posRef.current = pos
   useEffect(() => {
     const t = setTimeout(() => {
-      chrome.storage.local.set({ [STORAGE_KEY]: pos })
+      try {
+        if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+          chrome.storage.local.set({ [STORAGE_KEY]: pos })
+        }
+      } catch {
+        // ignore invalidated context
+      }
     }, POSITION_WRITE_DEBOUNCE_MS)
     return () => clearTimeout(t)
   }, [pos])
   useEffect(() => {
     return () => {
-      chrome.storage.local.set({ [STORAGE_KEY]: posRef.current })
+      try {
+        if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+          chrome.storage.local.set({ [STORAGE_KEY]: posRef.current })
+        }
+      } catch {
+        // ignore invalidated context
+      }
     }
   }, [])
 
