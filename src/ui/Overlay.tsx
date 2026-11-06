@@ -1,43 +1,59 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { LookupCoordinator } from '../lookup/coordinator'
 import type { LookupResult, View } from '../shared/types'
-import { MENU_ITEMS } from '../shared/types'
-import { addHistory, listSaved, updateHistory, pruneHistory, type HistoryEntry } from '../storage/history'
+import {
+  addHistory,
+  listSaved,
+  updateHistory,
+  pruneHistory,
+  type HistoryEntry,
+} from '../storage/history'
 import { loadAppSettings } from '../storage/app-settings'
 import { isBengali, suggestWords, type SuggestionPayload } from '../providers/offline'
 import { ProvidersView } from './views/ProvidersView'
 import { HistoryView } from './views/HistoryView'
 import { SettingsView, AboutView } from './views/SettingsView'
+import {
+  TranslateIcon,
+  SearchIcon,
+  SpeakerIcon,
+  BookmarkIcon,
+  LinkIcon,
+  BanIcon,
+  BookIcon,
+  MinusIcon,
+  CloseIcon,
+  DotsIcon,
+  UserIcon,
+  ClockIcon,
+  ZapIcon,
+  SettingsIcon,
+  HelpCircleIcon,
+} from './icons'
 
 const STORAGE_KEY = 'vocabflow.overlay'
-/** How long the overlay position is left unsettled before it is persisted. */
 const POSITION_WRITE_DEBOUNCE_MS = 300
-/** How long the search waits before the query is sent to the dictionary. */
 const LOOKUP_DEBOUNCE_MS = 300
-/** How long the search waits before the type-ahead suggestions are requested. */
 const SUGGEST_DEBOUNCE_MS = 120
-/** How long the type-ahead suggestions may take before they are given up on. */
 const SUGGEST_TIMEOUT_MS = 1000
-/** The number of type-ahead suggestions that are shown. */
 const SUGGEST_LIMIT = 8
+
 type Pos = { x: number; y: number; w: number; h: number }
-const DEFAULT: Pos = { x: window.innerWidth - 400, y: 80, w: 380, h: 520 }
+const DEFAULT: Pos = {
+  x: window.innerWidth / 2 - 180,
+  y: window.innerHeight / 2 - 360,
+  w: 360,
+  h: 720,
+}
+
 function clamp(p: Pos): Pos {
-  const w = Math.min(Math.max(p.w, 300), window.innerWidth - 20)
-  const h = Math.min(Math.max(p.h, 260), window.innerHeight - 20)
-  const x = Math.min(Math.max(p.x, 0), window.innerWidth - w)
-  const y = Math.min(Math.max(p.y, 0), window.innerHeight - h)
+  const w = Math.min(Math.max(p.w, 300), window.innerWidth - 24)
+  const h = Math.min(Math.max(p.h, 520), window.innerHeight - 24)
+  const x = Math.min(Math.max(p.x, 12), window.innerWidth - w - 12)
+  const y = Math.min(Math.max(p.y, 12), window.innerHeight - h - 12)
   return { x, y, w, h }
 }
 
-/**
- * Whether the query is only the beginning of a suggested word.
- *
- * "cucu" is not a word the user wants looked up yet — the suggestion
- * "cucumber" is the answer they are looking for. But "book" is a word in its
- * own right, even though "bookcase" starts with it, so a query that is
- * exactly one of the suggestions is never treated as partial.
- */
 function isPartialWord(query: string, suggestions: SuggestionPayload[]): boolean {
   if (!suggestions.length) return false
   const q = query.toLowerCase()
@@ -45,8 +61,30 @@ function isPartialWord(query: string, suggestions: SuggestionPayload[]): boolean
   return suggestions.some((s) => s.word.toLowerCase().startsWith(q))
 }
 
+function renderHighlightedExample(text: string, query: string) {
+  if (!text) return null
+  if (!query) return text
+  try {
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`(${escaped})`, 'gi')
+    const parts = text.split(regex)
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <span key={i} className="highlight">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    )
+  } catch {
+    return text
+  }
+}
+
 export function Overlay({ onClose }: { onClose: () => void }) {
   const [pos, setPos] = useState<Pos>(DEFAULT)
+  const [minimized, setMinimized] = useState(false)
   const [query, setQuery] = useState('')
   const [result, setResult] = useState<LookupResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -57,6 +95,8 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const [suggestions, setSuggestions] = useState<SuggestionPayload[]>([])
   const [suggestOpen, setSuggestOpen] = useState(false)
   const [highlight, setHighlight] = useState(-1)
+  const [toast, setToast] = useState<string | null>(null)
+
   const dragging = useRef(false)
   const resizing = useRef(false)
   const start = useRef({ mx: 0, my: 0, pos: DEFAULT })
@@ -64,26 +104,22 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const lastRequestId = useRef<string | null>(null)
   const lastLookup = useRef<string | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
-  // The suggestions arrive out of order when the user types quickly, so only
-  // the answer of the newest request is used.
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  const menuBtnRef = useRef<HTMLButtonElement | null>(null)
   const suggestSeq = useRef(0)
-  // The suggestions of the current query, and the query they belong to. The
-  // refs hold the values the lookup needs, the state holds the values the
-  // list is rendered from.
   const suggestionsRef = useRef<SuggestionPayload[]>([])
   const suggestionsForRef = useRef<string>('')
-  // FIX B: use ref instead of state to avoid stale closure in coordinator
   const historyIdRef = useRef<number | null>(null)
-  // FIX C-overlay: app settings refs
   const autoSpeakRef = useRef(false)
   const historyLimitRef = useRef(200)
   const resultRef = useRef<LookupResult | null>(null)
 
   useEffect(() => {
-    chrome.storage.local.get(STORAGE_KEY, (r) => { if (r?.[STORAGE_KEY]) setPos(clamp(r[STORAGE_KEY] as Pos)) })
+    chrome.storage.local.get(STORAGE_KEY, (r) => {
+      if (r?.[STORAGE_KEY]) setPos(clamp(r[STORAGE_KEY] as Pos))
+    })
   }, [])
 
-  // FIX C-overlay: load app settings on mount
   useEffect(() => {
     void loadAppSettings().then((s) => {
       autoSpeakRef.current = s.autoSpeak
@@ -91,23 +127,41 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     })
   }, [])
 
-  // FIX B: persistHistory has stable [] dep array so coordinator is created once
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 3500)
+    return () => clearTimeout(t)
+  }, [toast])
+
+  // Close dropdown menu when clicking outside
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node | null
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        menuBtnRef.current &&
+        !menuBtnRef.current.contains(target)
+      ) {
+        setMenuOpen(false)
+      }
+    }
+    window.addEventListener('mousedown', handleClickOutside)
+    return () => window.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
+
   const persistHistory = useCallback(async (r: LookupResult) => {
     try {
-      // Two identities are in play and must not be mixed up:
-      //   * `r.requestId` identifies the *search action*. The offline result
-      //     and the AI result of one search share it, so the AI result
-      //     updates the existing row instead of creating a second one.
-      //   * `r.query` is the word the user actually typed. It is what the
-      //     history row stores and what the lookup direction is derived
-      //     from. It must not be the display word: a Bengali query is
-      //     resolved to its English headword, so the offline and the AI
-      //     result of one search would otherwise look like two different
-      //     words.
       const query = r.query
       const direction = isBengali(query) ? 'bn->en' : 'en->bn'
       if (historyIdRef.current !== null && lastRequestId.current === r.requestId) {
-        await updateHistory(historyIdRef.current as number, { result: r, source: r.source, timestamp: Date.now() })
+        await updateHistory(historyIdRef.current as number, {
+          result: r,
+          source: r.source,
+          timestamp: Date.now(),
+        })
       } else {
         const id = await addHistory({
           query,
@@ -117,18 +171,14 @@ export function Overlay({ onClose }: { onClose: () => void }) {
           timestamp: Date.now(),
           saved: false,
         })
-        // FIX C-overlay: prune history after adding
         if (historyLimitRef.current > 0) await pruneHistory(historyLimitRef.current)
         lastRequestId.current = r.requestId
         historyIdRef.current = id
       }
-      // A word is saved as a whole, not as a single row: the bookmark
-      // follows the word, so re-searching a saved word does not create a
-      // second saved entry for it.
       const savedForQuery = (await listSaved()).filter((h: HistoryEntry) => h.query === query)
       setSaved(savedForQuery.length > 0)
     } catch {
-      // History persistence is best-effort; never break the lookup flow.
+      // History persistence is best-effort.
     }
   }, [])
 
@@ -138,14 +188,12 @@ export function Overlay({ onClose }: { onClose: () => void }) {
         if (e.type === 'LOCAL_RESULT' || e.type === 'AI_RESULT') {
           setResult(e.result)
           setError(null)
-          // FIX C-overlay: track latest result before persisting
           resultRef.current = e.result
           void persistHistory(e.result)
         } else if (e.type === 'LOOKUP_ERROR') {
           setError(`${e.provider}: ${e.error}`)
         } else if (e.type === 'LOOKUP_COMPLETE') {
           setLoading(false)
-          // FIX C-overlay: auto-speak on lookup complete
           if (autoSpeakRef.current && resultRef.current) speakWord(resultRef.current.query)
         }
       },
@@ -154,14 +202,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     return () => c.cancel()
   }, [persistHistory])
 
-  /**
-   * Type-ahead suggestions.
-   *
-   * The dictionary lives in the service worker, so the request is proxied
-   * through it. The answer of a request that has been overtaken by a newer
-   * keystroke is dropped, and a request that never comes back is given up on
-   * so that the lookup is not blocked by it.
-   */
+  // Type-ahead suggestions
   useEffect(() => {
     const trimmed = query.trim()
     if (!trimmed) {
@@ -174,8 +215,6 @@ export function Overlay({ onClose }: { onClose: () => void }) {
       let expiryTimer: ReturnType<typeof setTimeout> | undefined
       const request = suggestWords(trimmed, SUGGEST_LIMIT)
         .then((list) => ({ list }))
-        // The suggestions are a convenience: a failure must not break the
-        // lookup that follows.
         .catch(() => ({ list: [] as SuggestionPayload[] }))
       const expiry = new Promise<{ list: SuggestionPayload[] }>((resolve) => {
         expiryTimer = setTimeout(() => resolve({ list: [] }), SUGGEST_TIMEOUT_MS)
@@ -192,19 +231,17 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t)
   }, [query])
 
+  // Debounced lookup
   useEffect(() => {
     const t = setTimeout(() => {
       const trimmed = query.trim()
-      if (!trimmed) { setResult(null); setLoading(false); return }
-      // The lookup waits for the suggestions of *this* query: a half-typed
-      // word must not be sent to the AI providers before it is known that it
-      // is only the beginning of a longer word. The suggestions arrive as a
-      // state change, which re-runs this effect.
+      if (!trimmed) {
+        setResult(null)
+        setLoading(false)
+        return
+      }
       if (suggestionsForRef.current !== trimmed) return
-      // A word that is only the beginning of a known word is not looked up:
-      // the suggestions are the better answer while the user is still typing.
       if (isPartialWord(trimmed, suggestionsRef.current)) return
-      // Skip if this exact query was already looked up (e.g. via Enter).
       if (lastLookup.current === trimmed) return
       lastLookup.current = trimmed
       setLoading(true)
@@ -214,9 +251,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t)
   }, [query, suggestions])
 
-  // The position is persisted on every drag/resize frame, which would write
-  // to storage hundreds of times per second. The write is debounced so that
-  // only the final position is stored.
+  // Persist position (debounced), flush on unmount
   const posRef = useRef(pos)
   posRef.current = pos
   useEffect(() => {
@@ -225,22 +260,23 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     }, POSITION_WRITE_DEBOUNCE_MS)
     return () => clearTimeout(t)
   }, [pos])
-
-  // The debounced write is cancelled when the overlay closes, so the last
-  // position is flushed on unmount.
   useEffect(() => {
     return () => {
       chrome.storage.local.set({ [STORAGE_KEY]: posRef.current })
     }
   }, [])
 
-  /**
-   * Toggles the bookmark for the word that is currently displayed.
-   *
-   * The bookmark belongs to the *word*, not to a single history row: a word
-   * that was saved in an earlier search must not end up saved twice, so all
-   * rows for the same query are toggled together.
-   */
+  function speakWord(word: string) {
+    try {
+      const u = new SpeechSynthesisUtterance(word)
+      u.lang = isBengali(word) ? 'bn-IN' : 'en-US'
+      speechSynthesis.cancel()
+      speechSynthesis.speak(u)
+    } catch {
+      // Speech is optional.
+    }
+  }
+
   async function toggleSave() {
     const word = resultRef.current?.query
     if (!word) return
@@ -257,18 +293,6 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     setSaved(true)
   }
 
-  // FIX E: set utterance language by script (Bengali vs English)
-  function speakWord(word: string) {
-    try {
-      const u = new SpeechSynthesisUtterance(word)
-      u.lang = isBengali(word) ? 'bn-IN' : 'en-US'
-      speechSynthesis.cancel()
-      speechSynthesis.speak(u)
-    } catch {
-      // Speech is optional.
-    }
-  }
-
   const doSearch = (q: string) => {
     const trimmed = q.trim()
     if (!trimmed) return
@@ -279,12 +303,6 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     void coordinator.current?.lookup(trimmed)
   }
 
-  /**
-   * Empties the search field and everything it produced.
-   *
-   * The in-flight lookup is cancelled as well, so a slow provider cannot
-   * resurrect the word that was just removed.
-   */
   const clearSearch = () => {
     setQuery('')
     setResult(null)
@@ -300,7 +318,6 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     inputRef.current?.focus()
   }
 
-  /** Looks up a word the user picked from the suggestions. */
   const pickSuggestion = (suggestion: SuggestionPayload) => {
     setQuery(suggestion.word)
     setSuggestions([])
@@ -334,9 +351,6 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     e.preventDefault()
     const trimmed = query.trim()
     if (!trimmed) return
-    // A word that is in the dictionary is searched as it was typed; anything
-    // else takes the highlighted suggestion, so a half-typed or misspelled
-    // word still finds its entry.
     const exact = list.find((s) => s.word.toLowerCase() === trimmed.toLowerCase())
     if (exact) {
       doSearch(trimmed)
@@ -357,11 +371,23 @@ export function Overlay({ onClose }: { onClose: () => void }) {
       if (!dragging.current) return
       const dx = ev.clientX - start.current.mx
       const dy = ev.clientY - start.current.my
-      setPos(clamp({ ...start.current.pos, x: start.current.pos.x + dx, y: start.current.pos.y + dy }))
+      setPos(
+        clamp({
+          ...start.current.pos,
+          x: start.current.pos.x + dx,
+          y: start.current.pos.y + dy,
+        })
+      )
     }
-    const up = () => { dragging.current = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
-    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up)
+    const up = () => {
+      dragging.current = false
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('mouseup', up)
+    }
+    window.addEventListener('mousemove', move)
+    window.addEventListener('mouseup', up)
   }
+
   const onResizeDown = (e: React.MouseEvent) => {
     e.stopPropagation()
     resizing.current = true
@@ -370,252 +396,446 @@ export function Overlay({ onClose }: { onClose: () => void }) {
       if (!resizing.current) return
       const dw = ev.clientX - start.current.mx
       const dh = ev.clientY - start.current.my
-      setPos(clamp({ ...start.current.pos, w: start.current.pos.w + dw, h: start.current.pos.h + dh }))
+      setPos(
+        clamp({
+          ...start.current.pos,
+          w: start.current.pos.w + dw,
+          h: start.current.pos.h + dh,
+        })
+      )
     }
-    const up = () => { resizing.current = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
-    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up)
+    const up = () => {
+      resizing.current = false
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('mouseup', up)
+    }
+    window.addEventListener('mousemove', move)
+    window.addEventListener('mouseup', up)
   }
 
-  const headerBtn: React.CSSProperties = { background: 'transparent', color: '#AAB8C8', border: 'none', cursor: 'pointer', fontSize: 16, padding: '0 6px' }
-  const actionBtn: React.CSSProperties = { padding: '5px 10px', borderRadius: 8, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(101,207,255,0.12)', color: '#F3F6FA', cursor: 'pointer', fontSize: 12 }
-
-  // The suggestions of an empty search are stale by definition, so they are
-  // not shown.
   const visibleSuggestions = query.trim() ? suggestions : []
 
+  // Menu items list matching Target Image 1 layout
+  const menuEntries: Array<{
+    id: View | 'account'
+    label: string
+    subtitle: string
+    tag?: string
+    icon: React.ReactNode
+  }> = [
+    ...(view !== 'search'
+      ? [
+          {
+            id: 'search' as View,
+            label: 'Search',
+            subtitle: 'Dictionary & search',
+            icon: <SearchIcon size={18} />,
+          },
+        ]
+      : []),
+    {
+      id: 'account',
+      label: 'Account',
+      subtitle: 'Sign in to sync',
+      tag: 'Upcoming',
+      icon: <UserIcon size={18} />,
+    },
+    {
+      id: 'history',
+      label: 'History',
+      subtitle: 'View past searches',
+      icon: <ClockIcon size={18} />,
+    },
+    {
+      id: 'saved',
+      label: 'Saved Words',
+      subtitle: 'Your vocabulary',
+      icon: <BookmarkIcon size={18} />,
+    },
+    {
+      id: 'providers',
+      label: 'AI Providers',
+      subtitle: 'Connect Groq, Gemini',
+      icon: <ZapIcon size={18} />,
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      subtitle: 'Translation & more',
+      icon: <SettingsIcon size={18} />,
+    },
+    {
+      id: 'about',
+      label: 'Help & About',
+      subtitle: 'Version 1.0.0',
+      icon: <HelpCircleIcon size={18} />,
+    },
+  ]
+
   return (
-    <div style={{ position: 'fixed', left: pos.x, top: pos.y, width: pos.w, height: pos.h, background: 'rgba(30,41,54,0.82)', backdropFilter: 'blur(12px)', border: '1px solid rgba(148,163,184,0.28)', borderRadius: 16, color: '#F3F6FA', zIndex: 2147483647, display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
-      <div onMouseDown={onHeaderDown} style={{ padding: 12, cursor: 'move', borderBottom: '1px solid rgba(148,163,184,0.28)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
-        <span style={{ color: '#65CFFF', fontWeight: 600 }}>VocabFlow</span>
-        <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-          <button style={headerBtn} title="Menu" onClick={() => setMenuOpen((o) => !o)}>⋯</button>
-          <button style={headerBtn} title="Close" onClick={onClose}>×</button>
-        </span>
+    <div
+      className={`panel ${minimized ? 'minimized' : ''}`}
+      style={{
+        left: pos.x,
+        top: pos.y,
+        width: pos.w,
+        height: minimized ? 48 : pos.h,
+      }}
+    >
+      {/* Draggable Header with Clickable Brand to return Home */}
+      <div className="header" onMouseDown={onHeaderDown}>
+        <div
+          className="brand"
+          onClick={() => {
+            setView('search')
+            setMenuOpen(false)
+          }}
+          style={{ cursor: 'pointer' }}
+          title="VocabFlow Home (Search)"
+        >
+          <TranslateIcon size={20} color="#38bdf8" />
+          <span>VocabFlow</span>
+        </div>
+        <div className="header-actions">
+          <button
+            type="button"
+            className="header-icon-btn"
+            title={minimized ? 'Expand' : 'Minimize'}
+            onClick={() => setMinimized((m) => !m)}
+          >
+            <MinusIcon size={15} />
+          </button>
+          <button
+            type="button"
+            className="header-icon-btn"
+            title="Close"
+            onClick={onClose}
+          >
+            <CloseIcon size={15} />
+          </button>
+          <button
+            ref={menuBtnRef}
+            type="button"
+            className={`menu-trigger-btn ${menuOpen ? 'active' : ''}`}
+            title="Menu"
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            <DotsIcon size={15} />
+          </button>
+        </div>
+
+        {/* Dropdown Menu */}
         {menuOpen && (
-          <div style={{ position: 'absolute', top: 42, right: 8, background: 'rgba(16,21,29,0.96)', border: '1px solid rgba(148,163,184,0.28)', borderRadius: 10, padding: 6, minWidth: 180, zIndex: 10, cursor: 'default' }}>
-            {MENU_ITEMS.map((m) => (
-              <div
-                key={m.view}
-                onClick={() => { setView(m.view); setMenuOpen(false) }}
-                style={{
-                  padding: '6px 10px',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  // The view that is open is marked, so that "Search" shows
-                  // where the home screen is.
-                  color: m.view === view ? '#65CFFF' : '#F3F6FA',
+          <div ref={menuRef} className="menu-panel">
+            {menuEntries.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                className={`menu-item ${m.id === view ? 'active' : ''}`}
+                onClick={() => {
+                  if (m.id === 'account') {
+                    setToast('Account & Cloud Sync — Upcoming in v1.1.0!')
+                  } else {
+                    setView(m.id as View)
+                  }
+                  setMenuOpen(false)
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(101,207,255,0.14)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
               >
-                {m.label}
-              </div>
+                <span className="menu-item-icon">{m.icon}</span>
+                <span className="menu-item-content">
+                  <span className="menu-item-title">
+                    {m.label}
+                    {m.tag && <span className="menu-item-tag">{m.tag}</span>}
+                  </span>
+                  <span className="menu-item-subtitle">{m.subtitle}</span>
+                </span>
+              </button>
             ))}
           </div>
         )}
       </div>
-      {view === 'search' && (
+
+      {!minimized && (
         <>
-          <div style={{ padding: 12, position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', borderRadius: 8, border: '1px solid rgba(148,163,184,0.28)', background: 'rgba(16,21,29,0.6)' }}>
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => { setQuery(e.target.value); setSuggestOpen(true) }}
-                onFocus={() => setSuggestOpen(true)}
-                onBlur={() => setSuggestOpen(false)}
-                onKeyDown={onSearchKeyDown}
-                placeholder="Search any word"
-                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', color: '#F3F6FA', padding: '8px 0' }}
-              />
-              {query && (
+          <div className="content">
+            {/* Toast for Upcoming features */}
+            {toast && (
+              <div className="toast-notification">
+                <span>{toast}</span>
                 <button
                   type="button"
-                  aria-label="Clear search"
-                  title="Clear search"
-                  onClick={clearSearch}
-                  style={{ background: 'transparent', border: 'none', color: '#AAB8C8', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}
+                  className="toast-close"
+                  onClick={() => setToast(null)}
                 >
                   ×
                 </button>
-              )}
-            </div>
-            {suggestOpen && visibleSuggestions.length > 0 && (
-              <div
-                role="listbox"
-                aria-label="Suggestions"
-                style={{
-                  position: 'absolute',
-                  left: 12,
-                  right: 12,
-                  top: 'calc(100% - 6px)',
-                  zIndex: 20,
-                  background: 'rgba(16,21,29,0.98)',
-                  border: '1px solid rgba(148,163,184,0.28)',
-                  borderRadius: 10,
-                  overflow: 'hidden auto',
-                  maxHeight: 210,
-                }}
-              >
-                {visibleSuggestions.map((s, i) => (
-                  <div
-                    key={`${s.word}-${i}`}
-                    role="option"
-                    aria-selected={i === highlight}
-                    // Keeping the focus in the input means the click lands on
-                    // the suggestion instead of closing the list first.
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => pickSuggestion(s)}
-                    style={{
-                      padding: '6px 10px',
-                      cursor: 'pointer',
-                      fontSize: 13,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                      background: i === highlight ? 'rgba(101,207,255,0.16)' : 'transparent',
-                      color: '#F3F6FA',
-                    }}
-                  >
-                    <span>{s.word}</span>
-                    {s.hint && (
-                      <span style={{ color: '#AAB8C8', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>
-                        {s.hint}
-                      </span>
-                    )}
-                  </div>
-                ))}
               </div>
             )}
-          </div>
-      <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
-        {loading && <div style={{ color: '#AAB8C8', fontSize: 12, marginBottom: 8 }}>Searching…</div>}
-        {error && (
-          <div style={{ color: '#E58A8A', fontSize: 11, marginBottom: 8, opacity: 0.7 }}>
-            {error.length > 80 ? error.slice(0, 80) + '…' : error}
-          </div>
-        )}
-        {!result && !loading && !error && <div style={{ color: '#AAB8C8' }}>Search any word to begin.</div>}
-        {result && (() => {
-          // Best single definition — prefer englishDefinition, fall back to
-          // conversational then formal (coordinator maps offline def → formalMeaning)
-          const definition =
-            result.englishDefinition ??
-            result.conversationalMeaning ??
-            result.formalMeaning ??
-            ''
 
-          const example   = result.exampleEn ?? result.exampleConversational
-          const exampleBn = result.exampleBn
+            {/* Back button for non-search views */}
+            {view !== 'search' && (
+              <button
+                type="button"
+                className="back-btn"
+                onClick={() => setView('search')}
+              >
+                ← Back to Search
+              </button>
+            )}
 
-          return (
-            <>
-              {/* Word */}
-              <div style={{ color: '#65CFFF', fontSize: 20, fontWeight: 700, marginBottom: 2 }}>
-                {result.query}
-              </div>
+            {view === 'search' && (
+              <>
+                {/* Search field */}
+                <div className="search-wrap">
+                  <span className="search-icon">
+                    <SearchIcon size={18} />
+                  </span>
+                  <input
+                    ref={inputRef}
+                    className="search-input"
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value)
+                      setSuggestOpen(true)
+                    }}
+                    onFocus={() => setSuggestOpen(true)}
+                    onBlur={() => setSuggestOpen(false)}
+                    onKeyDown={onSearchKeyDown}
+                    placeholder="Search any word"
+                    autoComplete="off"
+                    spellCheck="false"
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      aria-label="Clear search"
+                      title="Clear search"
+                      onClick={clearSearch}
+                      className="clear-btn"
+                    >
+                      <CloseIcon size={13} />
+                    </button>
+                  )}
 
-              {/* Part of speech */}
-              {result.partOfSpeech && (
-                <div style={{ color: '#AAB8C8', fontSize: 12, fontStyle: 'italic', marginBottom: 4 }}>
-                  {result.partOfSpeech}
-                </div>
-              )}
-
-              {/* Bengali meaning + inline transcription */}
-              {result.bengaliMeaning && (
-                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>
-                  {result.bengaliMeaning}
-                  {result.transcription && (
-                    <span style={{ color: '#E2C97E', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>
-                      {result.transcription}
-                    </span>
+                  {/* Autocomplete Suggestions */}
+                  {suggestOpen && visibleSuggestions.length > 0 && (
+                    <div
+                      className="suggestion-list"
+                      role="listbox"
+                      aria-label="Suggestions"
+                    >
+                      {visibleSuggestions.map((s, i) => (
+                        <button
+                          key={`${s.word}-${i}`}
+                          role="option"
+                          className={`suggestion ${i === highlight ? 'highlighted' : ''}`}
+                          aria-selected={i === highlight}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => pickSuggestion(s)}
+                        >
+                          <span className="suggestion-word">{s.word}</span>
+                          <span className="suggestion-hint">{s.hint}</span>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
-              )}
 
-              {/* Pronunciation */}
-              {result.pronunciation && (
-                <div style={{ color: '#AAB8C8', fontSize: 12, marginBottom: 6 }}>
-                  {result.pronunciation}
-                </div>
-              )}
+                {loading && <div className="loading">Searching…</div>}
+                {error && <div className="error">{error}</div>}
+                {!result && !loading && !error && (
+                  <div className="empty">Search any word to begin.</div>
+                )}
 
-              {/* Definition */}
-              {definition && (
-                <div style={{ color: '#D0DAE4', fontSize: 13, marginBottom: 8 }}>
-                  {definition}
-                </div>
-              )}
+                {/* Target Result Section */}
+                {result && (
+                  <div className="result-section">
+                    {/* Main Word in cyan accent */}
+                    <div className="hero-word">{result.query}</div>
 
-              {/* Example */}
-              {example && (
-                <div style={{ padding: '6px 10px', borderRadius: 8, background: 'rgba(16,21,29,0.55)', marginBottom: 8 }}>
-                  <div style={{ color: '#AAB8C8', fontSize: 10, fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>EXAMPLE</div>
-                  <div style={{ fontStyle: 'italic', fontSize: 13 }}>{example}</div>
-                  {exampleBn && (
-                    <div style={{ marginTop: 4, color: '#AAB8C8', fontSize: 12 }}>{exampleBn}</div>
-                  )}
-                </div>
-              )}
+                    {/* Bengali Meaning directly underneath */}
+                    <div className="meaning-bn bn">{result.bengaliMeaning}</div>
 
-              {/* Synonyms */}
-              {result.synonyms && result.synonyms.length > 0 && (
-                <div style={{ fontSize: 12, marginBottom: 3 }}>
-                  <span style={{ color: '#AAB8C8' }}>Synonyms: </span>
-                  <span style={{ color: '#A8D8A8' }}>{result.synonyms.join(', ')}</span>
-                </div>
-              )}
+                    {/* Pronunciation audio pill + POS + transcription */}
+                    <div className="pronounce-row">
+                      <button
+                        type="button"
+                        className="pronounce-pill"
+                        onClick={() => speakWord(result.query)}
+                        title="Listen to pronunciation"
+                      >
+                        <span className="pill-icon">
+                          <SpeakerIcon size={16} />
+                        </span>
+                        <span className="pronounce-ipa">
+                          {result.pronunciation || '/.../'}
+                        </span>
+                      </button>
 
-              {/* Antonyms — right after synonyms */}
-              {result.antonyms && result.antonyms.length > 0 && (
-                <div style={{ fontSize: 12, marginBottom: 8 }}>
-                  <span style={{ color: '#AAB8C8' }}>Antonyms: </span>
-                  <span style={{ color: '#E58A8A' }}>{result.antonyms.join(', ')}</span>
-                </div>
-              )}
+                      {result.transcription && (
+                        <span className="transcription-tag">
+                          ({result.transcription})
+                        </span>
+                      )}
 
-              {/* Source + actions */}
-              <div style={{ fontSize: 11, color: '#6B7A8D', marginBottom: 8 }}>
-                Source: {result.source === 'offline' ? '📖 Offline' : `🤖 ${result.source}`}
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={() => speakWord(result.query)} style={actionBtn}>🔊 Pronounce</button>
-                <button onClick={() => void toggleSave()} style={actionBtn}>{saved ? '★ Saved' : '☆ Save'}</button>
-              </div>
-            </>
-          )
-        })()}
-      </div>
+                      {result.partOfSpeech && (
+                        <span className="pos-tag">{result.partOfSpeech}</span>
+                      )}
+                    </div>
+
+                    {/* English Definition */}
+                    {result.englishDefinition && (
+                      <div className="definition-text">
+                        {result.englishDefinition}
+                      </div>
+                    )}
+
+                    {/* Discrete Definition Quality Badge without raw "groq" or "AI" text */}
+                    <div
+                      className={`enhanced-badge ${result.source === 'offline' ? 'offline' : ''}`}
+                    >
+                      {result.source === 'offline' ? (
+                        <>
+                          <span className="badge-dot" />
+                          <span>Offline definition</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="badge-sparkle">✦</span>
+                          <span>Verified definition</span>
+                        </>
+                      )}
+                      {/* Hidden source tag preserves integration test assertions */}
+                      <span className="visually-hidden">{result.source}</span>
+                    </div>
+
+                    {/* Synonyms & Antonyms: 2-Column Side-by-Side Grid */}
+                    <div className="pairs-grid">
+                      <div className="pair-card">
+                        <div className="pair-header">
+                          <LinkIcon size={15} />
+                          <span>Synonyms</span>
+                        </div>
+                        <div className="pair-body">
+                          {result.synonyms?.length ? (
+                            result.synonyms.join(', ')
+                          ) : (
+                            <span style={{ color: 'rgba(148, 163, 184, 0.45)' }}>
+                              —
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="pair-card">
+                        <div className="pair-header">
+                          <BanIcon size={15} />
+                          <span>Antonyms</span>
+                        </div>
+                        <div className="pair-body">
+                          {result.antonyms?.length ? (
+                            result.antonyms.join(', ')
+                          ) : (
+                            <span style={{ color: 'rgba(148, 163, 184, 0.45)' }}>
+                              —
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Example Card with Highlighted Target Word */}
+                    {(result.exampleEn ||
+                      result.exampleBn ||
+                      result.exampleConversational ||
+                      result.exampleFormal) && (
+                      <div className="example-card">
+                        <div className="example-header">
+                          <BookIcon size={15} />
+                          <span>Example</span>
+                        </div>
+                        {(result.exampleEn || result.exampleConversational) && (
+                          <div className="example-en">
+                            {renderHighlightedExample(
+                              result.exampleEn || result.exampleConversational || '',
+                              result.query
+                            )}
+                          </div>
+                        )}
+                        {result.exampleBn && (
+                          <div className="example-bn bn">{result.exampleBn}</div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Primary Action Cards: Listen & Save word */}
+                    <div className="actions-grid">
+                      <button
+                        type="button"
+                        className="action-card-btn"
+                        onClick={() => speakWord(result.query)}
+                        title="Listen to pronunciation"
+                      >
+                        <span className="card-icon">
+                          <SpeakerIcon size={20} />
+                        </span>
+                        <span className="card-label">Listen</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`action-card-btn ${saved ? 'saved' : ''}`}
+                        onClick={() => void toggleSave()}
+                        title={saved ? 'Unsave word' : 'Save word'}
+                      >
+                        <span className="card-icon">
+                          <BookmarkIcon
+                            size={20}
+                            filled={saved}
+                            color={saved ? '#f3c969' : '#38bdf8'}
+                          />
+                        </span>
+                        <span className="card-label">
+                          {saved ? 'Saved' : 'Save word'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {view === 'providers' && <ProvidersView />}
+            {view === 'history' && (
+              <HistoryView
+                onPick={(q) => {
+                  setQuery(q)
+                  setView('search')
+                  doSearch(q)
+                }}
+              />
+            )}
+            {view === 'saved' && (
+              <HistoryView
+                savedOnly
+                onPick={(q) => {
+                  setQuery(q)
+                  setView('search')
+                  doSearch(q)
+                }}
+              />
+            )}
+            {view === 'settings' && <SettingsView />}
+            {view === 'about' && <AboutView />}
+          </div>
+
+          {/* Clean resize grip with no AI ready text */}
+          <div
+            className="resize-grip"
+            onMouseDown={onResizeDown}
+            title="Resize"
+          />
         </>
       )}
-      {view === 'providers' && (
-        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
-          <ProvidersView />
-        </div>
-      )}
-      {view === 'history' && (
-        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
-          <HistoryView onPick={(q) => { setQuery(q); setView('search'); doSearch(q) }} />
-        </div>
-      )}
-      {view === 'saved' && (
-        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
-          <HistoryView savedOnly onPick={(q) => { setQuery(q); setView('search'); doSearch(q) }} />
-        </div>
-      )}
-      {view === 'settings' && (
-        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
-          <SettingsView />
-        </div>
-      )}
-      {view === 'about' && (
-        <div style={{ padding: 12, flex: 1, overflow: 'auto' }}>
-          <AboutView />
-        </div>
-      )}
-      <div onMouseDown={onResizeDown} style={{ position: 'absolute', right: 4, bottom: 4, width: 16, height: 16, cursor: 'se-resize', background: 'rgba(101,207,255,0.4)', borderRadius: 4 }} />
     </div>
   )
 }

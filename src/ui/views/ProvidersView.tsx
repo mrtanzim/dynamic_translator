@@ -13,11 +13,6 @@ type Status = Record<ProviderId, { state: 'unknown' | 'testing' | 'ok' | 'error'
 
 const INITIAL: Status = { groq: { state: 'unknown' }, openrouter: { state: 'unknown' }, gemini: { state: 'unknown' } }
 
-/**
- * Merges the models the account can actually use with the curated defaults and
- * the currently configured model, so that a live list never hides a model the
- * user has already selected.
- */
 function mergeModels(provider: ProviderId, live: string[], current: string): string[] {
   const merged = new Set<string>([...PROVIDER_MODELS[provider], ...live, current])
   return [...merged]
@@ -36,8 +31,6 @@ export function ProvidersView() {
   })
 
   useEffect(() => {
-    // Ask the service worker to apply the first-run seed before reading the
-    // settings, so the built-in key is visible on a fresh profile.
     void (async () => {
       try {
         await chrome.runtime.sendMessage({ type: SEED_MESSAGE })
@@ -50,7 +43,7 @@ export function ProvidersView() {
     })()
   }, [])
 
-  if (!settings) return <div style={{ color: '#AAB8C8' }}>Loading…</div>
+  if (!settings) return <div style={{ color: '#94a3b8' }}>Loading…</div>
 
   const update = (id: ProviderId, patch: Partial<ProviderSettings[ProviderId]>) => {
     const next: ProviderSettings = { ...settings, [id]: { ...settings[id], ...patch } }
@@ -84,7 +77,6 @@ export function ProvidersView() {
     }
   }
 
-  /** Fetches the models the account can actually use (Groq only, for now). */
   const fetchModels = async (id: ProviderId) => {
     const key = draftKeys[id] || settings[id].apiKey
     if (!key) {
@@ -105,72 +97,147 @@ export function ProvidersView() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <p style={{ margin: 0, color: '#AAB8C8', fontSize: 12 }}>
-        API keys are stored only in this browser profile and are never synced or uploaded.
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <h2 style={{ fontSize: 17, fontWeight: 700, color: '#ffffff', margin: 0 }}>
+        AI Providers
+      </h2>
+      <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>
+        API keys are stored safely in this browser profile and are never synced or exposed.
       </p>
+
       {PROVIDERS.map(({ id, name, keyUrl }) => {
         const st = status[id]
         const mst = modelsStatus[id]
         return (
-          <div key={id} style={{ border: '1px solid rgba(148,163,184,0.28)', borderRadius: 12, padding: 12, background: 'rgba(16,21,29,0.45)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <strong style={{ color: '#65CFFF' }}>{name}</strong>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#AAB8C8' }}>
-                <input type="checkbox" checked={settings[id].enabled} onChange={(e) => update(id, { enabled: e.target.checked })} />
+          <div key={id} className="provider-item">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <strong style={{ color: '#38bdf8', fontSize: 15 }}>{name}</strong>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#cbd5e1', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={settings[id].enabled}
+                  onChange={(e) => update(id, { enabled: e.target.checked })}
+                  style={{ width: 16, height: 16, accentColor: '#38bdf8' }}
+                />
                 Enabled
               </label>
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
+
+            <div style={{ display: 'flex', gap: 8 }}>
               <input
                 type={showKey[id] ? 'text' : 'password'}
                 value={draftKeys[id]}
-                placeholder="API key"
+                placeholder="Paste API key"
                 onChange={(e) => setDraftKeys((d) => ({ ...d, [id]: e.target.value }))}
-                style={{ ...inputStyle, flex: 1 }}
+                style={{ ...inputStyle, flex: 1, height: 38 }}
               />
-              <button onClick={() => setShowKey((s) => ({ ...s, [id]: !s[id] }))} style={btn}>Show</button>
+              <button
+                type="button"
+                onClick={() => setShowKey((s) => ({ ...s, [id]: !s[id] }))}
+                style={{ ...btn, padding: '0 12px', height: 38 }}
+              >
+                {showKey[id] ? 'Hide' : 'Show'}
+              </button>
             </div>
-            <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center' }}>
-              <select value={settings[id].model} onChange={(e) => update(id, { model: e.target.value })} style={{ ...inputStyle, flex: 1, fontSize: 12 }}>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <select
+                value={settings[id].model}
+                onChange={(e) => update(id, { model: e.target.value })}
+                style={{ ...inputStyle, flex: 1, minWidth: 140, height: 36, fontSize: 12 }}
+              >
                 {mergeModels(id, liveModels[id], settings[id].model).map((m) => (
                   <option key={m} value={m}>{m}</option>
                 ))}
               </select>
+
               {id === 'groq' && (
                 <button
+                  type="button"
                   onClick={() => void fetchModels(id)}
-                  style={btn}
+                  style={{ ...btn, height: 36, fontSize: 11 }}
                   title="Load the models this account can use"
                 >
                   {mst.state === 'testing' ? '…' : 'Models'}
                 </button>
               )}
-              <button onClick={() => void test(id)} style={btn}>{st.state === 'testing' ? 'Testing…' : 'Test'}</button>
-              <button onClick={() => { update(id, { apiKey: draftKeys[id] }); setStatus((s) => ({ ...s, [id]: { state: 'unknown' } })) }} style={btn}>Save</button>
+
               <button
+                type="button"
+                onClick={() => void test(id)}
+                style={{ ...btn, height: 36, fontSize: 11 }}
+              >
+                {st.state === 'testing' ? 'Testing…' : 'Test'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  update(id, { apiKey: draftKeys[id] })
+                  setStatus((s) => ({ ...s, [id]: { state: 'unknown' } }))
+                }}
+                style={{ ...btn, height: 36, fontSize: 11, background: 'rgba(56, 189, 248, 0.25)' }}
+              >
+                Save
+              </button>
+
+              <button
+                type="button"
                 onClick={() => {
                   if (!confirm(`Remove the ${name} API key?`)) return
                   setDraftKeys((d) => ({ ...d, [id]: '' }))
                   update(id, { apiKey: '', enabled: false })
                   setStatus((s) => ({ ...s, [id]: { state: 'unknown' } }))
                 }}
-                style={{ ...btn, color: '#E58A8A' }}
+                style={{
+                  ...btn,
+                  height: 36,
+                  fontSize: 11,
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  borderColor: 'rgba(239, 68, 68, 0.25)',
+                  color: '#f87171',
+                }}
               >
                 Remove
               </button>
             </div>
+
             {st.state !== 'unknown' && (
-              <div style={{ marginTop: 6, fontSize: 12, color: st.state === 'ok' ? '#7FD1A6' : st.state === 'error' ? '#E58A8A' : '#AAB8C8' }}>
-                {st.state === 'ok' ? 'Connected' : st.state === 'error' ? (st.message ?? 'Failed') : 'Testing…'}
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 12,
+                  color: st.state === 'ok' ? '#7fd1a6' : st.state === 'error' ? '#f87171' : '#38bdf8',
+                }}
+              >
+                {st.state === 'ok' ? '✓ Connection successful' : st.state === 'error' ? (st.message ?? 'Failed') : 'Testing…'}
               </div>
             )}
+
             {id === 'groq' && mst.state !== 'unknown' && (
-              <div style={{ marginTop: 6, fontSize: 12, color: mst.state === 'ok' ? '#7FD1A6' : mst.state === 'error' ? '#E58A8A' : '#AAB8C8' }}>
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 12,
+                  color: mst.state === 'ok' ? '#7fd1a6' : mst.state === 'error' ? '#f87171' : '#38bdf8',
+                }}
+              >
                 {mst.state === 'ok' ? mst.message : mst.state === 'error' ? mst.message : 'Loading models…'}
               </div>
             )}
-            <a href={keyUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: 6, fontSize: 12, color: '#65CFFF' }}>
+
+            <a
+              href={keyUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'inline-block',
+                marginTop: 10,
+                fontSize: 12,
+                color: '#38bdf8',
+                textDecoration: 'none',
+              }}
+            >
               Get a {name} API key →
             </a>
           </div>
@@ -179,4 +246,3 @@ export function ProvidersView() {
     </div>
   )
 }
-

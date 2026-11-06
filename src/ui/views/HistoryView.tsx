@@ -11,12 +11,26 @@ export function HistoryView({ savedOnly, onPick }: { savedOnly?: boolean; onPick
   useEffect(refresh, [savedOnly])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ color: '#AAB8C8', fontSize: 12 }}>{items.length} item(s)</span>
-        {!savedOnly && (
+        <h2 style={{ fontSize: 17, fontWeight: 700, color: '#ffffff', margin: 0 }}>
+          {savedOnly ? 'Saved Words' : 'Search History'}
+        </h2>
+        <span style={{ color: '#94a3b8', fontSize: 12 }}>{items.length} item(s)</span>
+      </div>
+
+      {!savedOnly && items.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button
-            style={btn}
+            type="button"
+            style={{
+              ...btn,
+              fontSize: 11,
+              padding: '4px 10px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              borderColor: 'rgba(239, 68, 68, 0.25)',
+              color: '#f87171',
+            }}
             onClick={() => {
               if (!confirm('Clear all history?')) return
               void clearHistory().then(refresh)
@@ -24,25 +38,63 @@ export function HistoryView({ savedOnly, onPick }: { savedOnly?: boolean; onPick
           >
             Clear all
           </button>
-        )}
-      </div>
-      {items.length === 0 && <div style={{ color: '#AAB8C8' }}>{savedOnly ? 'No saved words yet.' : 'No search history yet.'}</div>}
+        </div>
+      )}
+
+      {items.length === 0 && (
+        <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: '30px 0' }}>
+          {savedOnly ? 'No saved words yet.' : 'No search history yet.'}
+        </div>
+      )}
+
       {items.map((h) => (
         <div
           key={h.id}
-          style={{ border: '1px solid rgba(148,163,184,0.24)', borderRadius: 10, padding: 8, background: 'rgba(16,21,29,0.45)' }}
+          className="history-item"
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-            <strong style={{ color: '#65CFFF', cursor: 'pointer' }} onClick={() => onPick(h.query)}>{h.query}</strong>
-            <span style={{ fontSize: 11, color: '#AAB8C8' }}>{new Date(h.timestamp).toLocaleString()}</span>
+          <div className="history-item-header">
+            <strong className="history-query" onClick={() => onPick(h.query)}>
+              {h.query}
+            </strong>
+            <span style={{ fontSize: 11, color: '#94a3b8' }}>
+              {new Date(h.timestamp).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
           </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#AAB8C8' }}>Source: {h.source}</span>
-            <span style={{ fontSize: 11, color: '#AAB8C8' }}>{h.direction}</span>
-            {h.saved && <span style={{ fontSize: 11, color: '#F3C969' }}>★</span>}
+
+          <div className="history-meta">
+            <span style={{ fontSize: 11, color: '#94a3b8' }}>Source: {h.source}</span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                padding: '1px 6px',
+                borderRadius: 4,
+                background: 'rgba(148, 163, 184, 0.12)',
+                color: '#cbd5e1',
+              }}
+            >
+              {h.direction}
+            </span>
+            {h.saved && <span style={{ fontSize: 11, color: '#f3c969' }}>★ Saved</span>}
+          </div>
+
+          <div className="history-actions">
             {h.id !== undefined && (
               <button
-                style={{ ...btn, marginLeft: 'auto' }}
+                type="button"
+                style={{
+                  ...btn,
+                  fontSize: 11,
+                  padding: '4px 10px',
+                  background: savedOnly ? 'rgba(243, 201, 105, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  borderColor: savedOnly ? 'rgba(243, 201, 105, 0.25)' : 'rgba(239, 68, 68, 0.25)',
+                  color: savedOnly ? '#f3c969' : '#f87171',
+                }}
                 onClick={() => {
                   if (savedOnly) {
                     void updateHistory(h.id as number, { saved: false }).then(refresh)
