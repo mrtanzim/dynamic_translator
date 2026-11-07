@@ -300,10 +300,10 @@ export const OVERLAY_STYLES = `
 .content {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 10px 14px 8px;
+  padding: 12px 16px 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   position: relative;
 }
 
@@ -486,7 +486,7 @@ export const OVERLAY_STYLES = `
 }
 
 .hero-word {
-  font-size: 27px;
+  font-size: 32px;
   font-weight: 700;
   color: #38bdf8;
   letter-spacing: -0.02em;
@@ -494,19 +494,19 @@ export const OVERLAY_STYLES = `
 }
 
 .meaning-bn {
-  font-size: 20px;
+  font-size: 23px;
   font-weight: 600;
   color: #ffffff;
-  line-height: 1.25;
-  margin-top: 2px;
+  line-height: 1.3;
+  margin-top: 4px;
 }
 
 .pronounce-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 
@@ -569,10 +569,10 @@ export const OVERLAY_STYLES = `
 }
 
 .definition-text {
-  font-size: 13.5px;
+  font-size: 14.5px;
   color: #e2e8f0;
-  line-height: 1.4;
-  margin-bottom: 8px;
+  line-height: 1.45;
+  margin-bottom: 10px;
 }
 
 /* Subtle result source indicator (no raw "groq" or "AI" text shown) */
@@ -580,7 +580,7 @@ export const OVERLAY_STYLES = `
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
@@ -620,33 +620,33 @@ export const OVERLAY_STYLES = `
 .pairs-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 9px;
+  margin-bottom: 10px;
 }
 
 .pair-card {
   background: rgba(16, 24, 38, 0.55);
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .pair-header {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #38bdf8;
 }
 
 .pair-body {
-  font-size: 11.5px;
+  font-size: 12px;
   color: #cbd5e1;
-  line-height: 1.35;
+  line-height: 1.4;
   word-break: break-word;
 }
 
@@ -655,25 +655,25 @@ export const OVERLAY_STYLES = `
   background: rgba(16, 24, 38, 0.55);
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 8px;
-  padding: 8px 11px;
-  margin-bottom: 8px;
+  padding: 10px 13px;
+  margin-bottom: 10px;
 }
 
 .example-header {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #38bdf8;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .example-en {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #ffffff;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .example-en .highlight {
@@ -681,10 +681,10 @@ export const OVERLAY_STYLES = `
 }
 
 .example-bn {
-  font-size: 12px;
+  font-size: 13px;
   color: #94a3b8;
-  margin-top: 3px;
-  line-height: 1.35;
+  margin-top: 4px;
+  line-height: 1.4;
 }
 
 /* Collocations Card */
@@ -692,29 +692,29 @@ export const OVERLAY_STYLES = `
   background: rgba(16, 24, 38, 0.55);
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 8px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
 }
 
 .collocations-header {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #38bdf8;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .collocations-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
 }
 
 .collocation-pill {
-  font-size: 11px;
-  padding: 3px 8px;
+  font-size: 11.5px;
+  padding: 4px 9px;
   border-radius: 6px;
   background: rgba(30, 41, 59, 0.7);
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -728,36 +728,36 @@ export const OVERLAY_STYLES = `
   background: rgba(16, 24, 38, 0.55);
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 8px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
 }
 
 .word-family-header {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #38bdf8;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .word-family-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 4px 10px;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 5px 12px;
 }
 
 .family-item {
-  font-size: 11px;
+  font-size: 11.5px;
   display: flex;
-  gap: 5px;
+  gap: 6px;
   align-items: baseline;
 }
 
 .family-label {
   color: #94a3b8;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -772,37 +772,37 @@ export const OVERLAY_STYLES = `
   background: rgba(16, 24, 38, 0.55);
   border: 1px solid rgba(251, 191, 36, 0.28);
   border-radius: 8px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
 }
 
 .mistake-header {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #fcd34d;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .mistake-body {
-  font-size: 11.5px;
+  font-size: 12px;
   color: #cbd5e1;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 /* Action Cards (Listen & Save word side-by-side) */
 .actions-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 2px;
-  margin-bottom: 2px;
+  gap: 10px;
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
 .action-card-btn {
-  height: 38px;
+  height: 44px;
   border-radius: 8px;
   border: 1px solid rgba(148, 163, 184, 0.22);
   background: rgba(16, 24, 38, 0.65);
@@ -815,7 +815,7 @@ export const OVERLAY_STYLES = `
   gap: 8px;
   outline: none;
   transition: all 0.15s ease;
-  padding: 0 12px;
+  padding: 0 14px;
 }
 
 .action-card-btn:hover {
@@ -836,7 +836,7 @@ export const OVERLAY_STYLES = `
 }
 
 .action-card-btn .card-label {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.01em;
 }

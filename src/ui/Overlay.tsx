@@ -692,7 +692,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                         title="Listen to pronunciation"
                       >
                         <span className="pill-icon">
-                          <SpeakerIcon size={16} />
+                          <SpeakerIcon size={17} />
                         </span>
                         <span className="pronounce-ipa">
                           {result.pronunciation || '/.../'}
@@ -892,7 +892,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                       >
                         <span className="card-icon">
                           <BookmarkIcon
-                            size={16}
+                            size={17}
                             filled={saved}
                             color={saved ? '#f3c969' : '#38bdf8'}
                           />
