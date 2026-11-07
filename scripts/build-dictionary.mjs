@@ -355,6 +355,7 @@ async function main() {
       syn: [...allSyn, ...inheritedAnt].slice(0, LIMITS.synonyms),
       ant: allAnt.slice(0, LIMITS.antonyms),
       ex: exampleTrimmed,
+      exBn: '',
       pron: pronunciations.get(head) ?? '',
     }
   }
@@ -365,7 +366,7 @@ async function main() {
     const primary = canonicalBengali(value.bn ?? base.bn ?? '')
     const alts = value.bnAlts ?? base.bnAlts ?? []
     const source = bengali.get(head)
-    const trans = primary === base.bn ? (base.trans ?? '') : (source ? romanOf(source, primary) : '')
+    const trans = value.trans ?? (primary === base.bn ? (base.trans ?? '') : (source ? romanOf(source, primary) : ''))
     const transAlts = alts.map((alt) => {
       if (!source) return ''
       const generated = base.bnAlts ?? []
@@ -385,7 +386,8 @@ async function main() {
       syn: value.syn?.length ? value.syn : (base.syn ?? []),
       ant: value.ant?.length ? value.ant : (base.ant ?? []),
       ex: value.ex ?? base.ex ?? '',
-      pron: base.pron ?? pronunciations.get(head) ?? '',
+      exBn: value.exBn ?? base.exBn ?? '',
+      pron: value.pron ?? base.pron ?? pronunciations.get(head) ?? '',
     }
   }
 
@@ -402,6 +404,7 @@ async function main() {
     syn: [],
     ant: [],
     ex: [],
+    exBn: [],
     pron: [],
   }
   for (const head of heads) {
@@ -415,6 +418,7 @@ async function main() {
     columns.syn.push(entry.syn.join(SEP))
     columns.ant.push(entry.ant.join(SEP))
     columns.ex.push(entry.ex)
+    columns.exBn.push(entry.exBn ?? '')
     columns.pron.push(entry.pron)
   }
 

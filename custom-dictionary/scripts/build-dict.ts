@@ -64,7 +64,7 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
   console.log('Loading curated entries...')
   const curated = JSON.parse(fs.readFileSync(curatedPath, 'utf8')) as Record<string, {
     bn?: string; bnAlts?: string[]; trans?: string; transAlts?: string[]
-    def?: string; pos?: string; syn?: string[]; ant?: string[]; ex?: string; pron?: string
+    def?: string; pos?: string; syn?: string[]; ant?: string[]; ex?: string; exBn?: string; pron?: string
   }>
   console.log(`  ${Object.keys(curated).length} curated entries`)
 
@@ -104,6 +104,7 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
       syn,
       ant,
       ex: '',
+      exBn: '',
       pron,
     })
   }
@@ -126,6 +127,7 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
       syn:      (value.syn != null ? value.syn : (existing?.syn ?? [])).slice(0, LIMITS.synonyms),
       ant:      (value.ant != null ? value.ant : (existing?.ant ?? [])).slice(0, LIMITS.antonyms),
       ex:       (value.ex      ?? existing?.ex      ?? '').slice(0, LIMITS.example),
+      exBn:     value.exBn     ?? existing?.exBn     ?? '',
       pron:     value.pron     ?? existing?.pron     ?? '',
     })
   }

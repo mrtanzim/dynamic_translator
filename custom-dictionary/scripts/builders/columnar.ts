@@ -39,6 +39,7 @@ export interface DictionaryEntry {
   syn: string[]
   ant: string[]
   ex: string
+  exBn?: string
   pron: string
 }
 
@@ -55,6 +56,7 @@ export interface DictionaryDataset {
   syn: string[]
   ant: string[]
   ex: string[]
+  exBn?: string[]
   pron: string[]
 }
 
@@ -104,6 +106,7 @@ export function serializeDataset(entries: DictionaryEntry[]): DictionaryDataset 
     syn: sorted.map((e) => e.syn.join(SEP)),
     ant: sorted.map((e) => e.ant.join(SEP)),
     ex: sorted.map((e) => e.ex),
+    exBn: sorted.map((e) => e.exBn ?? ''),
     pron: sorted.map((e) => e.pron),
   }
 }
@@ -130,6 +133,7 @@ export function deserializeDataset(dataset: DictionaryDataset): DictionaryEntry[
       syn: splitColumn(dataset.syn[i]),
       ant: splitColumn(dataset.ant[i]),
       ex: dataset.ex[i],
+      exBn: dataset.exBn ? dataset.exBn[i] : '',
       pron: dataset.pron[i],
     })
   }
@@ -162,6 +166,10 @@ export function validateDataset(dataset: DictionaryDataset): boolean {
     if (dataset[column as keyof DictionaryDataset].length !== n) {
       return false
     }
+  }
+
+  if (dataset.exBn && dataset.exBn.length !== n) {
+    return false
   }
 
   return true

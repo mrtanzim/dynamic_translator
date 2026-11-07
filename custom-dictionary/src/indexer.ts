@@ -14,6 +14,30 @@
 
 import { DictionaryDataset, SuggestionPayload } from './types'
 
+/**
+ * Normalizes Banglish / phonetic Latin input so variations resolve
+ * (e.g. "hasy" -> "hasi", "sh" -> "s", collapse double vowels/consonants).
+ */
+export function normalizeBanglish(q: string): string {
+  if (!q) return ''
+  return q
+    .normalize('NFC')
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}]/gu, '')
+    .replace(/sh/g, 's')
+    .replace(/ch/g, 'c')
+    .replace(/ee/g, 'i')
+    .replace(/ea/g, 'i')
+    .replace(/oo/g, 'u')
+    .replace(/ou/g, 'u')
+    .replace(/v/g, 'bh')
+    .replace(/w/g, 'b')
+    .replace(/y$/g, 'i')
+    .replace(/y([bcdfghjklmnpqrstvwxz])/g, 'i$1')
+    .replace(/(.)\1+/g, '$1')
+}
+
 /** Field separator used inside multi-valued columns. */
 export const SEP = '\u0001'
 
@@ -36,6 +60,7 @@ export interface IndexEntry {
   syn: string[]
   ant: string[]
   ex: string
+  exBn?: string
   pron: string
 }
 
@@ -60,6 +85,7 @@ export class OfflineDictionary {
   private readonly byRelation = new Map<string, string>()
   /** The English headword a normalized Bengali word resolves to, with romanization. */
   private readonly byBengali = new Map<string, BengaliHit[]>()
+  private readonly byRoman = new Map<string, Array<{ headword: string; bn: string; trans: string; entry: IndexEntry }>>()
 
   constructor(dataset: DictionaryDataset) {
     const n = dataset.headwords.length
@@ -85,6 +111,7 @@ export class OfflineDictionary {
         syn: splitColumn(dataset.syn[i] ?? ''),
         ant: splitColumn(dataset.ant[i] ?? ''),
         ex: dataset.ex[i] ?? '',
+        exBn: dataset.exBn ? dataset.exBn[i] : '',
         pron: dataset.pron[i] ?? '',
       }
       this.byHeadword.set(entry.headword, entry)
@@ -96,6 +123,36 @@ export class OfflineDictionary {
         if (!this.byRelation.has(relation)) {
           this.byRelation.set(relation, entry.headword)
         }
+      }
+
+      const addRoman = (roman: string) => {
+        if (!roman) return
+        const norm = normalizeHeadword(roman)
+        if (norm) {
+          let bucket = this.byRoman.get(norm)
+          if (!bucket) {
+            bucket = []
+            this.byRoman.set(norm, bucket)
+          }
+          if (!bucket.some((b) => b.headword === entry.headword)) {
+            bucket.push({ headword: entry.headword, bn: entry.bn, trans: roman, entry })
+          }
+        }
+        const phon = normalizeBanglish(roman)
+        if (phon && phon !== norm) {
+          let bucket = this.byRoman.get(phon)
+          if (!bucket) {
+            bucket = []
+            this.byRoman.set(phon, bucket)
+          }
+          if (!bucket.some((b) => b.headword === entry.headword)) {
+            bucket.push({ headword: entry.headword, bn: entry.bn, trans: roman, entry })
+          }
+        }
+      }
+      addRoman(entry.trans)
+      for (const alt of entry.transAlts) {
+        addRoman(alt)
       }
 
       this.addBengali(entry.bn, entry.headword, entry.trans)
@@ -116,6 +173,28 @@ export class OfflineDictionary {
       return
     }
     this.byBengali.set(key, [{ headword, roman }])
+  }
+
+  /**
+   * Looks up an entry by Romanized Bengali / Banglish phonetic spelling.
+   */
+  lookupRoman(q: string): { headword: string; entry: IndexEntry; roman: string; bengali: string } | null {
+    const n = normalizeHeadword(q)
+    if (!n) return null
+    const directHits = this.byRoman.get(n)
+    if (directHits && directHits.length > 0) {
+      const hit = directHits[0]!
+      return { headword: hit.headword, entry: hit.entry, roman: hit.trans, bengali: hit.bn }
+    }
+    const phon = normalizeBanglish(q)
+    if (phon) {
+      const phonHits = this.byRoman.get(phon)
+      if (phonHits && phonHits.length > 0) {
+        const hit = phonHits[0]!
+        return { headword: hit.headword, entry: hit.entry, roman: hit.trans, bengali: hit.bn }
+      }
+    }
+    return null
   }
 
   /** Number of entries in the dictionary. */
@@ -149,6 +228,9 @@ export class OfflineDictionary {
     const direct = this.byNormalized.get(n)
     if (direct) return direct
 
+    const roman = this.lookupRoman(n)
+    if (roman) return roman.entry
+
     return null
   }
 
@@ -172,7 +254,10 @@ export class OfflineDictionary {
     const direct = this.byNormalized.get(n)
     if (direct) return direct.headword
     const relation = this.byRelation.get(n)
-    return relation ? relation : q.trim()
+    if (relation) return relation
+    const roman = this.lookupRoman(n)
+    if (roman) return roman.headword
+    return q.trim()
   }
 
   /**

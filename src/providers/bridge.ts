@@ -40,6 +40,8 @@ export interface OfflineEntryPayload {
   syn: string[]
   ant: string[]
   ex: string
+  /** Example sentence (Bengali). */
+  exBn?: string
   /** Pronunciation guide (IPA). */
   pron: string
 }

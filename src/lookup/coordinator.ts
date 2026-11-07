@@ -160,6 +160,9 @@ export class LookupCoordinator {
         roman = hit?.roman ?? ''
       } else {
         payload = (await offlineLookup(query)) as OfflineEntryPayload | null
+        if (payload?.trans) {
+          roman = payload.trans
+        }
       }
       if (!payload) return null
       // The headword is the canonical English word of the entry. It is only
@@ -260,6 +263,7 @@ export class LookupCoordinator {
         synonyms: source.syn,
         antonyms: source.ant,
         exampleEn: source.ex,
+        exampleBn: source.exBn || undefined,
       }
       // The offline result is provisional: it is only shown while no provider
       // has answered yet, and it never replaces a provider result.

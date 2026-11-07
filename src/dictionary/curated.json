@@ -1,185 +1,2536 @@
 {
-  "hello": { "bn": "হ্যালো", "def": "A greeting used when meeting someone", "syn": ["hi", "greetings"], "ant": ["goodbye", "farewell"], "ex": "Hello, how are you today?" },
-  "world": { "bn": "বিশ্ব", "def": "The earth and all the people and places on it", "syn": ["globe", "earth"], "ant": [], "ex": "The world is full of wonders." },
-  "book": { "bn": "বই", "def": "A set of written pages bound together", "syn": ["volume", "text"], "ant": [], "ex": "I read a book every night." },
-  "water": { "bn": "পানি", "def": "The clear liquid that people drink and that falls as rain", "syn": [], "ant": [], "ex": "Please drink more water." },
-  "friend": { "bn": "বন্ধু", "def": "A person you know well and like", "syn": ["companion", "pal", "ally"], "ant": ["enemy", "foe"], "ex": "He is my best friend." },
-  "school": { "bn": "বিদ্যালয়", "def": "A place where children are taught", "syn": ["academy", "institution"], "ant": [], "ex": "The school closes at four." },
-  "family": { "bn": "পরিবার", "def": "A group of people related to one another", "syn": ["kin", "household"], "ant": [], "ex": "My family lives in Dhaka." },
-  "love": { "bn": "ভালোবাসা", "def": "A strong feeling of deep affection", "syn": ["affection", "devotion"], "ant": ["hate", "hatred"], "ex": "Love is the strongest of all feelings." },
-  "time": { "bn": "সময়", "def": "The continued passage of events and minutes", "syn": ["duration", "period"], "ant": [], "ex": "There is no time to waste." },
-  "day": { "bn": "দিন", "def": "A period of twenty-four hours", "syn": ["daytime"], "ant": ["night"], "ex": "It was a beautiful day." },
-  "year": { "bn": "বছর", "def": "A period of twelve months", "syn": [], "ant": [], "ex": "The year passed very quickly." },
-  "home": { "bn": "বাড়ি", "def": "The place where a person lives", "syn": ["house", "residence"], "ant": [], "ex": "Please make yourself at home." },
-  "work": { "bn": "কাজ", "def": "Activity performed in order to earn a living", "syn": ["job", "labour"], "ant": ["rest", "leisure"], "ex": "Hard work always pays off." },
-  "food": { "bn": "খাবার", "def": "Something that people or animals eat", "syn": ["meal", "cuisine", "nourishment"], "ant": [], "ex": "Bengali food is delicious." },
-  "city": { "bn": "শহর", "def": "A large and densely populated town", "syn": ["town", "metropolis"], "ant": ["village"], "ex": "Dhaka is a busy city." },
-  "village": { "bn": "গ্রাম", "def": "A small settlement of houses in a rural area", "syn": ["hamlet"], "ant": ["city"], "ex": "My grandmother lives in a village." },
-  "river": { "bn": "নদী", "def": "A large natural stream of flowing water", "syn": ["stream", "waterway"], "ant": [], "ex": "The river runs through the town." },
-  "mountain": { "bn": "পাহাড়", "def": "A large natural rise of the earth's surface", "syn": ["peak", "hill"], "ant": ["valley"], "ex": "We climbed the mountain at sunrise." },
-  "sun": { "bn": "সূর্য", "def": "The star that the earth orbits around", "syn": [], "ant": ["moon"], "ex": "The sun rose in the east." },
-  "moon": { "bn": "চাঁদ", "def": "The natural satellite of the earth", "syn": [], "ant": ["sun"], "ex": "The moon looks beautiful tonight." },
-  "star": { "bn": "তারা", "def": "A small luminous point seen in the night sky", "syn": [], "ant": [], "ex": "The stars filled the whole sky." },
-  "tree": { "bn": "গাছ", "def": "A tall woody plant with a trunk and branches", "syn": [], "ant": [], "ex": "A mango tree stands in the yard." },
-  "flower": { "bn": "ফুল", "def": "The colorful part of a plant that produces seeds", "syn": ["blossom"], "ant": [], "ex": "She wore a jasmine flower in her hair." },
-  "rain": { "bn": "বৃষ্টি", "def": "Water falling from clouds in drops", "syn": ["shower", "downpour"], "ant": [], "ex": "The rain stopped suddenly." },
-  "wind": { "bn": "বাতাস", "def": "Moving air, especially a natural current", "syn": ["breeze", "gust"], "ant": [], "ex": "A cold wind blew from the north." },
-  "fire": { "bn": "আগুন", "def": "Burning that gives off heat and light", "syn": ["flame", "blaze"], "ant": ["water", "ice"], "ex": "They sat around the fire." },
-  "hand": { "bn": "হাত", "def": "The end part of a person's arm", "syn": ["palm"], "ant": [], "ex": "Please wash your hands." },
-  "eye": { "bn": "চোখ", "def": "The organ of sight", "syn": [], "ant": [], "ex": "She has bright brown eyes." },
-  "heart": { "bn": "হৃদয়", "def": "The hollow muscular organ that pumps blood; also the seat of emotions", "syn": [], "ant": ["mind"], "ex": "His heart beat fast." },
-  "head": { "bn": "মাথা", "def": "The upper part of the body containing the brain", "syn": [], "ant": [], "ex": "Nod your head if you agree." },
-  "child": { "bn": "শিশু", "def": "A young human being", "syn": ["kid", "youngster"], "ant": ["adult"], "ex": "The child was playing in the garden." },
-  "man": { "bn": "পুরুষ", "def": "An adult human male", "syn": ["male", "gentleman"], "ant": ["woman"], "ex": "The man greeted us politely." },
-  "woman": { "bn": "মহিলা", "def": "An adult human female", "syn": ["female", "lady"], "ant": ["man"], "ex": "That woman is a doctor." },
-  "people": { "bn": "মানুষ", "def": "Human beings in general", "syn": ["humans", "persons"], "ant": [], "ex": "People gathered at the gate." },
-  "life": { "bn": "জীবন", "def": "The existence of a person or animal", "syn": ["existence", "living"], "ant": ["death"], "ex": "Life is too short to worry." },
-  "death": { "bn": "মৃত্যু", "def": "The permanent ending of life", "syn": ["end", "passing"], "ant": ["life", "birth"], "ex": "His sudden death shocked us." },
-  "happy": { "bn": "খুশি", "def": "Feeling or showing pleasure and delight", "syn": ["glad", "cheerful", "joyful"], "ant": ["sad", "unhappy"], "ex": "She was happy with the result." },
-  "sad": { "bn": "দুঃখী", "def": "Feeling or showing sorrow or unhappiness", "syn": ["unhappy", "sorrowful", "upset"], "ant": ["happy", "cheerful"], "ex": "He felt sad after the news." },
-  "big": { "bn": "বড়", "def": "Of great size or importance", "syn": ["large", "huge", "enormous"], "ant": ["small", "tiny"], "ex": "That is a very big building." },
-  "small": { "bn": "ছোট", "def": "Not large in size", "syn": ["little", "tiny"], "ant": ["big", "large"], "ex": "A small bird sat on the wire." },
-  "good": { "bn": "ভালো", "def": "To be desired or approved of; of high quality", "syn": ["fine", "nice", "excellent"], "ant": ["bad", "poor"], "ex": "That is a good idea." },
-  "bad": { "bn": "খারাপ", "def": "Of poor quality or not satisfactory", "syn": ["poor", "terrible", "awful"], "ant": ["good", "great"], "ex": "The weather was bad yesterday." },
-  "new": { "bn": "নতুন", "def": "Not existing before; recently made or acquired", "syn": ["fresh", "recent", "modern"], "ant": ["old", "ancient"], "ex": "I bought a new phone." },
-  "old": { "bn": "পুরোনো", "def": "Having existed for a long time", "syn": ["aged", "ancient"], "ant": ["new", "young"], "ex": "This is an old house." },
-  "fast": { "bn": "দ্রুত", "def": "Moving or done with great speed", "syn": ["quick", "rapid", "swift"], "ant": ["slow", "sluggish"], "ex": "The train was very fast." },
-  "slow": { "bn": "ধীর", "def": "Moving or proceeding at a low speed", "syn": ["sluggish", "gradual"], "ant": ["fast", "quick"], "ex": "Progress was slow but steady." },
-  "strong": { "bn": "শক্তিশালী", "def": "Having great physical power, strength, or moral authority", "syn": ["powerful", "mighty", "tough"], "ant": ["weak", "feeble"], "ex": "He gave a strong handshake." },
-  "weak": { "bn": "দুর্বল", "def": "Lacking strength or power", "syn": ["feeble", "frail", "fragile"], "ant": ["strong", "powerful"], "ex": "The bridge was too weak to hold." },
-  "warm": { "bn": "উষ্ণ", "def": "Comfortably high in temperature, but not hot", "syn": ["lukewarm", "mild", "cosy"], "ant": ["cold", "cool"], "ex": "The tea is still warm." },
-  "cold": { "bn": "ঠান্ডা", "def": "Of or at a low temperature", "syn": ["chilly", "freezing", "icy"], "ant": ["warm", "hot"], "ex": "It gets cold at night." },
-  "beautiful": { "bn": "সুন্দর", "def": "Pleasing to the senses or mind aesthetically", "syn": ["lovely", "pretty", "gorgeous"], "ant": ["ugly", "hideous"], "ex": "What a beautiful sunset!" },
-  "ugly": { "bn": "কুৎসিত", "def": "Unpleasant or repulsive to look at", "syn": ["hideous", "unattractive", "awful"], "ant": ["beautiful", "lovely"], "ex": "The building was ugly and grey." },
-  "easy": { "bn": "সহজ", "def": "Not difficult; requiring little effort", "syn": ["simple", "straightforward", "effortless"], "ant": ["difficult", "hard"], "ex": "The exam was surprisingly easy." },
-  "difficult": { "bn": "কঠিন", "def": "Requiring great effort or skill", "syn": ["hard", "tough", "challenging"], "ant": ["easy", "simple"], "ex": "Learning a language is difficult but rewarding." },
-  "learn": { "bn": "শেখা", "def": "To gain knowledge or a skill through study or experience", "syn": ["study", "master", "acquire"], "ant": ["forget", "ignore"], "ex": "I want to learn English this year." },
-  "teach": { "bn": "শেখানো", "def": "To help someone learn a subject or skill", "syn": ["instruct", "educate", "train"], "ant": ["learn"], "ex": "She teaches mathematics at a college." },
-  "read": { "bn": "পড়া", "def": "To look at and comprehend written words", "syn": ["study", "peruse"], "ant": ["write"], "ex": "I read a chapter every night." },
-  "write": { "bn": "লেখা", "def": "To mark letters or words on a surface", "syn": ["compose", "draft", "record"], "ant": ["read"], "ex": "Write your name at the top." },
-  "speak": { "bn": "কথা বলা", "def": "To say words aloud; to communicate verbally", "syn": ["talk", "say", "utter"], "ant": ["listen", "stay silent"], "ex": "Do you speak English?" },
-  "listen": { "bn": "শোনা", "def": "To give attention to a sound; to hear attentively", "syn": ["hear", "pay attention"], "ant": ["ignore", "speak"], "ex": "Please listen carefully to the teacher." },
-  "help": { "bn": "সাহায্য", "def": "To make it easier for someone to do something", "syn": ["assist", "support", "aid"], "ant": ["hinder", "harm"], "ex": "Can you help me with this?" },
-  "morning": { "bn": "সকাল", "def": "The early part of the day, from dawn until noon", "syn": ["dawn", "daybreak"], "ant": ["evening", "night"], "ex": "I run every morning." },
-  "evening": { "bn": "সন্ধ্যা", "def": "The period of time at the end of the day before night", "syn": ["dusk", "twilight"], "ant": ["morning", "dawn"], "ex": "We walked in the evening." },
-  "night": { "bn": "রাত", "def": "The period of darkness in each twenty-four hour cycle", "syn": ["darkness", "midnight"], "ant": ["day", "morning"], "ex": "The night was quiet and still." },
-  "week": { "bn": "সপ্তাহ", "def": "A period of seven days", "syn": [], "ant": [], "ex": "See you next week." },
-  "month": { "bn": "মাস", "def": "A period of about thirty days", "syn": [], "ant": [], "ex": "I will finish it within a month." },
-  "name": { "bn": "নাম", "def": "The word or set of words by which a person or thing is known", "syn": ["title", "label"], "ant": [], "ex": "What is your name?" },
-  "word": { "bn": "শব্দ", "def": "A single distinct meaningful element of speech or writing", "syn": ["term", "expression"], "ant": [], "ex": "I learned a new word today." },
-  "language": { "bn": "ভাষা", "def": "The system of communication used by a particular people", "syn": ["tongue", "dialect"], "ant": [], "ex": "English is a useful language." },
-  "money": { "bn": "টাকা", "def": "Coins and notes used to buy goods and services", "syn": ["cash", "currency", "funds"], "ant": [], "ex": "I do not have enough money." },
-  "market": { "bn": "বাজার", "def": "A place where goods are bought and sold", "syn": ["bazaar", "store", "shop"], "ant": [], "ex": "The market opens early on Fridays." },
-  "shop": { "bn": "দোকান", "def": "A place where goods are sold to the public", "syn": ["store", "outlet"], "ant": [], "ex": "The shop closes at nine." },
-  "road": { "bn": "রাস্তা", "def": "A way for vehicles or people to travel on", "syn": ["street", "path", "highway"], "ant": [], "ex": "The road was blocked by traffic." },
-  "car": { "bn": "গাড়ি", "def": "A road vehicle with four wheels powered by an engine", "syn": ["vehicle", "automobile"], "ant": [], "ex": "His car is parked outside." },
-  "bus": { "bn": "বাস", "def": "A large road vehicle carrying many passengers", "syn": [], "ant": [], "ex": "We waited for the bus for ten minutes." },
-  "train": { "bn": "ট্রেন", "def": "A vehicle that runs on rails carrying passengers or goods", "syn": ["locomotive"], "ant": [], "ex": "The train arrived ten minutes late." },
-  "travel": { "bn": "ভ্রমণ", "def": "To go from one place to another, especially over a distance", "syn": ["journey", "trip", "voyage"], "ant": ["stay", "remain"], "ex": "I love to travel in the hills." },
-  "country": { "bn": "দেশ", "def": "A state with its own people, government and territory", "syn": ["nation", "state", "land"], "ant": [], "ex": "Bangladesh is a beautiful country." },
-  "student": { "bn": "ছাত্র", "def": "A person who studies at a school or college", "syn": ["pupil", "learner"], "ant": ["teacher"], "ex": "Every student received a certificate." },
-  "teacher": { "bn": "শিক্ষক", "def": "A person who helps others learn", "syn": ["instructor", "educator", "tutor"], "ant": ["student"], "ex": "Our teacher explains very clearly." },
-  "doctor": { "bn": "ডাক্তার", "def": "A person qualified to treat patients medically", "syn": ["physician", "medic"], "ant": ["patient"], "ex": "You should see a doctor soon." },
-  "player": { "bn": "খেলোয়াড়", "def": "A person who plays a game or sport", "syn": ["athlete", "sportsman"], "ant": [], "ex": "He is a skilled football player." },
-  "game": { "bn": "খেলা", "def": "An activity played for enjoyment or competition", "syn": ["sport", "match", "contest"], "ant": ["work"], "ex": "They played a game of football." },
-  "music": { "bn": "সংগীত", "def": "Organized sound that gives pleasure to the listener", "syn": ["melody", "tune"], "ant": ["noise", "silence"], "ex": "Bengali folk music is famous worldwide." },
-  "song": { "bn": "গান", "def": "A short piece of music with words meant to be sung", "syn": ["tune", "melody", "track"], "ant": [], "ex": "The song made everyone clap." },
-  "colour": { "bn": "রং", "def": "The property of light as perceived by the eye", "syn": ["color", "hue", "shade"], "ant": [], "ex": "What colour is your new bag?" },
-  "red": { "bn": "লাল", "def": "The colour of blood or ripe tomatoes", "syn": ["crimson", "scarlet"], "ant": [], "ex": "She wore a red scarf." },
-  "green": { "bn": "সবুজ", "def": "The colour of grass and leaves", "syn": [], "ant": [], "ex": "The hills turned green after the rains." },
-  "blue": { "bn": "নীল", "def": "The colour of a clear sky or the sea", "syn": [], "ant": [], "ex": "The sky was a deep blue." },
-  "white": { "bn": "সাদা", "def": "The colour of milk and fresh snow; the lightest colour", "syn": [], "ant": ["black"], "ex": "He wore a white shirt." },
-  "black": { "bn": "কালো", "def": "The colour of coal and the night sky; the darkest colour", "syn": [], "ant": ["white"], "ex": "A black cat sat on the wall." },
-  "price": { "bn": "দাম", "def": "The amount of money asked or paid for something", "syn": ["cost", "charge", "fee"], "ant": [], "ex": "The price went up this year." },
-
-  "angry": { "bn": "রাগান্বিত", "def": "Feeling or showing strong displeasure or hostility", "syn": ["furious", "enraged", "mad"], "ant": ["calm", "peaceful", "pleased"], "ex": "She was angry at the delay." },
-  "fight": { "bn": "লড়াই", "def": "A violent struggle or contest between people or groups", "syn": ["battle", "combat", "clash"], "ant": ["peace", "truce"], "ex": "The two rivals fought for hours." },
-  "power": { "bn": "শক্তি", "def": "The ability to act, control, or produce an effect", "syn": ["strength", "force", "might"], "ant": ["weakness", "powerlessness"], "ex": "She felt a surge of power." },
-  "dream": { "bn": "স্বপ্ন", "def": "Images experienced during sleep; also a cherished ambition or goal", "syn": ["vision", "aspiration", "hope"], "ant": ["reality", "nightmare"], "ex": "He had a dream about becoming a hero." },
-  "enemy": { "bn": "শত্রু", "def": "A person or group actively opposed or hostile to another", "syn": ["foe", "rival", "opponent"], "ant": ["friend", "ally"], "ex": "The hero faced his greatest enemy." },
-  "hero": { "bn": "নায়ক", "def": "A person admired for courage, nobility, or great achievements", "syn": ["champion", "protagonist", "saviour"], "ant": ["villain", "coward"], "ex": "The hero saved the whole village." },
-  "villain": { "bn": "খলনায়ক", "def": "A wicked person, especially the main evil character in a story", "syn": ["antagonist", "criminal"], "ant": ["hero", "protagonist"], "ex": "The villain revealed his true plan." },
-  "brave": { "bn": "সাহসী", "def": "Ready to face danger or pain without showing fear", "syn": ["courageous", "bold", "fearless"], "ant": ["cowardly", "timid"], "ex": "The brave soldier stood his ground." },
-  "fear": { "bn": "ভয়", "def": "An unpleasant emotion caused by the belief that something is dangerous", "syn": ["terror", "dread", "fright"], "ant": ["courage", "bravery", "confidence"], "ex": "Fear gripped him as he stepped forward." },
-  "hope": { "bn": "আশা", "def": "A feeling of expectation and desire for something good to happen", "syn": ["wish", "optimism", "aspiration"], "ant": ["despair", "hopelessness"], "ex": "She held on to the hope of winning." },
-  "smile": { "bn": "হাসি", "def": "A facial expression of happiness formed by turning the mouth upward", "syn": ["grin", "beam"], "ant": ["frown", "scowl"], "ex": "She gave a warm smile." },
-  "cry": { "bn": "কাঁদা", "def": "To shed tears, especially from sadness or pain", "syn": ["weep", "sob", "wail"], "ant": ["laugh", "rejoice"], "ex": "The child began to cry." },
-  "laugh": { "bn": "হাসা", "def": "To make sounds showing amusement or happiness", "syn": ["chuckle", "giggle", "chortle"], "ant": ["cry", "weep"], "ex": "Everyone laughed at the joke." },
-  "win": { "bn": "জেতা", "def": "To achieve victory in a contest or conflict", "syn": ["triumph", "succeed", "prevail"], "ant": ["lose", "fail", "surrender"], "ex": "Our team worked hard to win." },
-  "lose": { "bn": "হারা", "def": "To fail to win; to be defeated in a contest", "syn": ["fail", "surrender"], "ant": ["win", "triumph"], "ex": "It is hard to lose after trying so hard." },
-  "protect": { "bn": "রক্ষা করা", "def": "To keep someone or something safe from harm or danger", "syn": ["defend", "guard", "shield"], "ant": ["attack", "abandon", "expose"], "ex": "He would do anything to protect his family." },
-  "promise": { "bn": "প্রতিশ্রুতি", "def": "A declaration that one will certainly do or not do something", "syn": ["vow", "pledge", "oath"], "ant": ["betrayal", "lie"], "ex": "She kept her promise to return." },
-  "brother": { "bn": "ভাই", "def": "A male who has the same parents as another person", "syn": ["sibling"], "ant": ["sister"], "ex": "My brother is three years older than me." },
-  "sister": { "bn": "বোন", "def": "A female who has the same parents as another person", "syn": ["sibling"], "ant": ["brother"], "ex": "My sister loves reading books." },
-  "mother": { "bn": "মা", "def": "A female parent", "syn": ["mom", "parent"], "ant": ["father"], "ex": "My mother cooked a delicious meal." },
-  "father": { "bn": "বাবা", "def": "A male parent", "syn": ["dad", "parent"], "ant": ["mother"], "ex": "His father taught him to ride a bike." },
-  "run": { "bn": "দৌড়ানো", "def": "To move at a speed faster than walking by taking quick steps", "syn": ["sprint", "dash", "race"], "ant": ["walk", "stop"], "ex": "He had to run to catch the train." },
-  "sky": { "bn": "আকাশ", "def": "The expanse of space seen from earth where clouds and sun appear", "syn": ["heaven"], "ant": [], "ex": "The sky turned red at sunset." },
-  "blood": { "bn": "রক্ত", "def": "The red liquid that circulates through the bodies of humans and animals", "syn": [], "ant": [], "ex": "The wound bled for a long time." },
-  "voice": { "bn": "গলা", "def": "The sound produced when a person speaks or sings", "syn": ["tone", "sound"], "ant": ["silence"], "ex": "Her voice was calm and steady." },
-  "face": { "bn": "মুখ", "def": "The front part of the head including the eyes, nose, and mouth", "syn": ["expression"], "ant": [], "ex": "She turned her face away." },
-  "body": { "bn": "শরীর", "def": "The physical structure of a person or animal", "syn": ["figure", "physique"], "ant": ["mind", "soul"], "ex": "He trained his body every day." },
-  "soul": { "bn": "আত্মা", "def": "The spiritual or immaterial part of a human being", "syn": ["spirit", "essence"], "ant": ["body"], "ex": "She felt the music touch her soul." },
-  "truth": { "bn": "সত্য", "def": "The quality of being in accordance with fact or reality", "syn": ["fact", "reality", "honesty"], "ant": ["lie", "falsehood", "deception"], "ex": "He always speaks the truth." },
-  "lie": { "bn": "মিথ্যা", "def": "A statement that is not true, told with the intention to deceive", "syn": ["falsehood", "deception", "untruth"], "ant": ["truth", "fact"], "ex": "He told a lie to avoid trouble." },
-  "today": { "bn": "আজ", "def": "On or during this present day", "syn": ["now", "at present"], "ant": ["yesterday", "tomorrow"], "ex": "Today is a very special day." },
-  "tomorrow": { "bn": "আগামীকাল", "def": "The day after today", "syn": [], "ant": ["yesterday", "today"], "ex": "We will leave tomorrow morning." },
-  "yesterday": { "bn": "গতকাল", "def": "The day before today", "syn": [], "ant": ["tomorrow", "today"], "ex": "Yesterday was a long and tiring day." },
-  "always": { "bn": "সবসময়", "def": "At all times; on all occasions without exception", "syn": ["forever", "constantly", "ever"], "ant": ["never", "rarely", "sometimes"], "ex": "She always arrives on time." },
-  "never": { "bn": "কখনো না", "def": "At no time; not on any occasion", "syn": [], "ant": ["always", "ever", "forever"], "ex": "I will never give up." },
-  "alone": { "bn": "একা", "def": "Having no one else present; without companions", "syn": ["solitary", "lonely"], "ant": ["together", "accompanied"], "ex": "He sat alone in the dark room." },
-  "together": { "bn": "একসাথে", "def": "With or in proximity to another person or people", "syn": ["jointly", "collectively"], "ant": ["alone", "separately", "apart"], "ex": "They fought together against the enemy." },
-  "remember": { "bn": "মনে রাখা", "def": "To keep something in memory; to recall a fact or event", "syn": ["recall", "recollect"], "ant": ["forget", "overlook"], "ex": "Remember to bring your ID." },
-  "forget": { "bn": "ভুলে যাওয়া", "def": "To fail to remember; to be unable to recall something", "syn": ["overlook", "neglect"], "ant": ["remember", "recall"], "ex": "I always forget where I put my keys." },
-  "believe": { "bn": "বিশ্বাস করা", "def": "To accept that something is true or that someone is telling the truth", "syn": ["trust", "accept"], "ant": ["doubt", "disbelieve"], "ex": "I believe you can do it." },
-  "secret": { "bn": "গোপন", "def": "Something known only to a few people and intentionally kept from others", "syn": ["mystery", "private"], "ant": ["public", "open", "known"], "ex": "She kept the secret for years." },
-  "powerful": { "bn": "শক্তিশালী", "def": "Having great power, strength, or influence", "syn": ["mighty", "strong", "forceful"], "ant": ["weak", "powerless", "feeble"], "ex": "The powerful wizard cast his spell." },
-  "kind": { "bn": "দয়ালু", "def": "Having a gentle, caring nature; willing to help others", "syn": ["gentle", "caring", "generous"], "ant": ["cruel", "unkind", "harsh"], "ex": "She is always kind to strangers." },
-  "cruel": { "bn": "নিষ্ঠুর", "def": "Causing pain or suffering deliberately; without mercy", "syn": ["brutal", "heartless", "merciless"], "ant": ["kind", "gentle", "merciful"], "ex": "The cruel villain showed no mercy." },
-  "free": { "bn": "মুক্ত", "def": "Not under the control or power of another; able to act as one wishes", "syn": ["independent", "liberated"], "ant": ["trapped", "imprisoned", "bound"], "ex": "At last she was free." },
-
-  "understand": { "bn": "বোঝা", "def": "To know the meaning or nature of something", "syn": ["comprehend", "grasp", "get"], "ant": ["misunderstand", "confuse"], "ex": "I did not understand what he said." },
-  "explain": { "bn": "ব্যাখ্যা করা", "def": "To make something clear by describing it in more detail", "syn": ["describe", "clarify", "tell"], "ant": ["confuse", "complicate"], "ex": "Can you explain that again?" },
-  "wait": { "bn": "অপেক্ষা করা", "def": "To stay in one place until something expected happens", "syn": ["stay", "pause", "hold on"], "ant": ["go", "leave", "rush"], "ex": "Please wait outside for a moment." },
-  "stop": { "bn": "থামা", "def": "To cease moving or doing something", "syn": ["halt", "pause", "freeze"], "ant": ["go", "continue", "start"], "ex": "Stop right there!" },
-  "go": { "bn": "যাওয়া", "def": "To move or travel to a place", "syn": ["move", "proceed", "head"], "ant": ["stop", "stay", "come"], "ex": "I have to go now." },
-  "come": { "bn": "আসা", "def": "To move or travel towards the speaker or a specified place", "syn": ["arrive", "approach"], "ant": ["go", "leave", "depart"], "ex": "Come here please." },
-  "see": { "bn": "দেখা", "def": "To perceive with the eyes; to notice or understand", "syn": ["look", "watch", "notice"], "ant": ["miss", "ignore"], "ex": "Did you see that?" },
-  "look": { "bn": "তাকানো", "def": "To direct one's gaze towards something", "syn": ["see", "watch", "observe"], "ant": ["ignore", "overlook"], "ex": "Look at the sky!" },
-  "know": { "bn": "জানা", "def": "To be aware of through experience or information", "syn": ["understand", "realise"], "ant": ["ignore", "be unaware"], "ex": "Do you know the answer?" },
-  "think": { "bn": "ভাবা", "def": "To have a particular opinion or belief in one's mind", "syn": ["believe", "consider", "feel"], "ant": ["act", "react"], "ex": "Think before you speak." },
-  "want": { "bn": "চাওয়া", "def": "To have a desire for something", "syn": ["desire", "wish", "need"], "ant": ["dislike", "reject", "refuse"], "ex": "I want to be a great speaker." },
-  "need": { "bn": "দরকার", "def": "To require something because it is essential or important", "syn": ["require", "must have"], "ant": ["have enough", "not need"], "ex": "I need more practice." },
-  "give": { "bn": "দেওয়া", "def": "To hand something to someone; to provide", "syn": ["offer", "provide", "hand"], "ant": ["take", "receive", "keep"], "ex": "Please give me a chance." },
-  "take": { "bn": "নেওয়া", "def": "To reach out and hold; to acquire or accept", "syn": ["grab", "accept", "receive"], "ant": ["give", "return", "offer"], "ex": "Take this and keep it safe." },
-  "hurt": { "bn": "কষ্ট দেওয়া", "def": "To cause pain or distress to someone physically or emotionally", "syn": ["harm", "injure", "wound"], "ant": ["heal", "comfort", "soothe"], "ex": "Words can hurt more than blows." },
-  "pain": { "bn": "ব্যথা", "def": "An unpleasant feeling caused by injury or illness; also emotional suffering", "syn": ["ache", "suffering", "agony"], "ant": ["pleasure", "comfort", "relief"], "ex": "The pain in his leg would not stop." },
-  "save": { "bn": "বাঁচানো", "def": "To keep someone or something safe from danger or harm", "syn": ["rescue", "protect", "preserve"], "ant": ["abandon", "destroy", "endanger"], "ex": "She risked her life to save him." },
-  "escape": { "bn": "পালানো", "def": "To break free from confinement or danger", "syn": ["flee", "run away", "break free"], "ant": ["stay", "surrender", "face"], "ex": "He managed to escape from the burning building." },
-  "chase": { "bn": "তাড়া করা", "def": "To pursue someone or something in order to catch them", "syn": ["pursue", "follow", "hunt"], "ant": ["flee", "escape", "retreat"], "ex": "The detective chased the suspect." },
-  "suddenly": { "bn": "হঠাৎ", "def": "Quickly and unexpectedly, without warning", "syn": ["all of a sudden", "abruptly", "instantly"], "ant": ["gradually", "slowly", "eventually"], "ex": "Suddenly the lights went out." },
-  "finally": { "bn": "অবশেষে", "def": "After a long time or at the end of a series of events", "syn": ["at last", "eventually", "in the end"], "ant": ["first", "initially", "at first"], "ex": "Finally, he found the answer." },
-  "actually": { "bn": "আসলে", "def": "Used to emphasize the truth or reality of something", "syn": ["in fact", "really", "truly"], "ant": [], "ex": "I actually enjoyed the exam." },
-  "important": { "bn": "গুরুত্বপূর্ণ", "def": "Of great significance or value; having a major effect", "syn": ["significant", "crucial", "essential"], "ant": ["unimportant", "trivial", "minor"], "ex": "This is an important decision." },
-  "serious": { "bn": "গুরুতর", "def": "Demanding careful consideration; not joking or trivial", "syn": ["grave", "severe", "critical"], "ant": ["trivial", "lighthearted", "minor"], "ex": "This is a serious problem." },
-  "strange": { "bn": "অদ্ভুত", "def": "Unusual or surprising; difficult to understand", "syn": ["weird", "odd", "bizarre"], "ant": ["normal", "familiar", "ordinary"], "ex": "Something strange happened last night." },
-  "dangerous": { "bn": "বিপজ্জনক", "def": "Likely to cause harm, injury, or death", "syn": ["hazardous", "risky", "deadly"], "ant": ["safe", "harmless", "secure"], "ex": "It is dangerous to walk alone at night." },
-  "possible": { "bn": "সম্ভব", "def": "Able to be done or achieved; within the range of likelihood", "syn": ["achievable", "feasible", "likely"], "ant": ["impossible", "unlikely", "unachievable"], "ex": "Anything is possible if you work hard." },
-  "impossible": { "bn": "অসম্ভব", "def": "Not able to happen or be achieved", "syn": ["unachievable", "out of the question"], "ant": ["possible", "achievable", "doable"], "ex": "Nothing is impossible if you believe." },
-  "enough": { "bn": "যথেষ্ট", "def": "As much or as many as required; sufficient", "syn": ["sufficient", "adequate", "plenty"], "ant": ["insufficient", "lacking", "scarce"], "ex": "That is enough for today." },
-  "anymore": { "bn": "আর না", "def": "From now on; no longer as before (used in negatives)", "syn": ["no longer", "not now"], "ant": ["still", "yet"], "ex": "I do not want to wait anymore." },
-  "instead": { "bn": "বরং", "def": "As an alternative; in place of something else", "syn": ["rather", "alternatively", "in place of"], "ant": [], "ex": "Use this word instead." },
-  "exist": { "bn": "থাকা", "def": "To have actual being; to be real or present", "syn": ["be", "live", "occur"], "ant": ["disappear", "vanish", "cease"], "ex": "Does true justice exist?" },
-  "appear": { "bn": "দেখা দেওয়া", "def": "To come into sight; to seem or look a certain way", "syn": ["show up", "emerge", "seem"], "ant": ["disappear", "vanish", "hide"], "ex": "A figure appeared in the darkness." },
-  "disappear": { "bn": "মিলিয়ে যাওয়া", "def": "To go out of sight; to cease to exist or be found", "syn": ["vanish", "fade", "go"], "ant": ["appear", "emerge", "show up"], "ex": "The enemy disappeared into the forest." },
-  "change": { "bn": "পরিবর্তন", "def": "To make or become different; to alter or transform", "syn": ["alter", "transform", "shift"], "ant": ["stay", "remain", "preserve"], "ex": "I want to change my life." },
-  "lose": { "bn": "হারা", "def": "To fail to win; to be defeated; also to cease to have something", "syn": ["fail", "surrender"], "ant": ["win", "triumph", "keep"], "ex": "It is hard to lose after trying so hard." },
-  "attack": { "bn": "আক্রমণ", "def": "To take aggressive action against; to assault", "syn": ["assault", "strike", "charge"], "ant": ["defend", "retreat", "protect"], "ex": "The enemy launched a surprise attack." },
-  "defend": { "bn": "রক্ষা করা", "def": "To resist an attack; to protect from harm", "syn": ["protect", "guard", "shield"], "ant": ["attack", "surrender", "abandon"], "ex": "He stood up to defend his friends." },
-  "control": { "bn": "নিয়ন্ত্রণ", "def": "To have power over something; to direct or regulate", "syn": ["manage", "command", "direct"], "ant": ["lose control", "surrender", "yield"], "ex": "Try to control your emotions." },
-  "choice": { "bn": "পছন্দ", "def": "An act of selecting between two or more possibilities", "syn": ["option", "selection", "decision"], "ant": ["compulsion", "force", "obligation"], "ex": "It was his own choice." },
-  "special": { "bn": "বিশেষ", "def": "Better or greater than normal; designed for a particular purpose", "syn": ["unique", "particular", "exceptional"], "ant": ["ordinary", "common", "normal"], "ex": "Today is a very special day." },
-  "real": { "bn": "সত্যিকারের", "def": "Actually existing or happening; not imagined or artificial", "syn": ["genuine", "true", "actual"], "ant": ["fake", "false", "imaginary"], "ex": "Is this real or just a dream?" },
-  "sure": { "bn": "নিশ্চিত", "def": "Completely confident or certain about something", "syn": ["certain", "confident", "definite"], "ant": ["unsure", "doubtful", "uncertain"], "ex": "Are you sure about this?" },
-  "ready": { "bn": "প্রস্তুত", "def": "Fully prepared for action or use", "syn": ["prepared", "set", "all set"], "ant": ["unprepared", "unready"], "ex": "Are you ready to begin?" }
+  "hello": {
+    "bn": "হ্যালো",
+    "def": "A greeting used when meeting someone",
+    "syn": [
+      "hi",
+      "greetings"
+    ],
+    "ant": [
+      "goodbye",
+      "farewell"
+    ],
+    "ex": "Hello, how are you today?",
+    "exBn": "হ্যালো, আজ আপনি কেমন আছেন?"
+  },
+  "world": {
+    "bn": "বিশ্ব",
+    "def": "The earth and all the people and places on it",
+    "syn": [
+      "globe",
+      "earth"
+    ],
+    "ant": [],
+    "ex": "The world is full of wonders.",
+    "exBn": "পৃথিবীটা বিস্ময়ে ভরা।"
+  },
+  "book": {
+    "bn": "বই",
+    "def": "A set of written pages bound together",
+    "syn": [
+      "volume",
+      "text"
+    ],
+    "ant": [],
+    "ex": "I read a book every night.",
+    "exBn": "আমি প্রতিদিন রাতে একটি বই পড়ি।"
+  },
+  "water": {
+    "bn": "পানি",
+    "def": "The clear liquid that people drink and that falls as rain",
+    "syn": [],
+    "ant": [],
+    "ex": "Please drink more water.",
+    "exBn": "দয়া করে আরও পানি পান করুন।"
+  },
+  "friend": {
+    "bn": "বন্ধু",
+    "def": "A person you know well and like",
+    "syn": [
+      "companion",
+      "pal",
+      "ally"
+    ],
+    "ant": [
+      "enemy",
+      "foe"
+    ],
+    "ex": "He is my best friend.",
+    "exBn": "সে আমার সবচেয়ে ভালো বন্ধু।"
+  },
+  "school": {
+    "bn": "বিদ্যালয়",
+    "def": "A place where children are taught",
+    "syn": [
+      "academy",
+      "institution"
+    ],
+    "ant": [],
+    "ex": "The school closes at four.",
+    "exBn": "বিদ্যালয়টি চারটায় ছুটি হয়।"
+  },
+  "family": {
+    "bn": "পরিবার",
+    "def": "A group of people related to one another",
+    "syn": [
+      "kin",
+      "household"
+    ],
+    "ant": [],
+    "ex": "My family lives in Dhaka.",
+    "exBn": "আমার পরিবার ঢাকায় থাকে।"
+  },
+  "love": {
+    "bn": "ভালোবাসা",
+    "def": "A strong feeling of deep affection",
+    "syn": [
+      "affection",
+      "devotion"
+    ],
+    "ant": [
+      "hate",
+      "hatred"
+    ],
+    "ex": "Love is the strongest of all feelings.",
+    "exBn": "ভালোবাসা সব অনুভূতির মধ্যে সবচেয়ে শক্তিশালী।"
+  },
+  "time": {
+    "bn": "সময়",
+    "def": "The continued passage of events and minutes",
+    "syn": [
+      "duration",
+      "period"
+    ],
+    "ant": [],
+    "ex": "There is no time to waste.",
+    "exBn": "নষ্ট করার মতো সময় নেই।"
+  },
+  "day": {
+    "bn": "দিন",
+    "def": "A period of twenty-four hours",
+    "syn": [
+      "daytime"
+    ],
+    "ant": [
+      "night"
+    ],
+    "ex": "It was a beautiful day.",
+    "exBn": "এটি একটি চমৎকার দিন ছিল।"
+  },
+  "year": {
+    "bn": "বছর",
+    "def": "A period of twelve months",
+    "syn": [],
+    "ant": [],
+    "ex": "The year passed very quickly.",
+    "exBn": "বছরটি খুব দ্রুত কেটে গেল।"
+  },
+  "home": {
+    "bn": "বাড়ি",
+    "def": "The place where a person lives",
+    "syn": [
+      "house",
+      "residence"
+    ],
+    "ant": [],
+    "ex": "Please make yourself at home.",
+    "exBn": "নিজের বাড়ি মনে করে বসুন।"
+  },
+  "work": {
+    "bn": "কাজ",
+    "def": "Activity performed in order to earn a living",
+    "syn": [
+      "job",
+      "labour"
+    ],
+    "ant": [
+      "rest",
+      "leisure"
+    ],
+    "ex": "Hard work always pays off.",
+    "exBn": "কঠোর পরিশ্রমের সুফল সবসময় পাওয়া যায়।"
+  },
+  "food": {
+    "bn": "খাবার",
+    "def": "Something that people or animals eat",
+    "syn": [
+      "meal",
+      "cuisine",
+      "nourishment"
+    ],
+    "ant": [],
+    "ex": "Bengali food is delicious.",
+    "exBn": "বাঙালি খাবার খুবই সুস্বাদু।"
+  },
+  "city": {
+    "bn": "শহর",
+    "def": "A large and densely populated town",
+    "syn": [
+      "town",
+      "metropolis"
+    ],
+    "ant": [
+      "village"
+    ],
+    "ex": "Dhaka is a busy city.",
+    "exBn": "ঢাকা একটি ব্যস্ত শহর।"
+  },
+  "village": {
+    "bn": "গ্রাম",
+    "def": "A small settlement of houses in a rural area",
+    "syn": [
+      "hamlet"
+    ],
+    "ant": [
+      "city"
+    ],
+    "ex": "My grandmother lives in a village.",
+    "exBn": "আমার দাদি একটি গ্রামে থাকেন।"
+  },
+  "river": {
+    "bn": "নদী",
+    "def": "A large natural stream of flowing water",
+    "syn": [
+      "stream",
+      "waterway"
+    ],
+    "ant": [],
+    "ex": "The river runs through the town.",
+    "exBn": "নদীটি শহরের মাঝখান দিয়ে প্রবাহিত হয়েছে।"
+  },
+  "mountain": {
+    "bn": "পাহাড়",
+    "def": "A large natural rise of the earth's surface",
+    "syn": [
+      "peak",
+      "hill"
+    ],
+    "ant": [
+      "valley"
+    ],
+    "ex": "We climbed the mountain at sunrise.",
+    "exBn": "আমরা সূর্যোদয়ের সময় পাহাড়ে উঠেছিলাম।"
+  },
+  "sun": {
+    "bn": "সূর্য",
+    "def": "The star that the earth orbits around",
+    "syn": [],
+    "ant": [
+      "moon"
+    ],
+    "ex": "The sun rose in the east.",
+    "exBn": "পূর্ব আকাশে সূর্য উঠল।"
+  },
+  "moon": {
+    "bn": "চাঁদ",
+    "def": "The natural satellite of the earth",
+    "syn": [],
+    "ant": [
+      "sun"
+    ],
+    "ex": "The moon looks beautiful tonight.",
+    "exBn": "আজ রাতে চাঁদটি চমৎকার দেখাচ্ছে।"
+  },
+  "star": {
+    "bn": "তারা",
+    "def": "A small luminous point seen in the night sky",
+    "syn": [],
+    "ant": [],
+    "ex": "The stars filled the whole sky.",
+    "exBn": "তারাগুলো পুরো আকাশ জুড়ে ছড়িয়ে ছিল।"
+  },
+  "tree": {
+    "bn": "গাছ",
+    "def": "A tall woody plant with a trunk and branches",
+    "syn": [],
+    "ant": [],
+    "ex": "A mango tree stands in the yard.",
+    "exBn": "উঠানে একটি আম গাছ দাঁড়িয়ে আছে।"
+  },
+  "flower": {
+    "bn": "ফুল",
+    "def": "The colorful part of a plant that produces seeds",
+    "syn": [
+      "blossom"
+    ],
+    "ant": [],
+    "ex": "She wore a jasmine flower in her hair.",
+    "exBn": "সে তার চুলে একটি বেলি ফুল গুঁজেছিল।"
+  },
+  "rain": {
+    "bn": "বৃষ্টি",
+    "def": "Water falling from clouds in drops",
+    "syn": [
+      "shower",
+      "downpour"
+    ],
+    "ant": [],
+    "ex": "The rain stopped suddenly.",
+    "exBn": "হঠাৎ বৃষ্টি থেমে গেল।"
+  },
+  "wind": {
+    "bn": "বাতাস",
+    "def": "Moving air, especially a natural current",
+    "syn": [
+      "breeze",
+      "gust"
+    ],
+    "ant": [],
+    "ex": "A cold wind blew from the north.",
+    "exBn": "উত্তর দিক থেকে ঠান্ডা বাতাস বইছিল।"
+  },
+  "fire": {
+    "bn": "আগুন",
+    "def": "Burning that gives off heat and light",
+    "syn": [
+      "flame",
+      "blaze"
+    ],
+    "ant": [
+      "water",
+      "ice"
+    ],
+    "ex": "They sat around the fire.",
+    "exBn": "তারা আগুনের চারপাশে বসল।"
+  },
+  "hand": {
+    "bn": "হাত",
+    "def": "The end part of a person's arm",
+    "syn": [
+      "palm"
+    ],
+    "ant": [],
+    "ex": "Please wash your hands.",
+    "exBn": "দয়া করে আপনার হাত ধুয়ে নিন।"
+  },
+  "eye": {
+    "bn": "চোখ",
+    "def": "The organ of sight",
+    "syn": [],
+    "ant": [],
+    "ex": "She has bright brown eyes.",
+    "exBn": "তার চোখ দুটো উজ্জ্বল বাদামী।"
+  },
+  "heart": {
+    "bn": "হৃদয়",
+    "def": "The hollow muscular organ that pumps blood; also the seat of emotions",
+    "syn": [],
+    "ant": [
+      "mind"
+    ],
+    "ex": "His heart beat fast.",
+    "exBn": "তার হৃৎস্পন্দন দ্রুত হতে লাগল।"
+  },
+  "head": {
+    "bn": "মাথা",
+    "def": "The upper part of the body containing the brain",
+    "syn": [],
+    "ant": [],
+    "ex": "Nod your head if you agree.",
+    "exBn": "আপনি একমত হলে মাথা নাড়ুন।"
+  },
+  "child": {
+    "bn": "শিশু",
+    "def": "A young human being",
+    "syn": [
+      "kid",
+      "youngster"
+    ],
+    "ant": [
+      "adult"
+    ],
+    "ex": "The child was playing in the garden.",
+    "exBn": "শিশুটির বাগানে খেলা করছিল।"
+  },
+  "man": {
+    "bn": "পুরুষ",
+    "def": "An adult human male",
+    "syn": [
+      "male",
+      "gentleman"
+    ],
+    "ant": [
+      "woman"
+    ],
+    "ex": "The man greeted us politely.",
+    "exBn": "লোকটি আমাদের ভদ্রভাবে অভিবাদন জানাল।"
+  },
+  "woman": {
+    "bn": "মহিলা",
+    "def": "An adult human female",
+    "syn": [
+      "female",
+      "lady"
+    ],
+    "ant": [
+      "man"
+    ],
+    "ex": "That woman is a doctor.",
+    "exBn": "ওই মহিলা একজন ডাক্তার।"
+  },
+  "people": {
+    "bn": "মানুষ",
+    "def": "Human beings in general",
+    "syn": [
+      "humans",
+      "persons"
+    ],
+    "ant": [],
+    "ex": "People gathered at the gate.",
+    "exBn": "মানুষজন ফটকের সামনে জড়ো হলো।"
+  },
+  "life": {
+    "bn": "জীবন",
+    "def": "The existence of a person or animal",
+    "syn": [
+      "existence",
+      "living"
+    ],
+    "ant": [
+      "death"
+    ],
+    "ex": "Life is too short to worry.",
+    "exBn": "দুশ্চিন্তা করার মতো জীবন এতো দীর্ঘ নয়।"
+  },
+  "death": {
+    "bn": "মৃত্যু",
+    "def": "The permanent ending of life",
+    "syn": [
+      "end",
+      "passing"
+    ],
+    "ant": [
+      "life",
+      "birth"
+    ],
+    "ex": "His sudden death shocked us.",
+    "exBn": "তার আকস্মিক মৃত্যু আমাদের স্তব্ধ করে দিল।"
+  },
+  "happy": {
+    "bn": "খুশি",
+    "def": "Feeling or showing pleasure and delight",
+    "syn": [
+      "glad",
+      "cheerful",
+      "joyful"
+    ],
+    "ant": [
+      "sad",
+      "unhappy"
+    ],
+    "ex": "She was happy with the result.",
+    "exBn": "সে ফলাফলে খুব খুশি ছিল।"
+  },
+  "sad": {
+    "bn": "দুঃখিত",
+    "def": "Feeling or showing sorrow or unhappiness",
+    "syn": [
+      "unhappy",
+      "sorrowful",
+      "upset"
+    ],
+    "ant": [
+      "happy",
+      "cheerful"
+    ],
+    "ex": "He felt sad after the news.",
+    "exBn": "সংবাদটি শুনে সে দুঃখিত হলো।",
+    "bnAlts": [
+      "দুঃখী"
+    ]
+  },
+  "big": {
+    "bn": "বড়",
+    "def": "Of great size or importance",
+    "syn": [
+      "large",
+      "huge",
+      "enormous"
+    ],
+    "ant": [
+      "small",
+      "tiny"
+    ],
+    "ex": "That is a very big building.",
+    "exBn": "এটি একটি বিশাল ভবন।"
+  },
+  "small": {
+    "bn": "ছোট",
+    "def": "Not large in size",
+    "syn": [
+      "little",
+      "tiny"
+    ],
+    "ant": [
+      "big",
+      "large"
+    ],
+    "ex": "A small bird sat on the wire.",
+    "exBn": "একটি ছোট পাখি তারের ওপর বসেছিল।"
+  },
+  "good": {
+    "bn": "ভালো",
+    "def": "To be desired or approved of; of high quality",
+    "syn": [
+      "fine",
+      "nice",
+      "excellent"
+    ],
+    "ant": [
+      "bad",
+      "poor"
+    ],
+    "ex": "That is a good idea.",
+    "exBn": "এটি একটি ভালো ধারণা।"
+  },
+  "bad": {
+    "bn": "খারাপ",
+    "def": "Of poor quality or not satisfactory",
+    "syn": [
+      "poor",
+      "terrible",
+      "awful"
+    ],
+    "ant": [
+      "good",
+      "great"
+    ],
+    "ex": "The weather was bad yesterday.",
+    "exBn": "গতকাল আবহাওয়া খারাপ ছিল।"
+  },
+  "new": {
+    "bn": "নতুন",
+    "def": "Not existing before; recently made or acquired",
+    "syn": [
+      "fresh",
+      "recent",
+      "modern"
+    ],
+    "ant": [
+      "old",
+      "ancient"
+    ],
+    "ex": "I bought a new phone.",
+    "exBn": "আমি একটি নতুন ফোন কিনেছি।"
+  },
+  "old": {
+    "bn": "পুরোনো",
+    "def": "Having existed for a long time",
+    "syn": [
+      "aged",
+      "ancient"
+    ],
+    "ant": [
+      "new",
+      "young"
+    ],
+    "ex": "This is an old house.",
+    "exBn": "এটি একটি পুরনো বাড়ি।"
+  },
+  "fast": {
+    "bn": "দ্রুত",
+    "def": "Moving or done with great speed",
+    "syn": [
+      "quick",
+      "rapid",
+      "swift"
+    ],
+    "ant": [
+      "slow",
+      "sluggish"
+    ],
+    "ex": "The train was very fast.",
+    "exBn": "ট্রেনটি খুব দ্রুত চলছিল।"
+  },
+  "slow": {
+    "bn": "ধীর",
+    "def": "Moving or proceeding at a low speed",
+    "syn": [
+      "sluggish",
+      "gradual"
+    ],
+    "ant": [
+      "fast",
+      "quick"
+    ],
+    "ex": "Progress was slow but steady.",
+    "exBn": "অগ্রগতি ছিল ধীর কিন্তু স্থির।"
+  },
+  "strong": {
+    "bn": "শক্তিশালী",
+    "def": "Having great physical power, strength, or moral authority",
+    "syn": [
+      "powerful",
+      "mighty",
+      "tough"
+    ],
+    "ant": [
+      "weak",
+      "feeble"
+    ],
+    "ex": "He gave a strong handshake.",
+    "exBn": "তিনি দৃঢ়ভাবে হাত মেলালেন।"
+  },
+  "weak": {
+    "bn": "দুর্বল",
+    "def": "Lacking strength or power",
+    "syn": [
+      "feeble",
+      "frail",
+      "fragile"
+    ],
+    "ant": [
+      "strong",
+      "powerful"
+    ],
+    "ex": "The bridge was too weak to hold.",
+    "exBn": "সেতুটি এতো দুর্বল ছিল যে ভার নিতে পারেনি।"
+  },
+  "warm": {
+    "bn": "উষ্ণ",
+    "def": "Comfortably high in temperature, but not hot",
+    "syn": [
+      "lukewarm",
+      "mild",
+      "cosy"
+    ],
+    "ant": [
+      "cold",
+      "cool"
+    ],
+    "ex": "The tea is still warm.",
+    "exBn": "চা-টা এখনও উষ্ণ আছে।"
+  },
+  "cold": {
+    "bn": "ঠান্ডা",
+    "def": "Of or at a low temperature",
+    "syn": [
+      "chilly",
+      "freezing",
+      "icy"
+    ],
+    "ant": [
+      "warm",
+      "hot"
+    ],
+    "ex": "It gets cold at night.",
+    "exBn": "রাতে বেশ ঠান্ডা পড়ে।"
+  },
+  "beautiful": {
+    "bn": "সুন্দর",
+    "def": "Pleasing to the senses or mind aesthetically",
+    "syn": [
+      "lovely",
+      "pretty",
+      "gorgeous"
+    ],
+    "ant": [
+      "ugly",
+      "hideous"
+    ],
+    "ex": "What a beautiful sunset!",
+    "exBn": "কী চমৎকার সূর্যাস্ত!"
+  },
+  "ugly": {
+    "bn": "কুৎসিত",
+    "def": "Unpleasant or repulsive to look at",
+    "syn": [
+      "hideous",
+      "unattractive",
+      "awful"
+    ],
+    "ant": [
+      "beautiful",
+      "lovely"
+    ],
+    "ex": "The building was ugly and grey.",
+    "exBn": "বিল্ডিংটি ছিল কুৎসিত এবং ধূসর।"
+  },
+  "easy": {
+    "bn": "সহজ",
+    "def": "Not difficult; requiring little effort",
+    "syn": [
+      "simple",
+      "straightforward",
+      "effortless"
+    ],
+    "ant": [
+      "difficult",
+      "hard"
+    ],
+    "ex": "The exam was surprisingly easy.",
+    "exBn": "পরীক্ষাটি আশ্চর্যজনকভাবে সহজ ছিল।"
+  },
+  "difficult": {
+    "bn": "কঠিন",
+    "def": "Requiring great effort or skill",
+    "syn": [
+      "hard",
+      "tough",
+      "challenging"
+    ],
+    "ant": [
+      "easy",
+      "simple"
+    ],
+    "ex": "Learning a language is difficult but rewarding.",
+    "exBn": "ভাষা শেখা কঠিন হলেও আনন্দদায়ক।"
+  },
+  "learn": {
+    "bn": "শেখা",
+    "def": "To gain knowledge or a skill through study or experience",
+    "syn": [
+      "study",
+      "master",
+      "acquire"
+    ],
+    "ant": [
+      "forget",
+      "ignore"
+    ],
+    "ex": "I want to learn English this year.",
+    "exBn": "আমি এই বছর ইংরেজি শিখতে চাই।"
+  },
+  "teach": {
+    "bn": "শেখানো",
+    "def": "To help someone learn a subject or skill",
+    "syn": [
+      "instruct",
+      "educate",
+      "train"
+    ],
+    "ant": [
+      "learn"
+    ],
+    "ex": "She teaches mathematics at a college.",
+    "exBn": "তিনি একটি কলেজে গণিত শেখান।"
+  },
+  "read": {
+    "bn": "পড়া",
+    "def": "To look at and comprehend written words",
+    "syn": [
+      "study",
+      "peruse"
+    ],
+    "ant": [
+      "write"
+    ],
+    "ex": "I read a chapter every night.",
+    "exBn": "আমি প্রতিদিন রাতে একটি অধ্যায় পড়ি।"
+  },
+  "write": {
+    "bn": "লেখা",
+    "def": "To mark letters or words on a surface",
+    "syn": [
+      "compose",
+      "draft",
+      "record"
+    ],
+    "ant": [
+      "read"
+    ],
+    "ex": "Write your name at the top.",
+    "exBn": "উপরে আপনার নাম লিখুন।"
+  },
+  "speak": {
+    "bn": "কথা বলা",
+    "def": "To say words aloud; to communicate verbally",
+    "syn": [
+      "talk",
+      "say",
+      "utter"
+    ],
+    "ant": [
+      "listen",
+      "stay silent"
+    ],
+    "ex": "Do you speak English?",
+    "exBn": "আপনি কি ইংরেজিতে কথা বলতে পারেন?"
+  },
+  "listen": {
+    "bn": "শোনা",
+    "def": "To give attention to a sound; to hear attentively",
+    "syn": [
+      "hear",
+      "pay attention"
+    ],
+    "ant": [
+      "ignore",
+      "speak"
+    ],
+    "ex": "Please listen carefully to the teacher.",
+    "exBn": "দয়া করে শিক্ষকের কথা মনোযোগ দিয়ে শুনুন।"
+  },
+  "help": {
+    "bn": "সাহায্য",
+    "def": "To make it easier for someone to do something",
+    "syn": [
+      "assist",
+      "support",
+      "aid"
+    ],
+    "ant": [
+      "hinder",
+      "harm"
+    ],
+    "ex": "Can you help me with this?",
+    "exBn": "আপনি কি এতে আমাকে সাহায্য করতে পারেন?"
+  },
+  "morning": {
+    "bn": "সকাল",
+    "def": "The early part of the day, from dawn until noon",
+    "syn": [
+      "dawn",
+      "daybreak"
+    ],
+    "ant": [
+      "evening",
+      "night"
+    ],
+    "ex": "I run every morning.",
+    "exBn": "আমি প্রতিদিন সকালে দৌড়াই।"
+  },
+  "evening": {
+    "bn": "সন্ধ্যা",
+    "def": "The period of time at the end of the day before night",
+    "syn": [
+      "dusk",
+      "twilight"
+    ],
+    "ant": [
+      "morning",
+      "dawn"
+    ],
+    "ex": "We walked in the evening.",
+    "exBn": "আমরা সন্ধ্যায় হাঁটতাম।"
+  },
+  "night": {
+    "bn": "রাত",
+    "def": "The period of darkness in each twenty-four hour cycle",
+    "syn": [
+      "darkness",
+      "midnight"
+    ],
+    "ant": [
+      "day",
+      "morning"
+    ],
+    "ex": "The night was quiet and still.",
+    "exBn": "রাতটি ছিল শান্ত ও নিস্তব্ধ।"
+  },
+  "week": {
+    "bn": "সপ্তাহ",
+    "def": "A period of seven days",
+    "syn": [],
+    "ant": [],
+    "ex": "See you next week.",
+    "exBn": "আগামী সপ্তাহে দেখা হবে।"
+  },
+  "month": {
+    "bn": "মাস",
+    "def": "A period of about thirty days",
+    "syn": [],
+    "ant": [],
+    "ex": "I will finish it within a month.",
+    "exBn": "আমি এক মাসের মধ্যে এটি শেষ করব।"
+  },
+  "name": {
+    "bn": "নাম",
+    "def": "The word or set of words by which a person or thing is known",
+    "syn": [
+      "title",
+      "label"
+    ],
+    "ant": [],
+    "ex": "What is your name?",
+    "exBn": "আপনার নাম কী?"
+  },
+  "word": {
+    "bn": "শব্দ",
+    "def": "A single distinct meaningful element of speech or writing",
+    "syn": [
+      "term",
+      "expression"
+    ],
+    "ant": [],
+    "ex": "I learned a new word today.",
+    "exBn": "আমি আজ একটি নতুন শব্দ শিখেছি।"
+  },
+  "language": {
+    "bn": "ভাষা",
+    "def": "The system of communication used by a particular people",
+    "syn": [
+      "tongue",
+      "dialect"
+    ],
+    "ant": [],
+    "ex": "English is a useful language.",
+    "exBn": "ইংরেজি একটি দরকারি ভাষা।"
+  },
+  "money": {
+    "bn": "টাকা",
+    "def": "Coins and notes used to buy goods and services",
+    "syn": [
+      "cash",
+      "currency",
+      "funds"
+    ],
+    "ant": [],
+    "ex": "I do not have enough money.",
+    "exBn": "আমার কাছে পর্যাপ্ত টাকা নেই।"
+  },
+  "market": {
+    "bn": "বাজার",
+    "def": "A place where goods are bought and sold",
+    "syn": [
+      "bazaar",
+      "store",
+      "shop"
+    ],
+    "ant": [],
+    "ex": "The market opens early on Fridays.",
+    "exBn": "শুক্রবার সকালে বাজার তাড়াতাড়ি খোলে।"
+  },
+  "shop": {
+    "bn": "দোকান",
+    "def": "A place where goods are sold to the public",
+    "syn": [
+      "store",
+      "outlet"
+    ],
+    "ant": [],
+    "ex": "The shop closes at nine.",
+    "exBn": "দোকানটি রাত নয়টায় বন্ধ হয়।"
+  },
+  "road": {
+    "bn": "রাস্তা",
+    "def": "A way for vehicles or people to travel on",
+    "syn": [
+      "street",
+      "path",
+      "highway"
+    ],
+    "ant": [],
+    "ex": "The road was blocked by traffic.",
+    "exBn": "রাস্তায় যানজটে পথ আটকে ছিল।"
+  },
+  "car": {
+    "bn": "গাড়ি",
+    "def": "A road vehicle with four wheels powered by an engine",
+    "syn": [
+      "vehicle",
+      "automobile"
+    ],
+    "ant": [],
+    "ex": "His car is parked outside.",
+    "exBn": "তার গাড়িটি বাইরে পার্ক করা আছে।"
+  },
+  "bus": {
+    "bn": "বাস",
+    "def": "A large road vehicle carrying many passengers",
+    "syn": [],
+    "ant": [],
+    "ex": "We waited for the bus for ten minutes.",
+    "exBn": "আমরা দশ মিনিট বাসের জন্য অপেক্ষা করলাম।"
+  },
+  "train": {
+    "bn": "ট্রেন",
+    "def": "A vehicle that runs on rails carrying passengers or goods",
+    "syn": [
+      "locomotive"
+    ],
+    "ant": [],
+    "ex": "The train arrived ten minutes late.",
+    "exBn": "ট্রেনটি দশ মিনিট দেরিতে পৌঁছাল।"
+  },
+  "travel": {
+    "bn": "ভ্রমণ",
+    "def": "To go from one place to another, especially over a distance",
+    "syn": [
+      "journey",
+      "trip",
+      "voyage"
+    ],
+    "ant": [
+      "stay",
+      "remain"
+    ],
+    "ex": "I love to travel in the hills.",
+    "exBn": "আমি পাহাড়ে ভ্রমণ করতে ভালোবাসি।"
+  },
+  "country": {
+    "bn": "দেশ",
+    "def": "A state with its own people, government and territory",
+    "syn": [
+      "nation",
+      "state",
+      "land"
+    ],
+    "ant": [],
+    "ex": "Bangladesh is a beautiful country.",
+    "exBn": "বাংলাদেশ একটি সুন্দর দেশ।"
+  },
+  "student": {
+    "bn": "ছাত্র",
+    "def": "A person who studies at a school or college",
+    "syn": [
+      "pupil",
+      "learner"
+    ],
+    "ant": [
+      "teacher"
+    ],
+    "ex": "Every student received a certificate.",
+    "exBn": "প্রত্যেক শিক্ষার্থী একটি সনদপত্র পেয়েছে।"
+  },
+  "teacher": {
+    "bn": "শিক্ষক",
+    "def": "A person who helps others learn",
+    "syn": [
+      "instructor",
+      "educator",
+      "tutor"
+    ],
+    "ant": [
+      "student"
+    ],
+    "ex": "Our teacher explains very clearly.",
+    "exBn": "আমাদের শিক্ষক খুব স্পষ্ট করে বোঝান।"
+  },
+  "doctor": {
+    "bn": "ডাক্তার",
+    "def": "A person qualified to treat patients medically",
+    "syn": [
+      "physician",
+      "medic"
+    ],
+    "ant": [
+      "patient"
+    ],
+    "ex": "You should see a doctor soon.",
+    "exBn": "আপনার শীঘ্রই একজন ডাক্তারের কাছে যাওয়া উচিত।"
+  },
+  "player": {
+    "bn": "খেলোয়াড়",
+    "def": "A person who plays a game or sport",
+    "syn": [
+      "athlete",
+      "sportsman"
+    ],
+    "ant": [],
+    "ex": "He is a skilled football player.",
+    "exBn": "তিনি একজন দক্ষ ফুটবল খেলোয়াড়।"
+  },
+  "game": {
+    "bn": "খেলা",
+    "def": "An activity played for enjoyment or competition",
+    "syn": [
+      "sport",
+      "match",
+      "contest"
+    ],
+    "ant": [
+      "work"
+    ],
+    "ex": "They played a game of football.",
+    "exBn": "তারা ফুটবলের একটি ম্যাচ খেলেছিল।"
+  },
+  "music": {
+    "bn": "সংগীত",
+    "def": "Organized sound that gives pleasure to the listener",
+    "syn": [
+      "melody",
+      "tune"
+    ],
+    "ant": [
+      "noise",
+      "silence"
+    ],
+    "ex": "Bengali folk music is famous worldwide.",
+    "exBn": "বাঙালি লোকসংগীত বিশ্বজুড়ে বিখ্যাত।"
+  },
+  "song": {
+    "bn": "গান",
+    "def": "A short piece of music with words meant to be sung",
+    "syn": [
+      "tune",
+      "melody",
+      "track"
+    ],
+    "ant": [],
+    "ex": "The song made everyone clap.",
+    "exBn": "গানটি সবাইকে হাততালি দিতে বাধ্য করল।"
+  },
+  "colour": {
+    "bn": "রং",
+    "def": "The property of light as perceived by the eye",
+    "syn": [
+      "color",
+      "hue",
+      "shade"
+    ],
+    "ant": [],
+    "ex": "What colour is your new bag?",
+    "exBn": "তোমার নতুন ব্যাগের রং কী?"
+  },
+  "red": {
+    "bn": "লাল",
+    "def": "The colour of blood or ripe tomatoes",
+    "syn": [
+      "crimson",
+      "scarlet"
+    ],
+    "ant": [],
+    "ex": "She wore a red scarf.",
+    "exBn": "সে একটি লাল স্কার্ফ পরেছিল।"
+  },
+  "green": {
+    "bn": "সবুজ",
+    "def": "The colour of grass and leaves",
+    "syn": [],
+    "ant": [],
+    "ex": "The hills turned green after the rains.",
+    "exBn": "বৃষ্টির পর পাহাড়গুলো সবুজ হয়ে উঠল।"
+  },
+  "blue": {
+    "bn": "নীল",
+    "def": "The colour of a clear sky or the sea",
+    "syn": [],
+    "ant": [],
+    "ex": "The sky was a deep blue.",
+    "exBn": "আকাশ ছিল গাঢ় নীল।"
+  },
+  "white": {
+    "bn": "সাদা",
+    "def": "The colour of milk and fresh snow; the lightest colour",
+    "syn": [],
+    "ant": [
+      "black"
+    ],
+    "ex": "He wore a white shirt.",
+    "exBn": "সে একটি সাদা শার্ট পরেছিল।"
+  },
+  "black": {
+    "bn": "কালো",
+    "def": "The colour of coal and the night sky; the darkest colour",
+    "syn": [],
+    "ant": [
+      "white"
+    ],
+    "ex": "A black cat sat on the wall.",
+    "exBn": "একটি কালো বিড়াল দেয়ালের ওপর বসেছিল।"
+  },
+  "price": {
+    "bn": "দাম",
+    "def": "The amount of money asked or paid for something",
+    "syn": [
+      "cost",
+      "charge",
+      "fee"
+    ],
+    "ant": [],
+    "ex": "The price went up this year.",
+    "exBn": "এই বছর দাম বেড়ে গেছে।"
+  },
+  "angry": {
+    "bn": "রাগান্বিত",
+    "def": "Feeling or showing strong displeasure or hostility",
+    "syn": [
+      "furious",
+      "enraged",
+      "mad"
+    ],
+    "ant": [
+      "calm",
+      "peaceful",
+      "pleased"
+    ],
+    "ex": "She was angry at the delay.",
+    "exBn": "দেরি হওয়ায় সে রেগে গিয়েছিল।"
+  },
+  "fight": {
+    "bn": "লড়াই",
+    "def": "A violent struggle or contest between people or groups",
+    "syn": [
+      "battle",
+      "combat",
+      "clash"
+    ],
+    "ant": [
+      "peace",
+      "truce"
+    ],
+    "ex": "The two rivals fought for hours.",
+    "exBn": "দুই প্রতিদ্বন্দ্বী কয়েক ঘণ্টা লড়াই করল।"
+  },
+  "power": {
+    "bn": "শক্তি",
+    "def": "The ability to act, control, or produce an effect",
+    "syn": [
+      "strength",
+      "force",
+      "might"
+    ],
+    "ant": [
+      "weakness",
+      "powerlessness"
+    ],
+    "ex": "She felt a surge of power.",
+    "exBn": "সে নিজের শক্তির তীব্র অনুভূতি টের পেল।"
+  },
+  "dream": {
+    "bn": "স্বপ্ন",
+    "def": "Images experienced during sleep; also a cherished ambition or goal",
+    "syn": [
+      "vision",
+      "aspiration",
+      "hope"
+    ],
+    "ant": [
+      "reality",
+      "nightmare"
+    ],
+    "ex": "He had a dream about becoming a hero.",
+    "exBn": "তার নায়ক হওয়ার একটি স্বপ্ন ছিল।"
+  },
+  "enemy": {
+    "bn": "শত্রু",
+    "def": "A person or group actively opposed or hostile to another",
+    "syn": [
+      "foe",
+      "rival",
+      "opponent"
+    ],
+    "ant": [
+      "friend",
+      "ally"
+    ],
+    "ex": "The hero faced his greatest enemy.",
+    "exBn": "নায়ক তার সবচেয়ে বড় শত্রুর মুখোমুখি হলো।"
+  },
+  "hero": {
+    "bn": "নায়ক",
+    "def": "A person admired for courage, nobility, or great achievements",
+    "syn": [
+      "champion",
+      "protagonist",
+      "saviour"
+    ],
+    "ant": [
+      "villain",
+      "coward"
+    ],
+    "ex": "The hero saved the whole village.",
+    "exBn": "নায়ক পুরো গ্রামটিকে রক্ষা করল।"
+  },
+  "villain": {
+    "bn": "খলনায়ক",
+    "def": "A wicked person, especially the main evil character in a story",
+    "syn": [
+      "antagonist",
+      "criminal"
+    ],
+    "ant": [
+      "hero",
+      "protagonist"
+    ],
+    "ex": "The villain revealed his true plan.",
+    "exBn": "খলনায়ক তার আসল পরিকল্পনা প্রকাশ করল।"
+  },
+  "brave": {
+    "bn": "সাহসী",
+    "def": "Ready to face danger or pain without showing fear",
+    "syn": [
+      "courageous",
+      "bold",
+      "fearless"
+    ],
+    "ant": [
+      "cowardly",
+      "timid"
+    ],
+    "ex": "The brave soldier stood his ground.",
+    "exBn": "সাহসী সৈনিকটি নিজের অবস্থানে অনড় রইল।"
+  },
+  "fear": {
+    "bn": "ভয়",
+    "def": "An unpleasant emotion caused by the belief that something is dangerous",
+    "syn": [
+      "terror",
+      "dread",
+      "fright"
+    ],
+    "ant": [
+      "courage",
+      "bravery",
+      "confidence"
+    ],
+    "ex": "Fear gripped him as he stepped forward.",
+    "exBn": "সামনে এগিয়ে যেতেই ভয়ে সে কেঁপে উঠল।"
+  },
+  "hope": {
+    "bn": "আশা",
+    "def": "A feeling of expectation and desire for something good to happen",
+    "syn": [
+      "wish",
+      "optimism",
+      "aspiration"
+    ],
+    "ant": [
+      "despair",
+      "hopelessness"
+    ],
+    "ex": "She held on to the hope of winning.",
+    "exBn": "সে জয়ের আশায় অটল রইল।"
+  },
+  "smile": {
+    "bn": "হাসি",
+    "def": "A facial expression of happiness formed by turning the mouth upward",
+    "syn": [
+      "grin",
+      "beam"
+    ],
+    "ant": [
+      "frown",
+      "scowl"
+    ],
+    "ex": "She gave a warm smile.",
+    "exBn": "তার উজ্জ্বল হাসি পুরো ঘরটাই আলোকিত করে দিল।"
+  },
+  "cry": {
+    "bn": "কাঁদা",
+    "def": "To shed tears, especially from sadness or pain",
+    "syn": [
+      "weep",
+      "sob",
+      "wail"
+    ],
+    "ant": [
+      "laugh",
+      "rejoice"
+    ],
+    "ex": "The child began to cry.",
+    "exBn": "বাচ্চাটি কাঁদতে শুরু করল।"
+  },
+  "laugh": {
+    "bn": "হাসা",
+    "def": "To make sounds showing amusement or happiness",
+    "syn": [
+      "chuckle",
+      "giggle",
+      "chortle"
+    ],
+    "ant": [
+      "cry",
+      "weep"
+    ],
+    "ex": "Everyone laughed at the joke.",
+    "exBn": "কৌতুকে সবাই হেসে উঠল।"
+  },
+  "win": {
+    "bn": "জেতা",
+    "def": "To achieve victory in a contest or conflict",
+    "syn": [
+      "triumph",
+      "succeed",
+      "prevail"
+    ],
+    "ant": [
+      "lose",
+      "fail",
+      "surrender"
+    ],
+    "ex": "Our team worked hard to win.",
+    "exBn": "আমাদের দল জেতার জন্য কঠোর পরিশ্রম করেছে।"
+  },
+  "lose": {
+    "bn": "হারা",
+    "def": "To fail to win; to be defeated; also to cease to have something",
+    "syn": [
+      "fail",
+      "surrender"
+    ],
+    "ant": [
+      "win",
+      "triumph",
+      "keep"
+    ],
+    "ex": "It is hard to lose after trying so hard.",
+    "exBn": "এত চেষ্টা করার পর হেরে যাওয়া কঠিন।"
+  },
+  "protect": {
+    "bn": "রক্ষা করা",
+    "def": "To keep someone or something safe from harm or danger",
+    "syn": [
+      "defend",
+      "guard",
+      "shield"
+    ],
+    "ant": [
+      "attack",
+      "abandon",
+      "expose"
+    ],
+    "ex": "He would do anything to protect his family.",
+    "exBn": "সে তার পরিবারকে রক্ষা করতে যেকোনো কিছু করতে প্রস্তুত।"
+  },
+  "promise": {
+    "bn": "প্রতিশ্রুতি",
+    "def": "A declaration that one will certainly do or not do something",
+    "syn": [
+      "vow",
+      "pledge",
+      "oath"
+    ],
+    "ant": [
+      "betrayal",
+      "lie"
+    ],
+    "ex": "She kept her promise to return.",
+    "exBn": "সে ফিরে আসার প্রতিশ্রুতি রেখেছিল।"
+  },
+  "brother": {
+    "bn": "ভাই",
+    "def": "A male who has the same parents as another person",
+    "syn": [
+      "sibling"
+    ],
+    "ant": [
+      "sister"
+    ],
+    "ex": "My brother is three years older than me.",
+    "exBn": "আমার ভাই আমার চেয়ে তিন বছরের বড়।"
+  },
+  "sister": {
+    "bn": "বোন",
+    "def": "A female who has the same parents as another person",
+    "syn": [
+      "sibling"
+    ],
+    "ant": [
+      "brother"
+    ],
+    "ex": "My sister loves reading books.",
+    "exBn": "আমার বোন বই পড়তে ভালোবাসে।"
+  },
+  "mother": {
+    "bn": "মা",
+    "def": "A female parent",
+    "syn": [
+      "mom",
+      "parent"
+    ],
+    "ant": [
+      "father"
+    ],
+    "ex": "My mother cooked a delicious meal.",
+    "exBn": "আমার মা একটি সুস্বাদু খাবার রান্না করলেন।"
+  },
+  "father": {
+    "bn": "বাবা",
+    "def": "A male parent",
+    "syn": [
+      "dad",
+      "parent"
+    ],
+    "ant": [
+      "mother"
+    ],
+    "ex": "His father taught him to ride a bike.",
+    "exBn": "তার বাবা তাকে সাইকেল চালানো শিখিয়েছিলেন।"
+  },
+  "run": {
+    "bn": "দৌড়ানো",
+    "def": "To move at a speed faster than walking by taking quick steps",
+    "syn": [
+      "sprint",
+      "dash",
+      "race"
+    ],
+    "ant": [
+      "walk",
+      "stop"
+    ],
+    "ex": "He had to run to catch the train.",
+    "exBn": "ট্রেন ধরার জন্য তাকে দৌড়াতে হয়েছিল।"
+  },
+  "sky": {
+    "bn": "আকাশ",
+    "def": "The expanse of space seen from earth where clouds and sun appear",
+    "syn": [
+      "heaven"
+    ],
+    "ant": [],
+    "ex": "The sky turned red at sunset.",
+    "exBn": "সূর্যাস্তের সময় আকাশ লাল হয়ে গেল।"
+  },
+  "blood": {
+    "bn": "রক্ত",
+    "def": "The red liquid that circulates through the bodies of humans and animals",
+    "syn": [],
+    "ant": [],
+    "ex": "The wound bled for a long time.",
+    "exBn": "ক্ষত থেকে অনেকক্ষণ রক্ত পড়ল।"
+  },
+  "voice": {
+    "bn": "গলা",
+    "def": "The sound produced when a person speaks or sings",
+    "syn": [
+      "tone",
+      "sound"
+    ],
+    "ant": [
+      "silence"
+    ],
+    "ex": "Her voice was calm and steady.",
+    "exBn": "তার কণ্ঠস্বর ছিল শান্ত ও ধীরস্থির।"
+  },
+  "face": {
+    "bn": "মুখ",
+    "def": "The front part of the head including the eyes, nose, and mouth",
+    "syn": [
+      "expression"
+    ],
+    "ant": [],
+    "ex": "She turned her face away.",
+    "exBn": "সে মুখ ফিরিয়ে নিল।"
+  },
+  "body": {
+    "bn": "শরীর",
+    "def": "The physical structure of a person or animal",
+    "syn": [
+      "figure",
+      "physique"
+    ],
+    "ant": [
+      "mind",
+      "soul"
+    ],
+    "ex": "He trained his body every day.",
+    "exBn": "সে প্রতিদিন শরীরচর্চা করত।"
+  },
+  "soul": {
+    "bn": "আত্মা",
+    "def": "The spiritual or immaterial part of a human being",
+    "syn": [
+      "spirit",
+      "essence"
+    ],
+    "ant": [
+      "body"
+    ],
+    "ex": "She felt the music touch her soul.",
+    "exBn": "সে অনুভব করল সংগীতটি তার আত্মাকে স্পর্শ করেছে।"
+  },
+  "truth": {
+    "bn": "সত্য",
+    "def": "The quality of being in accordance with fact or reality",
+    "syn": [
+      "fact",
+      "reality",
+      "honesty"
+    ],
+    "ant": [
+      "lie",
+      "falsehood",
+      "deception"
+    ],
+    "ex": "He always speaks the truth.",
+    "exBn": "তিনি সবসময় সত্য কথা বলেন।"
+  },
+  "lie": {
+    "bn": "মিথ্যা",
+    "def": "A statement that is not true, told with the intention to deceive",
+    "syn": [
+      "falsehood",
+      "deception",
+      "untruth"
+    ],
+    "ant": [
+      "truth",
+      "fact"
+    ],
+    "ex": "He told a lie to avoid trouble.",
+    "exBn": "বিপদ এড়াতে সে একটি মিথ্যা বলেছিল।"
+  },
+  "today": {
+    "bn": "আজ",
+    "def": "On or during this present day",
+    "syn": [
+      "now",
+      "at present"
+    ],
+    "ant": [
+      "yesterday",
+      "tomorrow"
+    ],
+    "ex": "Today is a very special day.",
+    "exBn": "আজকের দিনটি খুবই বিশেষ।"
+  },
+  "tomorrow": {
+    "bn": "আগামীকাল",
+    "def": "The day after today",
+    "syn": [],
+    "ant": [
+      "yesterday",
+      "today"
+    ],
+    "ex": "We will leave tomorrow morning.",
+    "exBn": "আমরা আগামীকাল সকালে রওনা হব।"
+  },
+  "yesterday": {
+    "bn": "গতকাল",
+    "def": "The day before today",
+    "syn": [],
+    "ant": [
+      "tomorrow",
+      "today"
+    ],
+    "ex": "Yesterday was a long and tiring day.",
+    "exBn": "গতকাল দিনটি দীর্ঘ এবং ক্লান্তিকর ছিল।"
+  },
+  "always": {
+    "bn": "সবসময়",
+    "def": "At all times; on all occasions without exception",
+    "syn": [
+      "forever",
+      "constantly",
+      "ever"
+    ],
+    "ant": [
+      "never",
+      "rarely",
+      "sometimes"
+    ],
+    "ex": "She always arrives on time.",
+    "exBn": "সে সবসময় সময়মতো পৌঁছায়।"
+  },
+  "never": {
+    "bn": "কখনো না",
+    "def": "At no time; not on any occasion",
+    "syn": [],
+    "ant": [
+      "always",
+      "ever",
+      "forever"
+    ],
+    "ex": "I will never give up.",
+    "exBn": "আমি কখনোই হাল ছাড়ব না।"
+  },
+  "alone": {
+    "bn": "একা",
+    "def": "Having no one else present; without companions",
+    "syn": [
+      "solitary",
+      "lonely"
+    ],
+    "ant": [
+      "together",
+      "accompanied"
+    ],
+    "ex": "He sat alone in the dark room.",
+    "exBn": "সে অন্ধকার ঘরে একা বসেছিল।"
+  },
+  "together": {
+    "bn": "একসাথে",
+    "def": "With or in proximity to another person or people",
+    "syn": [
+      "jointly",
+      "collectively"
+    ],
+    "ant": [
+      "alone",
+      "separately",
+      "apart"
+    ],
+    "ex": "They fought together against the enemy.",
+    "exBn": "তারা শত্রুর বিরুদ্ধে একসাথে লড়াই করল।"
+  },
+  "remember": {
+    "bn": "মনে রাখা",
+    "def": "To keep something in memory; to recall a fact or event",
+    "syn": [
+      "recall",
+      "recollect"
+    ],
+    "ant": [
+      "forget",
+      "overlook"
+    ],
+    "ex": "Remember to bring your ID.",
+    "exBn": "আপনার পরিচয়পত্র সঙ্গে রাখতে মনে রাখবেন।"
+  },
+  "forget": {
+    "bn": "ভুলে যাওয়া",
+    "def": "To fail to remember; to be unable to recall something",
+    "syn": [
+      "overlook",
+      "neglect"
+    ],
+    "ant": [
+      "remember",
+      "recall"
+    ],
+    "ex": "I always forget where I put my keys.",
+    "exBn": "আমি চাবি কোথায় রেখেছি সবসময় ভুলে যাই।"
+  },
+  "believe": {
+    "bn": "বিশ্বাস করা",
+    "def": "To accept that something is true or that someone is telling the truth",
+    "syn": [
+      "trust",
+      "accept"
+    ],
+    "ant": [
+      "doubt",
+      "disbelieve"
+    ],
+    "ex": "I believe you can do it.",
+    "exBn": "আমি বিশ্বাস করি তুমি পারবে।"
+  },
+  "secret": {
+    "bn": "গোপন",
+    "def": "Something known only to a few people and intentionally kept from others",
+    "syn": [
+      "mystery",
+      "private"
+    ],
+    "ant": [
+      "public",
+      "open",
+      "known"
+    ],
+    "ex": "She kept the secret for years.",
+    "exBn": "সে বছরের পর বছর গোপন তথ্যটি লুকিয়ে রেখেছিল।"
+  },
+  "powerful": {
+    "bn": "শক্তিশালী",
+    "def": "Having great power, strength, or influence",
+    "syn": [
+      "mighty",
+      "strong",
+      "forceful"
+    ],
+    "ant": [
+      "weak",
+      "powerless",
+      "feeble"
+    ],
+    "ex": "The powerful wizard cast his spell.",
+    "exBn": "শক্তিশালী জাদুকর তার মন্ত্র পড়ল।"
+  },
+  "kind": {
+    "bn": "দয়ালু",
+    "def": "Having a gentle, caring nature; willing to help others",
+    "syn": [
+      "gentle",
+      "caring",
+      "generous"
+    ],
+    "ant": [
+      "cruel",
+      "unkind",
+      "harsh"
+    ],
+    "ex": "She is always kind to strangers.",
+    "exBn": "তিনি সবসময় অপরিচিতদের প্রতি দয়ালু।"
+  },
+  "cruel": {
+    "bn": "নিষ্ঠুর",
+    "def": "Causing pain or suffering deliberately; without mercy",
+    "syn": [
+      "brutal",
+      "heartless",
+      "merciless"
+    ],
+    "ant": [
+      "kind",
+      "gentle",
+      "merciful"
+    ],
+    "ex": "The cruel villain showed no mercy.",
+    "exBn": "নিষ্ঠুর খলনায়ক কোনো দয়া দেখায়নি।"
+  },
+  "free": {
+    "bn": "মুক্ত",
+    "def": "Not under the control or power of another; able to act as one wishes",
+    "syn": [
+      "independent",
+      "liberated"
+    ],
+    "ant": [
+      "trapped",
+      "imprisoned",
+      "bound"
+    ],
+    "ex": "At last she was free.",
+    "exBn": "অবশেষে সে মুক্ত হলো।"
+  },
+  "understand": {
+    "bn": "বোঝা",
+    "def": "To know the meaning or nature of something",
+    "syn": [
+      "comprehend",
+      "grasp",
+      "get"
+    ],
+    "ant": [
+      "misunderstand",
+      "confuse"
+    ],
+    "ex": "I did not understand what he said.",
+    "exBn": "তিনি কী বললেন আমি বুঝতে পারিনি।"
+  },
+  "explain": {
+    "bn": "ব্যাখ্যা করা",
+    "def": "To make something clear by describing it in more detail",
+    "syn": [
+      "describe",
+      "clarify",
+      "tell"
+    ],
+    "ant": [
+      "confuse",
+      "complicate"
+    ],
+    "ex": "Can you explain that again?",
+    "exBn": "আপনি কি এটা আবার ব্যাখ্যা করতে পারেন?"
+  },
+  "wait": {
+    "bn": "অপেক্ষা করা",
+    "def": "To stay in one place until something expected happens",
+    "syn": [
+      "stay",
+      "pause",
+      "hold on"
+    ],
+    "ant": [
+      "go",
+      "leave",
+      "rush"
+    ],
+    "ex": "Please wait outside for a moment.",
+    "exBn": "দয়া করে বাইরে এক মুহূর্ত অপেক্ষা করুন।"
+  },
+  "stop": {
+    "bn": "থামা",
+    "def": "To cease moving or doing something",
+    "syn": [
+      "halt",
+      "pause",
+      "freeze"
+    ],
+    "ant": [
+      "go",
+      "continue",
+      "start"
+    ],
+    "ex": "Stop right there!",
+    "exBn": "ঠিক সেখানেই থামুন!"
+  },
+  "go": {
+    "bn": "যাওয়া",
+    "def": "To move or travel to a place",
+    "syn": [
+      "move",
+      "proceed",
+      "head"
+    ],
+    "ant": [
+      "stop",
+      "stay",
+      "come"
+    ],
+    "ex": "I have to go now.",
+    "exBn": "আমাকে এখন যেতে হবে।"
+  },
+  "come": {
+    "bn": "আসা",
+    "def": "To move or travel towards the speaker or a specified place",
+    "syn": [
+      "arrive",
+      "approach"
+    ],
+    "ant": [
+      "go",
+      "leave",
+      "depart"
+    ],
+    "ex": "Come here please.",
+    "exBn": "দয়া করে এখানে আসুন।"
+  },
+  "see": {
+    "bn": "দেখা",
+    "def": "To perceive with the eyes; to notice or understand",
+    "syn": [
+      "look",
+      "watch",
+      "notice"
+    ],
+    "ant": [
+      "miss",
+      "ignore"
+    ],
+    "ex": "Did you see that?",
+    "exBn": "আপনি কি ওটা দেখেছিলেন?"
+  },
+  "look": {
+    "bn": "তাকানো",
+    "def": "To direct one's gaze towards something",
+    "syn": [
+      "see",
+      "watch",
+      "observe"
+    ],
+    "ant": [
+      "ignore",
+      "overlook"
+    ],
+    "ex": "Look at the sky!",
+    "exBn": "আকাশের দিকে তাকাও!"
+  },
+  "know": {
+    "bn": "জানা",
+    "def": "To be aware of through experience or information",
+    "syn": [
+      "understand",
+      "realise"
+    ],
+    "ant": [
+      "ignore",
+      "be unaware"
+    ],
+    "ex": "Do you know the answer?",
+    "exBn": "আপনি কি উত্তরটি জানেন?"
+  },
+  "think": {
+    "bn": "ভাবা",
+    "def": "To have a particular opinion or belief in one's mind",
+    "syn": [
+      "believe",
+      "consider",
+      "feel"
+    ],
+    "ant": [
+      "act",
+      "react"
+    ],
+    "ex": "Think before you speak.",
+    "exBn": "কথা বলার আগে ভাবুন।"
+  },
+  "want": {
+    "bn": "চাওয়া",
+    "def": "To have a desire for something",
+    "syn": [
+      "desire",
+      "wish",
+      "need"
+    ],
+    "ant": [
+      "dislike",
+      "reject",
+      "refuse"
+    ],
+    "ex": "I want to be a great speaker.",
+    "exBn": "আমি একজন ভালো বক্তা হতে চাই।"
+  },
+  "need": {
+    "bn": "দরকার",
+    "def": "To require something because it is essential or important",
+    "syn": [
+      "require",
+      "must have"
+    ],
+    "ant": [
+      "have enough",
+      "not need"
+    ],
+    "ex": "I need more practice.",
+    "exBn": "আমার আরও অনুশীলনের দরকার।"
+  },
+  "give": {
+    "bn": "দেওয়া",
+    "def": "To hand something to someone; to provide",
+    "syn": [
+      "offer",
+      "provide",
+      "hand"
+    ],
+    "ant": [
+      "take",
+      "receive",
+      "keep"
+    ],
+    "ex": "Please give me a chance.",
+    "exBn": "দয়া করে আমাকে একটি সুযোগ দিন।"
+  },
+  "take": {
+    "bn": "নেওয়া",
+    "def": "To reach out and hold; to acquire or accept",
+    "syn": [
+      "grab",
+      "accept",
+      "receive"
+    ],
+    "ant": [
+      "give",
+      "return",
+      "offer"
+    ],
+    "ex": "Take this and keep it safe.",
+    "exBn": "এটি নিন এবং নিরাপদে রাখুন।"
+  },
+  "hurt": {
+    "bn": "কষ্ট দেওয়া",
+    "def": "To cause pain or distress to someone physically or emotionally",
+    "syn": [
+      "harm",
+      "injure",
+      "wound"
+    ],
+    "ant": [
+      "heal",
+      "comfort",
+      "soothe"
+    ],
+    "ex": "Words can hurt more than blows.",
+    "exBn": "আঘাতের চেয়ে কথা বেশি কষ্ট দিতে পারে।"
+  },
+  "pain": {
+    "bn": "ব্যথা",
+    "def": "An unpleasant feeling caused by injury or illness; also emotional suffering",
+    "syn": [
+      "ache",
+      "suffering",
+      "agony"
+    ],
+    "ant": [
+      "pleasure",
+      "comfort",
+      "relief"
+    ],
+    "ex": "The pain in his leg would not stop.",
+    "exBn": "তার পায়ের ব্যথা থামছিল না।"
+  },
+  "save": {
+    "bn": "বাঁচানো",
+    "def": "To keep someone or something safe from danger or harm",
+    "syn": [
+      "rescue",
+      "protect",
+      "preserve"
+    ],
+    "ant": [
+      "abandon",
+      "destroy",
+      "endanger"
+    ],
+    "ex": "She risked her life to save him.",
+    "exBn": "তাকে বাঁচাতে সে নিজের জীবন বাজি রেখেছিল।"
+  },
+  "escape": {
+    "bn": "পালানো",
+    "def": "To break free from confinement or danger",
+    "syn": [
+      "flee",
+      "run away",
+      "break free"
+    ],
+    "ant": [
+      "stay",
+      "surrender",
+      "face"
+    ],
+    "ex": "He managed to escape from the burning building.",
+    "exBn": "সে জ্বলন্ত ভবন থেকে পালাতে সক্ষম হলো।"
+  },
+  "chase": {
+    "bn": "তাড়া করা",
+    "def": "To pursue someone or something in order to catch them",
+    "syn": [
+      "pursue",
+      "follow",
+      "hunt"
+    ],
+    "ant": [
+      "flee",
+      "escape",
+      "retreat"
+    ],
+    "ex": "The detective chased the suspect.",
+    "exBn": "গোয়েন্দা সন্দেহভাজনকে তাড়া করল।"
+  },
+  "suddenly": {
+    "bn": "হঠাৎ",
+    "def": "Quickly and unexpectedly, without warning",
+    "syn": [
+      "all of a sudden",
+      "abruptly",
+      "instantly"
+    ],
+    "ant": [
+      "gradually",
+      "slowly",
+      "eventually"
+    ],
+    "ex": "Suddenly the lights went out.",
+    "exBn": "হঠাৎ লাইটগুলো নিভে গেল।"
+  },
+  "finally": {
+    "bn": "অবশেষে",
+    "def": "After a long time or at the end of a series of events",
+    "syn": [
+      "at last",
+      "eventually",
+      "in the end"
+    ],
+    "ant": [
+      "first",
+      "initially",
+      "at first"
+    ],
+    "ex": "Finally, he found the answer.",
+    "exBn": "অবশেষে সে উত্তরটি খুঁজে পেল।"
+  },
+  "actually": {
+    "bn": "আসলে",
+    "def": "Used to emphasize the truth or reality of something",
+    "syn": [
+      "in fact",
+      "really",
+      "truly"
+    ],
+    "ant": [],
+    "ex": "I actually enjoyed the exam.",
+    "exBn": "আসলে আমি পরীক্ষাটা উপভোগ করেছি।"
+  },
+  "important": {
+    "bn": "গুরুত্বপূর্ণ",
+    "def": "Of great significance or value; having a major effect",
+    "syn": [
+      "significant",
+      "crucial",
+      "essential"
+    ],
+    "ant": [
+      "unimportant",
+      "trivial",
+      "minor"
+    ],
+    "ex": "This is an important decision.",
+    "exBn": "এটি একটি গুরুত্বপূর্ণ সিদ্ধান্ত।"
+  },
+  "serious": {
+    "bn": "গুরুতর",
+    "def": "Demanding careful consideration; not joking or trivial",
+    "syn": [
+      "grave",
+      "severe",
+      "critical"
+    ],
+    "ant": [
+      "trivial",
+      "lighthearted",
+      "minor"
+    ],
+    "ex": "This is a serious problem.",
+    "exBn": "এটি একটি গুরুতর সমস্যা।"
+  },
+  "strange": {
+    "bn": "অদ্ভুত",
+    "def": "Unusual or surprising; difficult to understand",
+    "syn": [
+      "weird",
+      "odd",
+      "bizarre"
+    ],
+    "ant": [
+      "normal",
+      "familiar",
+      "ordinary"
+    ],
+    "ex": "Something strange happened last night.",
+    "exBn": "গত রাতে অদ্ভুত কিছু ঘটেছিল।"
+  },
+  "dangerous": {
+    "bn": "বিপজ্জনক",
+    "def": "Likely to cause harm, injury, or death",
+    "syn": [
+      "hazardous",
+      "risky",
+      "deadly"
+    ],
+    "ant": [
+      "safe",
+      "harmless",
+      "secure"
+    ],
+    "ex": "It is dangerous to walk alone at night.",
+    "exBn": "রাতে একা হাঁটা বিপজ্জনক।"
+  },
+  "possible": {
+    "bn": "সম্ভব",
+    "def": "Able to be done or achieved; within the range of likelihood",
+    "syn": [
+      "achievable",
+      "feasible",
+      "likely"
+    ],
+    "ant": [
+      "impossible",
+      "unlikely",
+      "unachievable"
+    ],
+    "ex": "Anything is possible if you work hard.",
+    "exBn": "কঠোর পরিশ্রম করলে সবকিছুই সম্ভব।"
+  },
+  "impossible": {
+    "bn": "অসম্ভব",
+    "def": "Not able to happen or be achieved",
+    "syn": [
+      "unachievable",
+      "out of the question"
+    ],
+    "ant": [
+      "possible",
+      "achievable",
+      "doable"
+    ],
+    "ex": "Nothing is impossible if you believe.",
+    "exBn": "বিশ্বাস থাকলে কোনো কিছুই অসম্ভব নয়।"
+  },
+  "enough": {
+    "bn": "যথেষ্ট",
+    "def": "As much or as many as required; sufficient",
+    "syn": [
+      "sufficient",
+      "adequate",
+      "plenty"
+    ],
+    "ant": [
+      "insufficient",
+      "lacking",
+      "scarce"
+    ],
+    "ex": "That is enough for today.",
+    "exBn": "আজকের জন্য এটাই যথেষ্ট।"
+  },
+  "anymore": {
+    "bn": "আর না",
+    "def": "From now on; no longer as before (used in negatives)",
+    "syn": [
+      "no longer",
+      "not now"
+    ],
+    "ant": [
+      "still",
+      "yet"
+    ],
+    "ex": "I do not want to wait anymore.",
+    "exBn": "আমি আর অপেক্ষা করতে চাই না।"
+  },
+  "instead": {
+    "bn": "বরং",
+    "def": "As an alternative; in place of something else",
+    "syn": [
+      "rather",
+      "alternatively",
+      "in place of"
+    ],
+    "ant": [],
+    "ex": "Use this word instead.",
+    "exBn": "বরং এই শব্দটি ব্যবহার করুন।"
+  },
+  "exist": {
+    "bn": "থাকা",
+    "def": "To have actual being; to be real or present",
+    "syn": [
+      "be",
+      "live",
+      "occur"
+    ],
+    "ant": [
+      "disappear",
+      "vanish",
+      "cease"
+    ],
+    "ex": "Does true justice exist?",
+    "exBn": "সত্যিকারের ন্যায়বিচার কি টিকে থাকে?"
+  },
+  "appear": {
+    "bn": "দেখা দেওয়া",
+    "def": "To come into sight; to seem or look a certain way",
+    "syn": [
+      "show up",
+      "emerge",
+      "seem"
+    ],
+    "ant": [
+      "disappear",
+      "vanish",
+      "hide"
+    ],
+    "ex": "A figure appeared in the darkness.",
+    "exBn": "অন্ধকারের মধ্যে একটি অবয়ব দেখা গেল।"
+  },
+  "disappear": {
+    "bn": "মিলিয়ে যাওয়া",
+    "def": "To go out of sight; to cease to exist or be found",
+    "syn": [
+      "vanish",
+      "fade",
+      "go"
+    ],
+    "ant": [
+      "appear",
+      "emerge",
+      "show up"
+    ],
+    "ex": "The enemy disappeared into the forest.",
+    "exBn": "শত্রুটি জঙ্গলে মিলিয়ে গেল।"
+  },
+  "change": {
+    "bn": "পরিবর্তন",
+    "def": "To make or become different; to alter or transform",
+    "syn": [
+      "alter",
+      "transform",
+      "shift"
+    ],
+    "ant": [
+      "stay",
+      "remain",
+      "preserve"
+    ],
+    "ex": "I want to change my life.",
+    "exBn": "আমি আমার জীবন পরিবর্তন করতে চাই।"
+  },
+  "attack": {
+    "bn": "আক্রমণ",
+    "def": "To take aggressive action against; to assault",
+    "syn": [
+      "assault",
+      "strike",
+      "charge"
+    ],
+    "ant": [
+      "defend",
+      "retreat",
+      "protect"
+    ],
+    "ex": "The enemy launched a surprise attack.",
+    "exBn": "শত্রুরা আকস্মিক আক্রমণ চালাল।"
+  },
+  "defend": {
+    "bn": "রক্ষা করা",
+    "def": "To resist an attack; to protect from harm",
+    "syn": [
+      "protect",
+      "guard",
+      "shield"
+    ],
+    "ant": [
+      "attack",
+      "surrender",
+      "abandon"
+    ],
+    "ex": "He stood up to defend his friends.",
+    "exBn": "সে বন্ধুদের রক্ষা করতে উঠে দাঁড়াল।"
+  },
+  "control": {
+    "bn": "নিয়ন্ত্রণ",
+    "def": "To have power over something; to direct or regulate",
+    "syn": [
+      "manage",
+      "command",
+      "direct"
+    ],
+    "ant": [
+      "lose control",
+      "surrender",
+      "yield"
+    ],
+    "ex": "Try to control your emotions.",
+    "exBn": "আপনার আবেগ নিয়ন্ত্রণ করার চেষ্টা করুন।"
+  },
+  "choice": {
+    "bn": "পছন্দ",
+    "def": "An act of selecting between two or more possibilities",
+    "syn": [
+      "option",
+      "selection",
+      "decision"
+    ],
+    "ant": [
+      "compulsion",
+      "force",
+      "obligation"
+    ],
+    "ex": "It was his own choice.",
+    "exBn": "এটি তার নিজস্ব পছন্দ ছিল।"
+  },
+  "special": {
+    "bn": "বিশেষ",
+    "def": "Better or greater than normal; designed for a particular purpose",
+    "syn": [
+      "unique",
+      "particular",
+      "exceptional"
+    ],
+    "ant": [
+      "ordinary",
+      "common",
+      "normal"
+    ],
+    "ex": "Today is a very special day.",
+    "exBn": "আজকের দিনটি সত্যিই বিশেষ।"
+  },
+  "real": {
+    "bn": "সত্যিকারের",
+    "def": "Actually existing or happening; not imagined or artificial",
+    "syn": [
+      "genuine",
+      "true",
+      "actual"
+    ],
+    "ant": [
+      "fake",
+      "false",
+      "imaginary"
+    ],
+    "ex": "Is this real or just a dream?",
+    "exBn": "এটা কি সত্যি নাকি শুধুই স্বপ্ন?"
+  },
+  "sure": {
+    "bn": "নিশ্চিত",
+    "def": "Completely confident or certain about something",
+    "syn": [
+      "certain",
+      "confident",
+      "definite"
+    ],
+    "ant": [
+      "unsure",
+      "doubtful",
+      "uncertain"
+    ],
+    "ex": "Are you sure about this?",
+    "exBn": "আপনি কি এ বিষয়ে নিশ্চিত?"
+  },
+  "ready": {
+    "bn": "প্রস্তুত",
+    "def": "Fully prepared for action or use",
+    "syn": [
+      "prepared",
+      "set",
+      "all set"
+    ],
+    "ant": [
+      "unprepared",
+      "unready"
+    ],
+    "ex": "Are you ready to begin?",
+    "exBn": "আপনি কি শুরু করতে প্রস্তুত?"
+  },
+  "reluctant": {
+    "bn": "অনিচ্ছুক",
+    "bnAlts": [
+      "ইতস্তত"
+    ],
+    "trans": "onichchuk",
+    "transAlts": [
+      "itostoto"
+    ],
+    "def": "Unwilling to do something.",
+    "pos": "adjective",
+    "syn": [
+      "reluctant",
+      "unwilling",
+      "hesitant",
+      "averse",
+      "disinclined"
+    ],
+    "ant": [
+      "willing",
+      "eager",
+      "enthusiastic",
+      "keen",
+      "ready"
+    ],
+    "ex": "He was reluctant to leave.",
+    "exBn": "সে চলে যেতে চাইছিল না।",
+    "pron": "/rɪˈlʌktənt/"
+  },
+  "hasy": {
+    "bn": "হাসি",
+    "trans": "hasi",
+    "def": "The act of smiling or laughing.",
+    "pos": "noun",
+    "syn": [
+      "laughter",
+      "smile",
+      "giggle",
+      "chuckle"
+    ],
+    "ant": [
+      "sadness",
+      "crying",
+      "frown"
+    ],
+    "ex": "Her bright hasy lit up the whole room.",
+    "exBn": "তার উজ্জ্বল হাসি পুরো ঘরটাই আলোকিত করে দিল।",
+    "pron": "/ha:si/ (HAH-shee)"
+  },
+  "ok": {
+    "bn": "ঠিক আছে",
+    "bnAlts": [
+      "ওকে"
+    ],
+    "trans": "thik ache",
+    "transAlts": [
+      "oke"
+    ],
+    "def": "A short word used to show agreement or that something is acceptable.",
+    "pos": "interjection",
+    "syn": [
+      "alright",
+      "fine",
+      "okay",
+      "sure"
+    ],
+    "ant": [
+      "no",
+      "wrong",
+      "bad"
+    ],
+    "ex": "I can meet you at 5 PM, is that ok?",
+    "exBn": "আমি বিকেল ৫টায় তোমার সাথে দেখা করতে পারি, এটা ঠিক আছে?",
+    "pron": "/oʊˈkeɪ/ (oh-k)"
+  },
+  "okay": {
+    "bn": "ঠিক আছে",
+    "bnAlts": [
+      "ওকে"
+    ],
+    "trans": "thik ache",
+    "transAlts": [
+      "oke"
+    ],
+    "def": "Used to express agreement or acceptance.",
+    "pos": "interjection",
+    "syn": [
+      "alright",
+      "fine",
+      "ok",
+      "sure"
+    ],
+    "ant": [
+      "no",
+      "wrong",
+      "bad"
+    ],
+    "ex": "I will be there in five minutes, okay?",
+    "exBn": "আমি পাঁচ মিনিটে চলে আসছি, ঠিক আছে?",
+    "pron": "/oʊˈkeɪ/"
+  }
 }

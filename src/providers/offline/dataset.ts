@@ -49,6 +49,8 @@ export interface DictionaryEntry {
   ant: string[]
   /** Example sentence. */
   ex: string
+  /** Example sentence (Bengali). */
+  exBn?: string
   /** Pronunciation guide (IPA). */
   pron: string
 }
@@ -66,6 +68,7 @@ export interface DictionaryDataset {
   syn: string[]
   ant: string[]
   ex: string[]
+  exBn?: string[]
   pron: string[]
 }
 
@@ -93,6 +96,30 @@ export function normalize(q: string): string {
     .replace(/[^\p{L}\p{N}\p{M}\s]/gu, '')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+/**
+ * Normalizes Banglish / phonetic Latin input so variations resolve
+ * (e.g. "hasy" -> "hasi", "sh" -> "s", collapse double vowels/consonants).
+ */
+export function normalizeBanglish(q: string): string {
+  if (!q) return ''
+  return q
+    .normalize('NFC')
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}]/gu, '')
+    .replace(/sh/g, 's')
+    .replace(/ch/g, 'c')
+    .replace(/ee/g, 'i')
+    .replace(/ea/g, 'i')
+    .replace(/oo/g, 'u')
+    .replace(/ou/g, 'u')
+    .replace(/v/g, 'bh')
+    .replace(/w/g, 'b')
+    .replace(/y$/g, 'i')
+    .replace(/y([bcdfghjklmnpqrstvwxz])/g, 'i$1')
+    .replace(/(.)\1+/g, '$1')
 }
 
 /** Detects Bengali script in the input. */
@@ -224,6 +251,10 @@ export class OfflineDictionary {
   private readonly bengaliWords: string[] = []
   /** The English headword a normalized Bengali word resolves to. */
   private readonly bengaliHeadword = new Map<string, string>()
+  /** The Romanized spelling of a Bengali meaning mapped back to its entry. */
+  private readonly byRoman = new Map<string, Array<{ headword: string; bn: string; trans: string; entry: DictionaryEntry }>>()
+  /** The indexed roman words for prefix search. */
+  private readonly romanWords: string[] = []
 
   constructor(dataset: DictionaryDataset) {
     if (dataset.v !== DATASET_VERSION) {
@@ -234,6 +265,9 @@ export class OfflineDictionary {
       if (dataset[key].length !== n) {
         throw new Error(`Dictionary dataset column "${key}" has the wrong length`)
       }
+    }
+    if (dataset.exBn && dataset.exBn.length !== n) {
+      throw new Error('Dictionary dataset column "exBn" has the wrong length')
     }
 
     const bengali = new Set<string>()
@@ -250,6 +284,7 @@ export class OfflineDictionary {
         syn: splitColumn(dataset.syn[i]),
         ant: splitColumn(dataset.ant[i]),
         ex: dataset.ex[i],
+        exBn: dataset.exBn ? dataset.exBn[i] : '',
         pron: dataset.pron[i],
       }
       this.byHeadword.set(entry.headword, entry)
@@ -261,6 +296,38 @@ export class OfflineDictionary {
       // keeps the result deterministic because the dataset is sorted.
       for (const relation of [...entry.syn, ...entry.ant]) {
         if (!this.byRelation.has(relation)) this.byRelation.set(relation, entry.headword)
+      }
+
+      const addRoman = (roman: string) => {
+        if (!roman) return
+        const norm = normalize(roman)
+        if (norm) {
+          let bucket = this.byRoman.get(norm)
+          if (!bucket) {
+            bucket = []
+            this.byRoman.set(norm, bucket)
+            this.romanWords.push(norm)
+          }
+          if (!bucket.some((b) => b.headword === entry.headword)) {
+            bucket.push({ headword: entry.headword, bn: entry.bn, trans: roman, entry })
+          }
+        }
+        const phon = normalizeBanglish(roman)
+        if (phon && phon !== norm) {
+          let bucket = this.byRoman.get(phon)
+          if (!bucket) {
+            bucket = []
+            this.byRoman.set(phon, bucket)
+            this.romanWords.push(phon)
+          }
+          if (!bucket.some((b) => b.headword === entry.headword)) {
+            bucket.push({ headword: entry.headword, bn: entry.bn, trans: roman, entry })
+          }
+        }
+      }
+      addRoman(entry.trans)
+      for (const alt of entry.transAlts) {
+        addRoman(alt)
       }
 
       this.addBengali(entry.bn, entry.headword, entry.trans)
@@ -281,6 +348,7 @@ export class OfflineDictionary {
     }
 
     this.englishWords.sort()
+    this.romanWords.sort()
     this.bengaliWords = [...bengali].sort()
   }
 
@@ -302,6 +370,28 @@ export class OfflineDictionary {
     this.byBengali.set(key, [{ headword, roman }])
   }
 
+  /**
+   * Looks up an entry by Romanized Bengali / Banglish phonetic spelling.
+   */
+  lookupRoman(q: string): { headword: string; entry: DictionaryEntry; roman: string; bengali: string } | null {
+    const n = normalize(q)
+    if (!n) return null
+    const directHits = this.byRoman.get(n)
+    if (directHits && directHits.length > 0) {
+      const hit = directHits[0]
+      return { headword: hit.headword, entry: hit.entry, roman: hit.trans, bengali: hit.bn }
+    }
+    const phon = normalizeBanglish(q)
+    if (phon) {
+      const phonHits = this.byRoman.get(phon)
+      if (phonHits && phonHits.length > 0) {
+        const hit = phonHits[0]
+        return { headword: hit.headword, entry: hit.entry, roman: hit.trans, bengali: hit.bn }
+      }
+    }
+    return null
+  }
+
   /** Number of entries in the dictionary. */
   get size(): number {
     return this.byHeadword.size
@@ -319,7 +409,12 @@ export class OfflineDictionary {
     const direct = this.byHeadword.get(n)
     if (direct) return direct
     const relation = this.byRelation.get(n)
-    return relation ? (this.byHeadword.get(relation) ?? null) : null
+    if (relation) {
+      const rEntry = this.byHeadword.get(relation)
+      if (rEntry) return rEntry
+    }
+    const roman = this.lookupRoman(n)
+    return roman ? roman.entry : null
   }
 
   /** Returns the headword for a query, or the query itself when unknown. */
@@ -329,6 +424,8 @@ export class OfflineDictionary {
     if (direct) return direct.headword
     const relation = this.byRelation.get(n)
     if (relation) return relation
+    const roman = this.lookupRoman(n)
+    if (roman) return roman.headword
     return q.trim()
   }
 
@@ -441,6 +538,19 @@ export class OfflineDictionary {
     for (const word of this.prefixRange(this.bengaliWords, q, 200)) {
       push(this.bengaliSuggestion(word), SCORE_PREFIX + word.length)
     }
+    for (const word of this.prefixRange(this.romanWords, q, 200)) {
+      const hits = this.byRoman.get(word)
+      if (hits && hits.length > 0) {
+        const hit = hits[0]
+        push({
+          word,
+          headword: hit.headword,
+          bengali: false,
+          hint: hit.bn,
+        }, SCORE_PREFIX + word.length + 25)
+      }
+    }
+
 
     if (scored.length < limit) {
       // 4. and 5. Fuzzy matches, so a misspelled word still finds its entry.

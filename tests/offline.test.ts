@@ -262,3 +262,38 @@ describe('runtime artifact', () => {
     expect(runtime.lookupBengali('বই')?.headword).toBe('book')
   })
 })
+describe('Banglish phonetic lookup and bilingual examples', () => {
+  it('resolves Banglish queries like "hasy" and "boi"', () => {
+    const hasy = dictionary.lookup('hasy')
+    expect(hasy).not.toBeNull()
+    expect(hasy?.bn).toBe('হাসি')
+
+    const boi = dictionary.lookup('boi')
+    expect(boi).not.toBeNull()
+    expect(boi?.headword).toBe('book')
+  })
+
+  it('provides Bengali example sentence (exBn) for curated entries', () => {
+    const hello = dictionary.lookup('hello')
+    expect(hello?.exBn).toBeTruthy()
+    expect(hello?.exBn).toContain('হ্যালো')
+
+    const reluctant = dictionary.lookup('reluctant')
+    expect(reluctant).not.toBeNull()
+    expect(reluctant?.bn).toBe('অনিচ্ছুক')
+    expect(reluctant?.ex).toBe('He was reluctant to leave.')
+    expect(reluctant?.exBn).toBe('সে চলে যেতে চাইছিল না।')
+    expect(reluctant?.syn.length).toBeGreaterThan(0)
+    expect(reluctant?.ant.length).toBeGreaterThan(0)
+    expect(reluctant?.pron).toBe('/rɪˈlʌktənt/')
+  })
+
+  it('provides complete offline entry for "ok"', () => {
+    const ok = dictionary.lookup('ok')
+    expect(ok).not.toBeNull()
+    expect(ok?.bn).toBe('ঠিক আছে')
+    expect(ok?.exBn).toBeTruthy()
+    expect(ok?.syn).toContain('fine')
+    expect(ok?.ant).toContain('wrong')
+  })
+})

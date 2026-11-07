@@ -91,6 +91,7 @@ export class LookupCoordinator {
       synonyms: hit.entry.syn.length > 0 ? hit.entry.syn : undefined,
       antonyms: hit.entry.ant.length > 0 ? hit.entry.ant : undefined,
       exampleEn: hit.entry.ex || undefined,
+      exampleBn: hit.entry.exBn || undefined,
       pronunciation: hit.entry.pron || undefined,
       transcription: hit.roman || undefined,
     };
@@ -110,8 +111,9 @@ export class LookupCoordinator {
       synonyms: entry.syn.length > 0 ? entry.syn : undefined,
       antonyms: entry.ant.length > 0 ? entry.ant : undefined,
       exampleEn: entry.ex || undefined,
+      exampleBn: entry.exBn || undefined,
       pronunciation: entry.pron || undefined,
-      transcription: undefined,
+      transcription: entry.trans || undefined,
     };
   }
 }
