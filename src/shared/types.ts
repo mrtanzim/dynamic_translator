@@ -63,6 +63,19 @@ export interface LookupResult {
   /** Conversational example sentence (spoken / anime register). */
   exampleConversational?: string
   partOfSpeech?: string
+  /** IELTS estimated band score (e.g. "7.5", "8.0", "6.5"). */
+  bandLevel?: string
+  /** Common English collocations / natural word partnerships. */
+  collocations?: string[]
+  /** Word family derivatives (noun, verb, adjective, adverb). */
+  wordFamily?: {
+    noun?: string
+    verb?: string
+    adj?: string
+    adv?: string
+  }
+  /** Common preposition or usage trap to avoid in IELTS. */
+  commonMistake?: string
   source: ResultSource
   requestId: string
   timestamp: number

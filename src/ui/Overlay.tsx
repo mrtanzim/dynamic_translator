@@ -29,6 +29,9 @@ import {
   ZapIcon,
   SettingsIcon,
   HelpCircleIcon,
+  LayersIcon,
+  GitBranchIcon,
+  AlertCircleIcon,
 } from './icons'
 
 const STORAGE_KEY = 'vocabflow.overlay'
@@ -705,6 +708,12 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                       {result.partOfSpeech && (
                         <span className="pos-tag">{result.partOfSpeech}</span>
                       )}
+
+                      {result.bandLevel && (
+                        <span className="band-tag" title="IELTS Band Level">
+                          {result.bandLevel}
+                        </span>
+                      )}
                     </div>
 
                     {/* English Definition */}
@@ -768,6 +777,23 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                       </div>
                     </div>
 
+                    {/* Collocations */}
+                    {result.collocations && result.collocations.length > 0 && (
+                      <div className="collocations-card">
+                        <div className="collocations-header">
+                          <LayersIcon size={14} />
+                          <span>Collocations</span>
+                        </div>
+                        <div className="collocations-chips">
+                          {result.collocations.map((c, i) => (
+                            <span key={i} className="collocation-pill">
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Example Card with Highlighted Target Word */}
                     {(result.exampleEn ||
                       result.exampleBn ||
@@ -789,6 +815,59 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                         {result.exampleBn && (
                           <div className="example-bn bn">{result.exampleBn}</div>
                         )}
+                      </div>
+                    )}
+
+                    {/* Word Family */}
+                    {result.wordFamily &&
+                      (result.wordFamily.noun ||
+                        result.wordFamily.verb ||
+                        result.wordFamily.adj ||
+                        result.wordFamily.adv) && (
+                      <div className="word-family-card">
+                        <div className="word-family-header">
+                          <GitBranchIcon size={14} />
+                          <span>Word Family</span>
+                        </div>
+                        <div className="word-family-grid">
+                          {result.wordFamily.noun && (
+                            <div className="family-item">
+                              <span className="family-label">Noun:</span>
+                              <span className="family-val">{result.wordFamily.noun}</span>
+                            </div>
+                          )}
+                          {result.wordFamily.verb && (
+                            <div className="family-item">
+                              <span className="family-label">Verb:</span>
+                              <span className="family-val">{result.wordFamily.verb}</span>
+                            </div>
+                          )}
+                          {result.wordFamily.adj && (
+                            <div className="family-item">
+                              <span className="family-label">Adj:</span>
+                              <span className="family-val">{result.wordFamily.adj}</span>
+                            </div>
+                          )}
+                          {result.wordFamily.adv && (
+                            <div className="family-item">
+                              <span className="family-label">Adv:</span>
+                              <span className="family-val">{result.wordFamily.adv}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Common Mistake / Preposition Trap */}
+                    {result.commonMistake && (
+                      <div className="mistake-card">
+                        <div className="mistake-header">
+                          <AlertCircleIcon size={14} />
+                          <span>Common Mistake</span>
+                        </div>
+                        <div className="mistake-body">
+                          {result.commonMistake}
+                        </div>
                       </div>
                     )}
 

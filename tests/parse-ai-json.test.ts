@@ -53,4 +53,27 @@ describe('parseAiJson', () => {
     const result = parseAiJson('{"transcription":42}')
     expect(result?.transcription).toBeUndefined()
   })
+
+  it('parses IELTS fields: bandLevel, collocations, wordFamily, and commonMistake', () => {
+    const raw = JSON.stringify({
+      bandLevel: '7.5',
+      collocations: ['reluctant to admit', 'deeply reluctant'],
+      wordFamily: {
+        noun: 'reluctance',
+        adj: 'reluctant',
+        adv: 'reluctantly',
+      },
+      commonMistake: 'Followed by to-infinitive, not of.',
+    })
+    const result = parseAiJson(raw)
+    expect(result?.bandLevel).toBe('7.5')
+    expect(result?.collocations).toEqual(['reluctant to admit', 'deeply reluctant'])
+    expect(result?.wordFamily).toEqual({
+      noun: 'reluctance',
+      verb: undefined,
+      adj: 'reluctant',
+      adv: 'reluctantly',
+    })
+    expect(result?.commonMistake).toBe('Followed by to-infinitive, not of.')
+  })
 })
