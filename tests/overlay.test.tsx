@@ -23,8 +23,30 @@ vi.mock('../src/storage/history', () => ({
 }))
 
 vi.mock('../src/storage/app-settings', () => ({
-  loadAppSettings: vi.fn().mockResolvedValue({ autoSpeak: false, historyLimit: 200, theme: 'glass' }),
-  DEFAULT_APP_SETTINGS: { autoSpeak: false, historyLimit: 200, theme: 'glass' },
+  loadAppSettings: vi.fn().mockResolvedValue({
+    autoSpeak: false,
+    historyLimit: 200,
+    theme: 'glass',
+    layoutDensity: 'comfortable',
+    showSynAnt: true,
+    showCollocations: true,
+    showExample: true,
+    showWordFamily: true,
+    showCommonMistake: true,
+    showBandLevel: true,
+  }),
+  DEFAULT_APP_SETTINGS: {
+    autoSpeak: false,
+    historyLimit: 200,
+    theme: 'glass',
+    layoutDensity: 'comfortable',
+    showSynAnt: true,
+    showCollocations: true,
+    showExample: true,
+    showWordFamily: true,
+    showCommonMistake: true,
+    showBandLevel: true,
+  },
 }))
 
 const offlineEntry = {

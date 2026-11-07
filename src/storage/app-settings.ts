@@ -1,13 +1,30 @@
+export type LayoutDensity = 'comfortable' | 'compact'
+
 export interface AppSettings {
   autoSpeak: boolean
   historyLimit: number
   theme: 'glass'
+  layoutDensity: LayoutDensity
+  // Section customization (Word meaning & definition are compulsory)
+  showSynAnt: boolean
+  showCollocations: boolean
+  showExample: boolean
+  showWordFamily: boolean
+  showCommonMistake: boolean
+  showBandLevel: boolean
 }
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   autoSpeak: false,
   historyLimit: 200,
   theme: 'glass',
+  layoutDensity: 'comfortable',
+  showSynAnt: true,
+  showCollocations: true,
+  showExample: true,
+  showWordFamily: true,
+  showCommonMistake: true,
+  showBandLevel: true,
 }
 
 export const APP_SETTINGS_KEY = 'vocabflow.settings'

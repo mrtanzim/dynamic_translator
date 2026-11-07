@@ -492,14 +492,32 @@ export const OVERLAY_STYLES = `
   color: #38bdf8;
   letter-spacing: -0.02em;
   line-height: 1.15;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.hero-word.sentence {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
 }
 
 .meaning-bn {
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 600;
   color: #ffffff;
-  line-height: 1.3;
+  line-height: 1.35;
   margin-top: 4px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.meaning-bn.sentence {
+  font-size: 16.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #f1f5f9;
 }
 
 .pronounce-row {
@@ -841,6 +859,211 @@ export const OVERLAY_STYLES = `
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.01em;
+}
+
+/* Density Modes: Comfortable (Spacious/Expanded) vs Compact (Single Screen) */
+.result-section.density-comfortable {
+  gap: 2px;
+}
+
+.result-section.density-comfortable .pair-card {
+  padding: 12px 14px;
+}
+
+.result-section.density-comfortable .collocations-card {
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.result-section.density-comfortable .collocation-pill {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.result-section.density-comfortable .example-card {
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.result-section.density-comfortable .example-en {
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.result-section.density-comfortable .example-bn {
+  font-size: 13.5px;
+  line-height: 1.45;
+  margin-top: 5px;
+}
+
+.result-section.density-comfortable .word-family-card {
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.result-section.density-comfortable .word-family-grid {
+  gap: 6px 14px;
+}
+
+.result-section.density-comfortable .family-item {
+  font-size: 12px;
+}
+
+.result-section.density-comfortable .mistake-card {
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.result-section.density-comfortable .mistake-body {
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.result-section.density-comfortable .actions-grid {
+  padding-top: 14px;
+  margin-top: auto;
+}
+
+.result-section.density-comfortable .action-card-btn {
+  height: 48px;
+  border-radius: 9px;
+}
+
+/* Compact Mode (Tightly fits onto single view) */
+.result-section.density-compact .hero-word:not(.sentence) {
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.result-section.density-compact .meaning-bn:not(.sentence) {
+  font-size: 17px;
+  margin-top: 2px;
+  line-height: 1.25;
+}
+
+.result-section.density-compact .pronounce-row {
+  margin-top: 4px;
+  margin-bottom: 6px;
+  gap: 6px;
+}
+
+.result-section.density-compact .pronounce-pill {
+  padding: 3px 9px;
+}
+
+.result-section.density-compact .pronounce-ipa {
+  font-size: 12px;
+}
+
+.result-section.density-compact .definition-text {
+  font-size: 12.5px;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.result-section.density-compact .enhanced-badge {
+  margin-bottom: 6px;
+  font-size: 10px;
+}
+
+.result-section.density-compact .pairs-grid {
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.result-section.density-compact .pair-card {
+  padding: 6px 9px;
+  gap: 3px;
+}
+
+.result-section.density-compact .pair-header {
+  font-size: 11.5px;
+}
+
+.result-section.density-compact .pair-body {
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+
+.result-section.density-compact .collocations-card {
+  padding: 6px 9px;
+  margin-bottom: 6px;
+}
+
+.result-section.density-compact .collocations-header {
+  font-size: 11.5px;
+  margin-bottom: 4px;
+}
+
+.result-section.density-compact .collocation-pill {
+  padding: 3px 7px;
+  font-size: 11px;
+}
+
+.result-section.density-compact .example-card {
+  padding: 7px 10px;
+  margin-bottom: 6px;
+}
+
+.result-section.density-compact .example-header {
+  font-size: 11.5px;
+  margin-bottom: 3px;
+}
+
+.result-section.density-compact .example-en {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.result-section.density-compact .example-bn {
+  font-size: 11.5px;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.result-section.density-compact .word-family-card {
+  padding: 6px 9px;
+  margin-bottom: 6px;
+}
+
+.result-section.density-compact .word-family-header {
+  font-size: 11.5px;
+  margin-bottom: 4px;
+}
+
+.result-section.density-compact .word-family-grid {
+  gap: 3px 8px;
+}
+
+.result-section.density-compact .family-item {
+  font-size: 11px;
+}
+
+.result-section.density-compact .mistake-card {
+  padding: 6px 10px;
+  margin-bottom: 6px;
+}
+
+.result-section.density-compact .mistake-header {
+  font-size: 11.5px;
+  margin-bottom: 3px;
+}
+
+.result-section.density-compact .mistake-body {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.result-section.density-compact .actions-grid {
+  gap: 8px;
+  padding-top: 6px;
+  margin-top: auto;
+}
+
+.result-section.density-compact .action-card-btn {
+  height: 38px;
+  border-radius: 6px;
+  font-size: 12px;
 }
 
 /* Resize Grip at bottom right */

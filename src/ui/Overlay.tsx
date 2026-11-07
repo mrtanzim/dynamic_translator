@@ -8,7 +8,12 @@ import {
   pruneHistory,
   type HistoryEntry,
 } from '../storage/history'
-import { loadAppSettings } from '../storage/app-settings'
+import {
+  loadAppSettings,
+  DEFAULT_APP_SETTINGS,
+  APP_SETTINGS_KEY,
+  type AppSettings,
+} from '../storage/app-settings'
 import { isBengali, suggestWords, type SuggestionPayload } from '../providers/offline'
 import { ProvidersView } from './views/ProvidersView'
 import { HistoryView } from './views/HistoryView'
@@ -99,6 +104,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const [suggestOpen, setSuggestOpen] = useState(false)
   const [highlight, setHighlight] = useState(-1)
   const [toast, setToast] = useState<string | null>(null)
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_APP_SETTINGS)
 
   const dragging = useRef(false)
   const resizing = useRef(false)
@@ -132,9 +138,32 @@ export function Overlay({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     void loadAppSettings().then((s) => {
+      setSettings(s)
       autoSpeakRef.current = s.autoSpeak
       historyLimitRef.current = s.historyLimit
     })
+  }, [view])
+
+  useEffect(() => {
+    const listener = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      area: string
+    ) => {
+      if (area === 'local' && changes[APP_SETTINGS_KEY]?.newValue) {
+        const next = changes[APP_SETTINGS_KEY].newValue as AppSettings
+        setSettings(next)
+        autoSpeakRef.current = next.autoSpeak
+        historyLimitRef.current = next.historyLimit
+      }
+    }
+    try {
+      chrome.storage?.onChanged?.addListener?.(listener)
+      return () => {
+        chrome.storage?.onChanged?.removeListener?.(listener)
+      }
+    } catch {
+      // ignore
+    }
   }, [])
 
   // Auto-dismiss toast
@@ -680,235 +709,247 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                 )}
 
                 {/* Target Result Section */}
-                {result && (
-                  <div className="result-section">
-                    {/* Main Word in cyan accent */}
-                    <div className="hero-word">{result.query}</div>
+                {result && (() => {
+                  const isSentence =
+                    (result.query?.length ?? 0) > 28 ||
+                    (result.query?.includes(' ') && (result.query?.trim().split(/\s+/).length ?? 0) >= 4)
 
-                    {/* Bengali Meaning directly underneath */}
-                    <div className="meaning-bn bn">{result.bengaliMeaning}</div>
+                  return (
+                    <div className={`result-section density-${settings.layoutDensity ?? 'comfortable'}`}>
+                      {/* Main Word in cyan accent */}
+                      <div className={`hero-word ${isSentence ? 'sentence' : ''}`}>{result.query}</div>
 
-                    {/* Pronunciation audio pill + POS + transcription */}
-                    <div className="pronounce-row">
-                      <button
-                        type="button"
-                        className="pronounce-pill"
-                        onClick={() => speakWord(result.query)}
-                        title="Listen to pronunciation"
+                      {/* Bengali Meaning directly underneath */}
+                      <div className={`meaning-bn bn ${isSentence ? 'sentence' : ''}`}>{result.bengaliMeaning}</div>
+
+                      {/* Pronunciation audio pill + POS + transcription */}
+                      <div className="pronounce-row">
+                        <button
+                          type="button"
+                          className="pronounce-pill"
+                          onClick={() => speakWord(result.query)}
+                          title="Listen to pronunciation"
+                        >
+                          <span className="pill-icon">
+                            <SpeakerIcon size={18} />
+                          </span>
+                          <span className="pronounce-ipa">
+                            {result.pronunciation || '/.../'}
+                          </span>
+                        </button>
+
+                        {result.transcription && (
+                          <span className="transcription-tag">
+                            ({result.transcription})
+                          </span>
+                        )}
+
+                        {result.partOfSpeech && (
+                          <span className="pos-tag">{result.partOfSpeech}</span>
+                        )}
+
+                        {(settings.showBandLevel ?? true) && result.bandLevel && (
+                          <span className="band-tag" title="IELTS Band Level">
+                            {result.bandLevel}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* English Definition (Compulsory) */}
+                      {result.englishDefinition && (
+                        <div className="definition-text">
+                          {result.englishDefinition}
+                        </div>
+                      )}
+
+                      {/* Discrete Definition Quality Badge without raw "groq" or "AI" text */}
+                      <div
+                        className={`enhanced-badge ${result.source === 'offline' ? 'offline' : ''}`}
                       >
-                        <span className="pill-icon">
-                          <SpeakerIcon size={18} />
-                        </span>
-                        <span className="pronounce-ipa">
-                          {result.pronunciation || '/.../'}
-                        </span>
-                      </button>
-
-                      {result.transcription && (
-                        <span className="transcription-tag">
-                          ({result.transcription})
-                        </span>
-                      )}
-
-                      {result.partOfSpeech && (
-                        <span className="pos-tag">{result.partOfSpeech}</span>
-                      )}
-
-                      {result.bandLevel && (
-                        <span className="band-tag" title="IELTS Band Level">
-                          {result.bandLevel}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* English Definition */}
-                    {result.englishDefinition && (
-                      <div className="definition-text">
-                        {result.englishDefinition}
-                      </div>
-                    )}
-
-                    {/* Discrete Definition Quality Badge without raw "groq" or "AI" text */}
-                    <div
-                      className={`enhanced-badge ${result.source === 'offline' ? 'offline' : ''}`}
-                    >
-                      {result.source === 'offline' ? (
-                        <>
-                          <span className="badge-dot" />
-                          <span>Offline definition</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="badge-sparkle">✦</span>
-                          <span>Verified definition</span>
-                        </>
-                      )}
-                      {/* Hidden source tag preserves integration test assertions */}
-                      <span className="visually-hidden">{result.source}</span>
-                    </div>
-
-                    {/* Synonyms & Antonyms: 2-Column Side-by-Side Grid */}
-                    <div className="pairs-grid">
-                      <div className="pair-card">
-                        <div className="pair-header">
-                          <LinkIcon size={15} />
-                          <span>Synonyms</span>
-                        </div>
-                        <div className="pair-body">
-                          {result.synonyms?.length ? (
-                            result.synonyms.join(', ')
-                          ) : (
-                            <span style={{ color: 'rgba(148, 163, 184, 0.45)' }}>
-                              —
-                            </span>
-                          )}
-                        </div>
+                        {result.source === 'offline' ? (
+                          <>
+                            <span className="badge-dot" />
+                            <span>Offline definition</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="badge-sparkle">✦</span>
+                            <span>Verified definition</span>
+                          </>
+                        )}
+                        {/* Hidden source tag preserves integration test assertions */}
+                        <span className="visually-hidden">{result.source}</span>
                       </div>
 
-                      <div className="pair-card">
-                        <div className="pair-header">
-                          <BanIcon size={15} />
-                          <span>Antonyms</span>
-                        </div>
-                        <div className="pair-body">
-                          {result.antonyms?.length ? (
-                            result.antonyms.join(', ')
-                          ) : (
-                            <span style={{ color: 'rgba(148, 163, 184, 0.45)' }}>
-                              —
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                      {/* Synonyms & Antonyms: 2-Column Side-by-Side Grid (Customizable) */}
+                      {(settings.showSynAnt ?? true) && (
+                        <div className="pairs-grid">
+                          <div className="pair-card">
+                            <div className="pair-header">
+                              <LinkIcon size={15} />
+                              <span>Synonyms</span>
+                            </div>
+                            <div className="pair-body">
+                              {result.synonyms?.length ? (
+                                result.synonyms.join(', ')
+                              ) : (
+                                <span style={{ color: 'rgba(148, 163, 184, 0.45)' }}>
+                                  —
+                                </span>
+                              )}
+                            </div>
+                          </div>
 
-                    {/* Collocations */}
-                    {result.collocations && result.collocations.length > 0 && (
-                      <div className="collocations-card">
-                        <div className="collocations-header">
-                          <LayersIcon size={14} />
-                          <span>Collocations</span>
+                          <div className="pair-card">
+                            <div className="pair-header">
+                              <BanIcon size={15} />
+                              <span>Antonyms</span>
+                            </div>
+                            <div className="pair-body">
+                              {result.antonyms?.length ? (
+                                result.antonyms.join(', ')
+                              ) : (
+                                <span style={{ color: 'rgba(148, 163, 184, 0.45)' }}>
+                                  —
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="collocations-chips">
-                          {result.collocations.map((c, i) => (
-                            <span key={i} className="collocation-pill">
-                              {c}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Example Card with Highlighted Target Word */}
-                    {(result.exampleEn ||
-                      result.exampleBn ||
-                      result.exampleConversational ||
-                      result.exampleFormal) && (
-                      <div className="example-card">
-                        <div className="example-header">
-                          <BookIcon size={15} />
-                          <span>Example</span>
-                        </div>
-                        {(result.exampleEn || result.exampleConversational) && (
-                          <div className="example-en">
-                            {renderHighlightedExample(
-                              result.exampleEn || result.exampleConversational || '',
-                              result.query
+                      {/* Collocations (Customizable) */}
+                      {(settings.showCollocations ?? true) &&
+                        result.collocations &&
+                        result.collocations.length > 0 && (
+                          <div className="collocations-card">
+                            <div className="collocations-header">
+                              <LayersIcon size={14} />
+                              <span>Collocations</span>
+                            </div>
+                            <div className="collocations-chips">
+                              {result.collocations.map((c, i) => (
+                                <span key={i} className="collocation-pill">
+                                  {c}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Example Card with Highlighted Target Word (Customizable) */}
+                      {(settings.showExample ?? true) &&
+                        (result.exampleEn ||
+                          result.exampleBn ||
+                          result.exampleConversational ||
+                          result.exampleFormal) && (
+                          <div className="example-card">
+                            <div className="example-header">
+                              <BookIcon size={15} />
+                              <span>Example</span>
+                            </div>
+                            {(result.exampleEn || result.exampleConversational) && (
+                              <div className="example-en">
+                                {renderHighlightedExample(
+                                  result.exampleEn || result.exampleConversational || '',
+                                  result.query
+                                )}
+                              </div>
+                            )}
+                            {result.exampleBn && (
+                              <div className="example-bn bn">{result.exampleBn}</div>
                             )}
                           </div>
                         )}
-                        {result.exampleBn && (
-                          <div className="example-bn bn">{result.exampleBn}</div>
+
+                      {/* Word Family (Customizable) */}
+                      {(settings.showWordFamily ?? true) &&
+                        result.wordFamily &&
+                        (result.wordFamily.noun ||
+                          result.wordFamily.verb ||
+                          result.wordFamily.adj ||
+                          result.wordFamily.adv) && (
+                          <div className="word-family-card">
+                            <div className="word-family-header">
+                              <GitBranchIcon size={14} />
+                              <span>Word Family</span>
+                            </div>
+                            <div className="word-family-grid">
+                              {result.wordFamily.noun && (
+                                <div className="family-item">
+                                  <span className="family-label">Noun:</span>
+                                  <span className="family-val">{result.wordFamily.noun}</span>
+                                </div>
+                              )}
+                              {result.wordFamily.verb && (
+                                <div className="family-item">
+                                  <span className="family-label">Verb:</span>
+                                  <span className="family-val">{result.wordFamily.verb}</span>
+                                </div>
+                              )}
+                              {result.wordFamily.adj && (
+                                <div className="family-item">
+                                  <span className="family-label">Adj:</span>
+                                  <span className="family-val">{result.wordFamily.adj}</span>
+                                </div>
+                              )}
+                              {result.wordFamily.adv && (
+                                <div className="family-item">
+                                  <span className="family-label">Adv:</span>
+                                  <span className="family-val">{result.wordFamily.adv}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         )}
-                      </div>
-                    )}
 
-                    {/* Word Family */}
-                    {result.wordFamily &&
-                      (result.wordFamily.noun ||
-                        result.wordFamily.verb ||
-                        result.wordFamily.adj ||
-                        result.wordFamily.adv) && (
-                      <div className="word-family-card">
-                        <div className="word-family-header">
-                          <GitBranchIcon size={14} />
-                          <span>Word Family</span>
+                      {/* Common Mistake / Preposition Trap (Customizable) */}
+                      {(settings.showCommonMistake ?? true) && result.commonMistake && (
+                        <div className="mistake-card">
+                          <div className="mistake-header">
+                            <AlertCircleIcon size={14} />
+                            <span>Common Mistake</span>
+                          </div>
+                          <div className="mistake-body">
+                            {result.commonMistake}
+                          </div>
                         </div>
-                        <div className="word-family-grid">
-                          {result.wordFamily.noun && (
-                            <div className="family-item">
-                              <span className="family-label">Noun:</span>
-                              <span className="family-val">{result.wordFamily.noun}</span>
-                            </div>
-                          )}
-                          {result.wordFamily.verb && (
-                            <div className="family-item">
-                              <span className="family-label">Verb:</span>
-                              <span className="family-val">{result.wordFamily.verb}</span>
-                            </div>
-                          )}
-                          {result.wordFamily.adj && (
-                            <div className="family-item">
-                              <span className="family-label">Adj:</span>
-                              <span className="family-val">{result.wordFamily.adj}</span>
-                            </div>
-                          )}
-                          {result.wordFamily.adv && (
-                            <div className="family-item">
-                              <span className="family-label">Adv:</span>
-                              <span className="family-val">{result.wordFamily.adv}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Common Mistake / Preposition Trap */}
-                    {result.commonMistake && (
-                      <div className="mistake-card">
-                        <div className="mistake-header">
-                          <AlertCircleIcon size={14} />
-                          <span>Common Mistake</span>
-                        </div>
-                        <div className="mistake-body">
-                          {result.commonMistake}
-                        </div>
+                      {/* Primary Action Cards: Listen & Save word */}
+                      <div className="actions-grid">
+                        <button
+                          type="button"
+                          className="action-card-btn"
+                          onClick={() => speakWord(result.query)}
+                          title="Listen to pronunciation"
+                        >
+                          <span className="card-icon">
+                            <SpeakerIcon size={16} />
+                          </span>
+                          <span className="card-label">Listen</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`action-card-btn ${saved ? 'saved' : ''}`}
+                          onClick={() => void toggleSave()}
+                          title={saved ? 'Unsave word' : 'Save word'}
+                        >
+                          <span className="card-icon">
+                            <BookmarkIcon
+                              size={18}
+                              filled={saved}
+                              color={saved ? '#f3c969' : '#38bdf8'}
+                            />
+                          </span>
+                          <span className="card-label">
+                            {saved ? 'Saved' : 'Save word'}
+                          </span>
+                        </button>
                       </div>
-                    )}
-
-                    {/* Primary Action Cards: Listen & Save word */}
-                    <div className="actions-grid">
-                      <button
-                        type="button"
-                        className="action-card-btn"
-                        onClick={() => speakWord(result.query)}
-                        title="Listen to pronunciation"
-                      >
-                        <span className="card-icon">
-                          <SpeakerIcon size={16} />
-                        </span>
-                        <span className="card-label">Listen</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={`action-card-btn ${saved ? 'saved' : ''}`}
-                        onClick={() => void toggleSave()}
-                        title={saved ? 'Unsave word' : 'Save word'}
-                      >
-                        <span className="card-icon">
-                          <BookmarkIcon
-                            size={18}
-                            filled={saved}
-                            color={saved ? '#f3c969' : '#38bdf8'}
-                          />
-                        </span>
-                        <span className="card-label">
-                          {saved ? 'Saved' : 'Save word'}
-                        </span>
-                      </button>
                     </div>
-                  </div>
-                )}
+                  )
+                })()}
               </>
             )}
 
