@@ -505,7 +505,12 @@ export function Overlay({ onClose }: { onClose: () => void }) {
       }}
     >
       {/* Draggable Header with Clickable Brand to return Home */}
-      <div className="header" onMouseDown={onHeaderDown}>
+      <div
+        className="header"
+        onMouseDown={onHeaderDown}
+        onDoubleClick={() => setPos(clamp({ ...pos, w: 360, h: 720 }))}
+        title="Drag to move • Double-click header to reset standard size"
+      >
         <div
           className="brand"
           onClick={() => {
@@ -692,7 +697,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                         title="Listen to pronunciation"
                       >
                         <span className="pill-icon">
-                          <SpeakerIcon size={17} />
+                          <SpeakerIcon size={18} />
                         </span>
                         <span className="pronounce-ipa">
                           {result.pronunciation || '/.../'}
@@ -892,7 +897,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                       >
                         <span className="card-icon">
                           <BookmarkIcon
-                            size={17}
+                            size={18}
                             filled={saved}
                             color={saved ? '#f3c969' : '#38bdf8'}
                           />

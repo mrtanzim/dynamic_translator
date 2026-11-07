@@ -483,6 +483,7 @@ export const OVERLAY_STYLES = `
 .result-section {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
 }
 
 .hero-word {
@@ -797,12 +798,13 @@ export const OVERLAY_STYLES = `
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-top: 4px;
-  margin-bottom: 4px;
+  margin-top: auto;
+  padding-top: 10px;
+  margin-bottom: 2px;
 }
 
 .action-card-btn {
-  height: 44px;
+  height: 46px;
   border-radius: 8px;
   border: 1px solid rgba(148, 163, 184, 0.22);
   background: rgba(16, 24, 38, 0.65);
