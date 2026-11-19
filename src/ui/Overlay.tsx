@@ -16,6 +16,7 @@ import {
 } from '../storage/app-settings'
 import { isBengali, suggestWords, type SuggestionPayload } from '../providers/offline'
 import { ProvidersView } from './views/ProvidersView'
+import { LanguagesView } from './views/LanguagesView'
 import { HistoryView } from './views/HistoryView'
 import { SettingsView, AboutView } from './views/SettingsView'
 import {
@@ -510,6 +511,12 @@ export function Overlay({ onClose }: { onClose: () => void }) {
       icon: <ZapIcon size={18} />,
     },
     {
+      id: 'languages',
+      label: 'Select Language',
+      subtitle: 'Choose translation pair',
+      icon: <TranslateIcon size={18} />,
+    },
+    {
       id: 'settings',
       label: 'Settings',
       subtitle: 'Translation & more',
@@ -954,6 +961,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
             )}
 
             {view === 'providers' && <ProvidersView />}
+            {view === 'languages' && <LanguagesView />}
             {view === 'history' && (
               <HistoryView
                 onPick={(q) => {

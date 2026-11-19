@@ -259,6 +259,115 @@ export const OVERLAY_STYLES = `
   margin-left: 6px;
 }
 
+/* Language picker */
+.lang-select {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lang-select-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.lang-select-trigger {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(10, 14, 21, 0.55);
+  color: #e8edf2;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lang-select-trigger:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(16, 24, 38, 0.8);
+}
+
+.lang-select-trigger:focus-visible {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.22);
+}
+
+.lang-select-chevron {
+  display: flex;
+  color: #38bdf8;
+  transition: transform 0.15s ease;
+}
+
+.lang-select-trigger[aria-expanded='true'] .lang-select-chevron {
+  transform: rotate(180deg);
+}
+
+.lang-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: rgba(13, 20, 32, 0.98);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 10px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  animation: menuAppear 0.12s ease-out;
+}
+
+.lang-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: #e8edf2;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.lang-select-option:hover,
+.lang-select-option.highlight {
+  background: rgba(56, 189, 248, 0.14);
+  color: #f8fbff;
+}
+
+.lang-select-option[aria-selected='true'] {
+  color: #38bdf8;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.lang-select-option[aria-selected='true']::after {
+  content: '✓';
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lang-select-trigger,
+  .lang-select-chevron,
+  .lang-select-menu {
+    transition: none;
+    animation: none;
+  }
+}
+
 /* Toast notification */
 .toast-notification {
   display: flex;

@@ -85,6 +85,18 @@
   React's own key handlers inside the shadow root still run, and keys pressed
   outside the overlay are unaffected. `preventDefault()` alone is not enough —
   it does not stop other listeners from receiving the event.
+- The Select Language view stores `{ source, target }` under
+  `vocabflow.languages` in `chrome.storage.local` (`src/storage/languages.ts`).
+  It offers a popular-language list and a swap button, but only Bengali ⇄ English
+  is functional: other pairs show "Preview only". The stored pair intentionally
+  does not alter the lookup direction, which is still auto-detected from the
+  query script, so the picker cannot break the offline/AI lookup flow.
+- Language pickers are custom `role="listbox"` dropdowns (`LanguageSelect.tsx`),
+  not native `<select>`: the OS popup and the browser's white focus ring cannot
+  be themed from inside the shadow root. The trigger carries
+  `aria-haspopup`/`aria-expanded`, options carry `aria-selected`, arrow keys and
+  Enter/Escape work, outside clicks close it, and the CSS honours
+  `prefers-reduced-motion`.
 - Provider model IDs are current as of 2026-10: Groq `qwen/qwen3.8-27b`,
   `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `minimaxai/minimax-m2.7`;
   OpenRouter `qwen/qwen3.8-flash`, `google/gemini-3.8-flash`,
@@ -101,9 +113,10 @@
 - Concurrent AI provider fan-out with per-provider error isolation.
 - Provider settings UI with test-connection button.
 - History, saved words, pronunciation, three-dot menu, settings & about views.
-- Vitest suite (163 tests, 3 live-API tests skipped) covering the coordinator,
+- Vitest suite (171 tests, 3 live-API tests skipped) covering the coordinator,
   the offline dictionary, the type-ahead, the providers, the history store, the
-  overlay, the service worker, the content script and keyboard isolation.
+  overlay, the service worker, the content script, keyboard isolation, language
+  pair selection and the custom listbox.
 - Fixed: Bengali offline lookup was broken because `normalize()` stripped all
   Bengali characters, so the coordinator bailed out before any lookup ran.
   Covered by a regression test (`looks up a Bengali word offline`).
@@ -137,6 +150,8 @@
   word, so the offline answer carries the Latin script as well.
 - Fixed: typing in the overlay also triggered the host page's keyboard shortcuts
   (Space paused the YouTube video). Covered by `tests/keyboard-isolation.test.ts`.
+- Added: "Select Language" menu entry and language-pair view with popular
+  languages, swap, persistence and a preview-only notice for unsupported pairs.
 
 ## Blocked / Not verified
 - No live Groq / OpenRouter / Gemini / Supabase credentials are available yet.

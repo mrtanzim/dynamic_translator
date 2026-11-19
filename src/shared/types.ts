@@ -88,11 +88,12 @@ export type LookupEvent =
   | { type: 'LOOKUP_ERROR'; requestId: string; provider: ResultSource; error: string }
 
 
-export type View = 'search' | 'providers' | 'history' | 'saved' | 'settings' | 'about'
+export type View = 'search' | 'providers' | 'languages' | 'history' | 'saved' | 'settings' | 'about'
 
 export const MENU_ITEMS: Array<{ view: View; label: string }> = [
   { view: 'search', label: 'Search' },
   { view: 'providers', label: 'AI Providers' },
+  { view: 'languages', label: 'Select Language' },
   { view: 'history', label: 'Search History' },
   { view: 'saved', label: 'Saved Words' },
   { view: 'settings', label: 'Translation Settings' },

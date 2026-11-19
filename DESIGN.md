@@ -12,9 +12,9 @@ Translucent dark glass, subtle blur, thin borders, soft shadows. Solid fallback.
 Thin (6 px) and barely visible: a transparent track, a translucent slate thumb that turns accent-blue on hover, no arrow buttons. The scrollbar is styled from inside the shadow root, so the page it is injected into keeps its own. The overlay declares `color-scheme: dark`, so the native fallback is dark as well and never a white bar.
 ## Components
 - **Header** — product name (accent), three-dot menu, close button. Draggable.
-- **Menu** — Search (the home screen), AI Providers, Search History, Saved Words,
-  Translation Settings, Help / About. The open view is marked in the accent
-  colour.
+- **Menu** — Search (the home screen), Account, History, Saved Words,
+  AI Providers, Select Language, Settings, Help / About. The open view is
+  marked in the accent colour.
 - **Search input** — single field with a cross button on the right that clears
   the word, the result and the error; live lookup after a 300 ms debounce,
   Enter forces an immediate lookup.
@@ -26,6 +26,12 @@ Thin (6 px) and barely visible: a transparent track, a translucent slate thumb t
    synonyms row, antonyms row, example card (en + bn), source label
    (`Offline dictionary` for the provisional result, provider name for AI results).
 - **Action row** — Pronounce (Web Speech API), Save (toggles the saved flag in history).
+- **Select Language view** — "From" and "To" custom glass listbox dropdowns
+  over a popular-language list, a swap button, and a support note. Never native
+  `<select>`: its OS popup and white focus ring cannot be themed inside the
+  shadow root. Bengali ⇄ English is the only functional pair; other pairs show
+  "Preview only". The pair is stored under `vocabflow.languages` and does not
+  change the auto-detected lookup direction.
 - **Providers view** — per provider: enable checkbox, masked API key with show/hide,
   model select, Test (live connection check), Save, Remove, and a link to the
   provider's key console.

@@ -36,6 +36,8 @@ Then load `dist/` as an unpacked extension as described in [Installing](#install
   one stays on screen.
 - **Bengali ⇄ English** — type a Bengali word and get its English headword, or
   type an English word and get the Bengali meaning.
+- **Language selector** — choose a source and target language from the ⋯ menu.
+  Bengali ⇄ English works today; other pairs are shown as UI previews.
 - **AI upgrade** — Groq, OpenRouter and Gemini are queried concurrently; the
   first good answer wins. Any provider can be enabled, and a failure in one
   never affects the others.

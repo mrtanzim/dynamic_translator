@@ -28,6 +28,24 @@ export function TranslateIcon({ className = '', size = 20, color = '#38bdf8' }: 
   )
 }
 
+export function ChevronDownIcon({ className = '', size = 16 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
+}
+
 export function SearchIcon({ className = '', size = 18 }: IconProps) {
   return (
     <svg

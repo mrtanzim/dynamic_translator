@@ -47,6 +47,8 @@
 - [x] one history row per search (keyed on the original query / requestId)
 - [x] type-ahead suggestions from the offline dictionary (prefix + typo tolerant)
 - [x] clear button in the search field
+- [x] Select Language menu view: popular source/target languages, swap button,
+      persisted pair; Bengali ⇄ English works, other pairs are UI previews
 - [x] thin, glass-themed scrollbars (styled inside the shadow root)
 - [x] "Search" entry in the menu to return to the search screen
 - [x] romanized spelling of every Bengali word in the offline dataset
@@ -58,10 +60,10 @@
 - [ ] Supabase optional auth + cloud sync of saved words
 
 ## Phase 8 QA
-- [x] vitest suite (163 tests, 3 live-API tests skipped) covering the
+- [x] vitest suite (171 tests, 3 live-API tests skipped) covering the
       coordinator, the offline dictionary, the type-ahead, the providers, the
       history store, the overlay, the service worker, the content script and
-      keyboard isolation from host-page hotkeys
+      keyboard isolation from host-page hotkeys, language pair selection
 - [x] type-check + production build green
 - [x] built-artifact check: `dist/dictionary.json.gz` present, content bundle free
       of dictionary data, service-worker load path simulated
@@ -77,4 +79,6 @@
 - [x] overlay position write debounced, history pruning batched
 - [x] overlay keyboard events no longer trigger host-page hotkeys: the shadow
       host stops keydown/keyup/keypress before they bubble to the page
+- [x] language picker uses a custom dark-glass listbox; no native select popup
+      or white focus ring, with keyboard navigation and reduced-motion support
 

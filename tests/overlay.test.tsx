@@ -256,6 +256,17 @@ describe('Overlay menu', () => {
     expect((screen.getByPlaceholderText('Search any word') as HTMLInputElement).value).toBe('hello')
   })
 
+  it('opens the Select Language view from the menu', async () => {
+    render(<Overlay onClose={vi.fn()} />)
+
+    fireEvent.click(screen.getByTitle('Menu'))
+    fireEvent.click(screen.getByText('Select Language'))
+
+    await waitFor(() => expect(screen.getByText('Choose which language to translate from and to.')).toBeInTheDocument())
+    expect(screen.getByLabelText('Source language')).toBeInTheDocument()
+    expect(screen.getByLabelText('Target language')).toBeInTheDocument()
+  })
+
   it('navigates to History and Saved views and returns home by clicking brand', async () => {
     render(<Overlay onClose={vi.fn()} />)
 
