@@ -629,6 +629,23 @@ export const OVERLAY_STYLES = `
   color: #f1f5f9;
 }
 
+.meaning-en {
+  font-size: 23px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+  margin-top: 4px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.meaning-en.sentence {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #f1f5f9;
+}
+
 .pronounce-row {
   display: flex;
   align-items: center;
@@ -1046,6 +1063,12 @@ export const OVERLAY_STYLES = `
 
 .result-section.density-compact .meaning-bn:not(.sentence) {
   font-size: 17px;
+  margin-top: 2px;
+  line-height: 1.25;
+}
+
+.result-section.density-compact .meaning-en:not(.sentence) {
+  font-size: 18px;
   margin-top: 2px;
   line-height: 1.25;
 }

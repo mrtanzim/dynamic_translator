@@ -52,8 +52,10 @@ export interface OfflineLookupRequest {
   isBengali: boolean
 }
 
+export type OfflineLookupMatch = 'english' | 'bengali' | 'roman'
+
 export type OfflineLookupResponse =
-  | { ok: true; result: OfflineEntryPayload | null }
+  | { ok: true; result: OfflineEntryPayload | null; via?: OfflineLookupMatch }
   | { ok: false; error: string }
 
 /** A type-ahead suggestion, as transferred over the message channel. */

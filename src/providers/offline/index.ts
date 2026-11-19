@@ -8,6 +8,7 @@ import {
   OFFLINE_LOOKUP_MESSAGE,
   SUGGEST_MESSAGE,
   type OfflineEntryPayload,
+  type OfflineLookupMatch,
   type OfflineLookupResponse,
   type SuggestionPayload,
   type SuggestResponse,
@@ -36,24 +37,33 @@ function isContextInvalid(err: unknown): boolean {
  * The returned payload always carries the resolved English `headword`, which
  * for a Bengali query is the reverse lookup result.
  */
-export async function offlineLookup(
+export async function offlineLookupWithMatch(
   query: string,
   bengali = false,
-): Promise<OfflineEntryPayload | null> {
+): Promise<{ entry: OfflineEntryPayload | null; via: OfflineLookupMatch | undefined }> {
   try {
-    if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) return null
+    if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {
+      return { entry: null, via: undefined }
+    }
     const response = (await chrome.runtime.sendMessage({
       type: OFFLINE_LOOKUP_MESSAGE,
       query,
       isBengali: bengali,
     })) as OfflineLookupResponse | undefined
-    if (!response) return null
+    if (!response) return { entry: null, via: undefined }
     if (!response.ok) throw new Error(response.error)
-    return response.result
+    return { entry: response.result, via: response.via }
   } catch (err) {
-    if (isContextInvalid(err)) return null
+    if (isContextInvalid(err)) return { entry: null, via: undefined }
     throw err
   }
+}
+
+export async function offlineLookup(
+  query: string,
+  bengali = false,
+): Promise<OfflineEntryPayload | null> {
+  return (await offlineLookupWithMatch(query, bengali)).entry
 }
 
 /**

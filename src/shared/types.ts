@@ -1,5 +1,7 @@
 export type ResultSource = 'offline' | 'groq' | 'openrouter' | 'gemini'
 
+export type LookupDirection = 'en-bn' | 'bn-en'
+
 export interface LookupResult {
   /**
    * The word being displayed, i.e. the query exactly as the user typed it.
@@ -79,6 +81,7 @@ export interface LookupResult {
   source: ResultSource
   requestId: string
   timestamp: number
+  direction?: LookupDirection
 }
 
 export type LookupEvent =

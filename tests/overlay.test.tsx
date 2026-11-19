@@ -221,6 +221,42 @@ describe('Overlay transcription', () => {
   })
 })
 
+describe('Overlay bidirectional lookup', () => {
+  it('shows the English headword as the answer for a Bengali query', async () => {
+    aiFails = true
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'বই' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() => expect(screen.getByText('book')).toBeInTheDocument())
+  })
+
+  it('treats a Banglish spelling as Bengali input and shows the English answer', async () => {
+    const sendMessage = globalThis.chrome.runtime.sendMessage as ReturnType<typeof vi.fn>
+    sendMessage.mockImplementation(async (req: { type?: string }) => {
+      if (req.type === 'VOCABFLOW_SEED') return { ok: true }
+      if (req.type === 'VOCABFLOW_SUGGEST') return { ok: true, suggestions: [] }
+      if (req.type === 'VOCABFLOW_OFFLINE_LOOKUP') {
+        return {
+          ok: true,
+          result: { ...offlineEntry, headword: 'book', bn: 'বই', trans: 'boi' },
+          via: 'roman',
+        }
+      }
+      return { ok: false, error: 'provider is down' }
+    })
+    render(<Overlay onClose={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'boi' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() => expect(screen.getByText('book')).toBeInTheDocument())
+  })
+})
+
 describe('Overlay menu', () => {
   it('offers a Search entry that brings the search screen back', async () => {
     render(<Overlay onClose={vi.fn()} />)

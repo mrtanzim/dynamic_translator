@@ -12,6 +12,11 @@ describe('parseAiJson', () => {
     expect(result?.englishDefinition).toBe('y')
   })
 
+  it('parses the English headword of a Bengali query', () => {
+    const result = parseAiJson('{"englishHeadword":"book","bengaliMeaning":"বই"}')
+    expect(result?.headword).toBe('book')
+  })
+
   it('returns synonyms as string array', () => {
     const result = parseAiJson('{"synonyms":["a","b"]}')
     expect(result?.synonyms).toEqual(['a', 'b'])

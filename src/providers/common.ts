@@ -25,6 +25,7 @@ CRITICAL ACCURACY & QUALITY RULES (ZERO TOLERANCE FOR HALLUCINATIONS):
 
 Return ONLY a valid JSON object — no markdown, no backticks, no extra text:
 {
+  "englishHeadword": string,
   "bengaliMeaning": string,
   "partOfSpeech": string,
   "englishDefinition": string,
@@ -46,7 +47,8 @@ Return ONLY a valid JSON object — no markdown, no backticks, no extra text:
 }
 
 Field rules:
-- bengaliMeaning: standard Bengali translation(s). Multiple meanings joined with ", ".
+- englishHeadword: when the query is Bengali script or romanized Bengali (Banglish), the exact English word it means. Empty string for an English query.
+- bengaliMeaning: standard Bengali translation(s). Multiple meanings joined with ", ". For a Bengali/Banglish query this is the Bengali word itself or its close variants.
 - partOfSpeech: "noun", "verb", "adjective", "adverb", etc.
 - englishDefinition: ONE concise, clear sentence explaining the dictionary meaning.
 - bandLevel: number only, e.g. "7.5" or "8.0".
@@ -60,13 +62,13 @@ Field rules:
 - exampleEn: ONE natural, high-quality sentence.
 - exampleBn: Natural Bengali translation of exampleEn.
 
-Direction: English query -> Bengali meaning + Bengali script transcription. Bengali query -> English meaning + Latin script transcription.
+Direction — the query may be English, Bengali script, or romanized Bengali (Banglish):
+- English query -> Bengali meaning in bengaliMeaning, Bengali script transcription, and detailed English categories.
+- Bengali or Banglish query -> put the English word in englishHeadword, use English in englishDefinition, Latin-script transcription, and provide the SAME detailed categories (definition, pronunciation, part of speech, synonyms, antonyms, collocations, word family, band level, common mistake, bilingual examples).
 If unknown, use "" or []. Never invent.`
 
-export function buildUserPrompt(query: string, isBengaliInput: boolean): string {
-  return isBengaliInput
-    ? `Bengali: "${query}" — provide accurate English headword, Latin transcription, pronunciation, IELTS band level, definition, synonyms, antonyms, collocations, word family, and bilingual example.`
-    : `English: "${query}" — provide accurate Bangladeshi Bengali meaning, Bengali script transcription, pronunciation, IELTS band level, definition, synonyms, antonyms, collocations, word family, common preposition/usage mistake, and bilingual example.`
+export function buildUserPrompt(query: string, _isBengaliInput: boolean): string {
+  return `Word: "${query}" — the query may be English, Bengali script, or romanized Bengali (Banglish). Detect the script yourself and follow the direction rules in the system prompt. Return every category you can support.`
 }
 
 export function parseAiJson(text: string): Partial<LookupResult> | null {
@@ -93,6 +95,7 @@ export function parseAiJson(text: string): Partial<LookupResult> | null {
     }
 
     return {
+      headword: str(obj.englishHeadword),
       bengaliMeaning: str(obj.bengaliMeaning),
       englishDefinition: str(obj.englishDefinition),
       formalMeaning: str(obj.formalMeaning),
@@ -143,6 +146,7 @@ export function toResult(
     source,
     requestId,
     timestamp: Date.now(),
+    headword: parsed.headword,
     bengaliMeaning: parsed.bengaliMeaning,
     englishDefinition: parsed.englishDefinition,
     formalMeaning: parsed.formalMeaning,

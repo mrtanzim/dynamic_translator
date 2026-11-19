@@ -2,12 +2,18 @@ import {
   isBengali,
   normalize,
   offlineBengaliLookup,
-  offlineLookup,
+  offlineLookupWithMatch,
   type OfflineEntryPayload,
 } from '../providers/offline'
-import { LOOKUP_MESSAGE, SEED_MESSAGE, type AiLookupRequest, type AiLookupResponse } from '../providers/bridge'
+import {
+  LOOKUP_MESSAGE,
+  SEED_MESSAGE,
+  type AiLookupRequest,
+  type AiLookupResponse,
+  type OfflineLookupMatch,
+} from '../providers/bridge'
 import { loadSettings, type ProviderId, type ProviderSettings } from '../storage/settings'
-import type { LookupEvent, LookupResult, ResultSource } from '../shared/types'
+import type { LookupDirection, LookupEvent, LookupResult, ResultSource } from '../shared/types'
 
 /**
  * Provider ranking, best first.
@@ -39,6 +45,7 @@ interface OfflineHit {
    * other script is Bengali, which only the AI provider can write.
    */
   roman?: string
+  via?: OfflineLookupMatch
 }
 
 export class LookupCoordinator {
@@ -152,17 +159,18 @@ export class LookupCoordinator {
   private async fetchOffline(query: string, bengaliInput: boolean): Promise<OfflineHit | null> {
     const lookup = (async () => {
       let payload: OfflineEntryPayload | null = null
-      /** The romanization of the queried Bengali spelling, when there is one. */
       let roman = ''
+      let via: OfflineLookupMatch | undefined
       if (bengaliInput) {
         const hit = await offlineBengaliLookup(query)
         payload = hit?.entry ?? null
         roman = hit?.roman ?? ''
+        via = 'bengali'
       } else {
-        payload = (await offlineLookup(query)) as OfflineEntryPayload | null
-        if (payload?.trans) {
-          roman = payload.trans
-        }
+        const hit = await offlineLookupWithMatch(query)
+        payload = hit.entry
+        via = hit.via
+        if (payload?.trans) roman = payload.trans
       }
       if (!payload) return null
       // The headword is the canonical English word of the entry. It is only
@@ -172,7 +180,7 @@ export class LookupCoordinator {
       const headword = payload.headword
       const interesting =
         !!headword && headword.toLowerCase() !== query.toLowerCase() ? headword : undefined
-      return { entry: payload, headword: interesting, roman }
+      return { entry: payload, headword: interesting, roman, via }
     })()
 
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -217,6 +225,7 @@ export class LookupCoordinator {
     //    asynchronous: its result is emitted as soon as it arrives, without
     //    waiting for the AI providers.
     const bengaliInput = isBengali(query)
+    let direction: LookupDirection = bengaliInput ? 'bn-en' : 'en-bn'
 
     // The seed handshake is dispatched first (without awaiting it) so that the
     // service worker applies the first-run seed while the offline lookup is
@@ -231,6 +240,8 @@ export class LookupCoordinator {
     let headword: string | undefined
     const offlineJob = offlinePromise.then((hit) => {
       headword = hit?.headword
+      if (hit?.via === 'roman' || hit?.via === 'bengali') direction = 'bn-en'
+      else if (hit?.via === 'english') direction = 'en-bn'
       if (!hit) return
       if (this.currentId !== requestId) return // stale
       const source = hit.entry
@@ -242,6 +253,7 @@ export class LookupCoordinator {
         query,
         headword: hit.headword,
         source: 'offline',
+        direction,
         requestId,
         timestamp: Date.now(),
         // All Bengali meanings of the headword, not just the first one.
@@ -308,6 +320,7 @@ export class LookupCoordinator {
             // the dictionary has not answered yet — a provider result is
             // never delayed for it.
             headword: headword ?? raw.headword,
+            direction,
           }
           // The first valid provider result always replaces the provisional
           // offline result; later provider results only replace the accepted

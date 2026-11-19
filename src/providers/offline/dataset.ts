@@ -397,23 +397,28 @@ export class OfflineDictionary {
     return this.byHeadword.size
   }
 
-  /**
-   * Looks up an English word.
-   *
-   * Falls back to the relation index so that a synonym or antonym resolves to
-   * the headword entry it belongs to.
-   */
-  lookup(q: string): DictionaryEntry | null {
+  /** Looks up an English word without the romanized-Bengali fallback. */
+  lookupEnglish(q: string): DictionaryEntry | null {
     const n = normalize(q)
     if (!n) return null
     const direct = this.byHeadword.get(n)
     if (direct) return direct
     const relation = this.byRelation.get(n)
-    if (relation) {
-      const rEntry = this.byHeadword.get(relation)
-      if (rEntry) return rEntry
-    }
-    const roman = this.lookupRoman(n)
+    if (relation) return this.byHeadword.get(relation) ?? null
+    return null
+  }
+
+  /**
+   * Looks up an English word.
+   *
+   * Falls back to the relation index so that a synonym or antonym resolves to
+   * the headword entry it belongs to, and finally to a romanized Bengali
+   * spelling (Banglish).
+   */
+  lookup(q: string): DictionaryEntry | null {
+    const english = this.lookupEnglish(q)
+    if (english) return english
+    const roman = this.lookupRoman(q)
     return roman ? roman.entry : null
   }
 

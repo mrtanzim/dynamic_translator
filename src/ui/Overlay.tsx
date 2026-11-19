@@ -195,7 +195,10 @@ export function Overlay({ onClose }: { onClose: () => void }) {
   const persistHistory = useCallback(async (r: LookupResult) => {
     try {
       const query = r.query
-      const direction = isBengali(query) ? 'bn->en' : 'en->bn'
+      const direction =
+        r.direction === 'bn-en' || (r.direction === undefined && isBengali(query))
+          ? 'bn->en'
+          : 'en->bn'
       if (historyIdRef.current !== null && lastRequestId.current === r.requestId) {
         await updateHistory(historyIdRef.current as number, {
           result: r,
@@ -720,21 +723,32 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                   const isSentence =
                     (result.query?.length ?? 0) > 28 ||
                     (result.query?.includes(' ') && (result.query?.trim().split(/\s+/).length ?? 0) >= 4)
+                  const direction =
+                    result.direction ?? (isBengali(result.query) ? 'bn-en' : 'en-bn')
+                  const englishAnswer = result.headword || result.englishDefinition || ''
+                  const spoken = direction === 'bn-en' ? englishAnswer || result.query : result.query
 
                   return (
                     <div className={`result-section density-${settings.layoutDensity ?? 'comfortable'}`}>
                       {/* Main Word in cyan accent */}
                       <div className={`hero-word ${isSentence ? 'sentence' : ''}`}>{result.query}</div>
 
-                      {/* Bengali Meaning directly underneath */}
-                      <div className={`meaning-bn bn ${isSentence ? 'sentence' : ''}`}>{result.bengaliMeaning}</div>
+                      {direction === 'en-bn' ? (
+                        <div className={`meaning-bn bn ${isSentence ? 'sentence' : ''}`}>
+                          {result.bengaliMeaning}
+                        </div>
+                      ) : (
+                        <div className={`meaning-en ${isSentence ? 'sentence' : ''}`}>
+                          {englishAnswer || result.bengaliMeaning}
+                        </div>
+                      )}
 
                       {/* Pronunciation audio pill + POS + transcription */}
                       <div className="pronounce-row">
                         <button
                           type="button"
                           className="pronounce-pill"
-                          onClick={() => speakWord(result.query)}
+                          onClick={() => speakWord(spoken)}
                           title="Listen to pronunciation"
                         >
                           <span className="pill-icon">
@@ -859,7 +873,9 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                               <div className="example-en">
                                 {renderHighlightedExample(
                                   result.exampleEn || result.exampleConversational || '',
-                                  result.query
+                                  direction === 'bn-en'
+                                    ? result.headword || result.query
+                                    : result.query
                                 )}
                               </div>
                             )}
@@ -928,7 +944,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                         <button
                           type="button"
                           className="action-card-btn"
-                          onClick={() => speakWord(result.query)}
+                          onClick={() => speakWord(spoken)}
                           title="Listen to pronunciation"
                         >
                           <span className="card-icon">

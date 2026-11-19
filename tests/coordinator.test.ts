@@ -340,4 +340,36 @@ describe('LookupCoordinator', () => {
     const local = events.find((e) => e.type === 'LOCAL_RESULT')
     expect(local && local.type === 'LOCAL_RESULT' && local.result.transcription).toBe('boi')
   })
+
+  it('marks a Bengali-script lookup as bn-en with the English headword', async () => {
+    sendMessage.mockImplementation(async (req: { type?: string }) => {
+      if (req.type === OFFLINE_LOOKUP_MESSAGE) {
+        return { ok: true, result: offlineEntry('book', 'বই', 'boi'), via: 'bengali' }
+      }
+      return new Promise(() => {})
+    })
+    const events: LookupEvent[] = []
+    const c = new LookupCoordinator({ onEvent: (e) => events.push(e) })
+    void c.lookup('বই', settings)
+    await new Promise((r) => setTimeout(r, 10))
+    const local = events.find((e) => e.type === 'LOCAL_RESULT')
+    expect(local && local.type === 'LOCAL_RESULT' && local.result.direction).toBe('bn-en')
+    expect(local && local.type === 'LOCAL_RESULT' && local.result.headword).toBe('book')
+  })
+
+  it('treats a Banglish spelling as Bengali input and keeps the English headword', async () => {
+    sendMessage.mockImplementation(async (req: { type?: string }) => {
+      if (req.type === OFFLINE_LOOKUP_MESSAGE) {
+        return { ok: true, result: offlineEntry('book', 'বই', 'boi'), via: 'roman' }
+      }
+      return new Promise(() => {})
+    })
+    const events: LookupEvent[] = []
+    const c = new LookupCoordinator({ onEvent: (e) => events.push(e) })
+    void c.lookup('boi', settings)
+    await new Promise((r) => setTimeout(r, 10))
+    const local = events.find((e) => e.type === 'LOCAL_RESULT')
+    expect(local && local.type === 'LOCAL_RESULT' && local.result.direction).toBe('bn-en')
+    expect(local && local.type === 'LOCAL_RESULT' && local.result.headword).toBe('book')
+  })
 })

@@ -127,14 +127,21 @@ async function handleOfflineLookup(
   const dictionary = await loadOfflineDictionary()
   if (msg.isBengali) {
     const hit = dictionary.lookupBengali(msg.query)
-    if (!hit) return { ok: true, result: null }
+    if (!hit) return { ok: true, result: null, via: 'bengali' }
     // The word the user typed is the Bengali word. The entry's primary
     // meaning may be a different spelling of the same word, so the matched
     // spelling and its romanization are returned instead.
-    return { ok: true, result: { ...hit.entry, bn: hit.bengali, trans: hit.roman } }
+    return { ok: true, result: { ...hit.entry, bn: hit.bengali, trans: hit.roman }, via: 'bengali' }
   }
-  const entry = dictionary.lookup(msg.query)
-  return { ok: true, result: entry ? { ...entry } : null }
+  const english = dictionary.lookupEnglish(msg.query)
+  if (english) {
+    return { ok: true, result: { ...english }, via: 'english' }
+  }
+  const roman = dictionary.lookupRoman(msg.query)
+  if (roman) {
+    return { ok: true, result: { ...roman.entry }, via: 'roman' }
+  }
+  return { ok: true, result: null, via: 'english' }
 }
 
 /** Suggests the dictionary words that match a partially typed query. */

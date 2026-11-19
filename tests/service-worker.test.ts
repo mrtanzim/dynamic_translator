@@ -1,15 +1,38 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { SUGGEST_MESSAGE, TOGGLE_MESSAGE } from '../src/providers/bridge'
+import { OFFLINE_LOOKUP_MESSAGE, SUGGEST_MESSAGE, TOGGLE_MESSAGE } from '../src/providers/bridge'
 
 /** The suggestions the mocked dictionary returns. */
 const SUGGESTIONS = [
   { word: 'cucumber', headword: 'cucumber', bengali: false, hint: 'কুকুম্বার' },
 ]
 
+const ENTRY = {
+  headword: 'book',
+  bn: 'বই',
+  bnAlts: [],
+  trans: 'boi',
+  transAlts: [],
+  def: 'a written work',
+  pos: 'noun',
+  syn: [],
+  ant: [],
+  ex: '',
+  pron: '',
+}
+
 vi.mock('../src/providers/offline/loader', () => ({
   DATASET_PATH: 'dictionary.json.gz',
   loadOfflineDictionary: vi.fn(async () => ({
     suggest: (_query: string, limit: number) => SUGGESTIONS.slice(0, limit),
+    lookupEnglish: (query: string) => (query === 'book' ? ENTRY : null),
+    lookupRoman: (query: string) =>
+      query === 'boi'
+        ? { headword: 'book', entry: ENTRY, roman: 'boi', bengali: 'বই' }
+        : null,
+    lookupBengali: (query: string) =>
+      query === 'বই'
+        ? { headword: 'book', entry: ENTRY, roman: 'boi', bengali: 'বই' }
+        : null,
   })),
 }))
 
