@@ -93,4 +93,33 @@ describe('content script lifecycle', () => {
     listener({ type: TOGGLE_MESSAGE })
     expect(document.querySelectorAll('#vocabflow-host')).toHaveLength(1)
   })
+
+  it('survives a missing extension runtime without poisoning the frame state', async () => {
+    // After an extension reload the runtime API can be unavailable in a tab
+    // that was open before the reload. The content script must not throw, and
+    // it must stay eligible to register on a later injection.
+    ;(globalThis as unknown as { chrome: unknown }).chrome = {}
+    await expect(import('../src/content/content-entry.iife')).resolves.toBeDefined()
+
+    const state = (globalThis as unknown as Record<string, { registered: boolean } | undefined>)[CONTENT_SCRIPT_STATE_KEY]
+    expect(state?.registered).toBe(false)
+  })
+
+  it('registers the listener on a later injection after the runtime recovers', async () => {
+    ;(globalThis as unknown as { chrome: unknown }).chrome = {}
+    await import('../src/content/content-entry.iife')
+
+    ;(globalThis as unknown as { chrome: unknown }).chrome = {
+      runtime: {
+        onMessage: {
+          addListener: (fn: (msg: { type?: string }) => void) => {
+            messageListener = fn
+          },
+        },
+      },
+    }
+    vi.resetModules()
+    await import('../src/content/content-entry.iife')
+    expect(messageListener).not.toBeNull()
+  })
 })

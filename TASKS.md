@@ -90,5 +90,7 @@
       examples) are produced for both directions
 - [x] Bengali greetings and idioms answer with the natural idiomatic English
       equivalent as the primary answer; literal renderings stay in synonyms
+- [x] content script guards the extension runtime; a reload while a tab is
+      open no longer throws or permanently blocks the toggle in that frame
 - [ ] remaining language pairs stay UI previews until a dataset exists
 

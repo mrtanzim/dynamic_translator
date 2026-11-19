@@ -176,6 +176,10 @@
   the prompt requires the natural idiomatic English equivalent for greetings
   and idioms ("ki khobor" -> "How are you?", not "What's the news?"). Literal
   or alternative renderings belong in `synonyms`.
+- The content script must guard `chrome.runtime` before registering the toggle
+  listener. After an extension reload an already-open tab can run with the
+  runtime API gone. Marking the frame as registered before `addListener` would
+  permanently disable that frame, so the flag is set only after success.
 
 ## Next step
 - Manual Chrome verification of the built extension.
