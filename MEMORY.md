@@ -76,6 +76,15 @@
   transaction, and lists the saved words through a `saved` index. IndexedDB
   cannot index a boolean, so the flag is stored as 0/1 and converted at the
   boundary (database version 2).
+- The shadow host (`#vocabflow-host`) stops `keydown`/`keyup`/`keypress` from
+  bubbling to the host page. A content script shares the DOM with the page, and
+  Shadow DOM retargets `event.target`/`document.activeElement` to the host, so
+  the page's "is the user typing in a field?" guard saw a DIV and fired global
+  hotkeys (Space = play/pause on YouTube) while the user typed in the overlay.
+  The listeners are attached to the host in `mount.tsx` and removed on unmount;
+  React's own key handlers inside the shadow root still run, and keys pressed
+  outside the overlay are unaffected. `preventDefault()` alone is not enough —
+  it does not stop other listeners from receiving the event.
 - Provider model IDs are current as of 2026-10: Groq `qwen/qwen3.8-27b`,
   `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `minimaxai/minimax-m2.7`;
   OpenRouter `qwen/qwen3.8-flash`, `google/gemini-3.8-flash`,
@@ -92,9 +101,9 @@
 - Concurrent AI provider fan-out with per-provider error isolation.
 - Provider settings UI with test-connection button.
 - History, saved words, pronunciation, three-dot menu, settings & about views.
-- Vitest suite (102 tests, 3 live-API tests skipped) covering the coordinator,
+- Vitest suite (163 tests, 3 live-API tests skipped) covering the coordinator,
   the offline dictionary, the type-ahead, the providers, the history store, the
-  overlay, the service worker and the content script.
+  overlay, the service worker, the content script and keyboard isolation.
 - Fixed: Bengali offline lookup was broken because `normalize()` stripped all
   Bengali characters, so the coordinator bailed out before any lookup ran.
   Covered by a regression test (`looks up a Bengali word offline`).
@@ -126,6 +135,8 @@
   it.
 - Added: the offline dataset ships the romanized spelling of every Bengali
   word, so the offline answer carries the Latin script as well.
+- Fixed: typing in the overlay also triggered the host page's keyboard shortcuts
+  (Space paused the YouTube video). Covered by `tests/keyboard-isolation.test.ts`.
 
 ## Blocked / Not verified
 - No live Groq / OpenRouter / Gemini / Supabase credentials are available yet.

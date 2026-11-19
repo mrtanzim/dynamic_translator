@@ -7,6 +7,19 @@ offline dictionary, then upgrades the answer with an AI provider (Groq,
 OpenRouter or Gemini) when one is configured — including English ⇄ Bengali
 translation in both directions.
 
+## Repository
+
+Source: https://github.com/mrtanzim/dynamic_translator (branch `main`).
+
+```bash
+git clone https://github.com/mrtanzim/dynamic_translator.git
+cd dynamic_translator
+npm install
+npm run build
+```
+
+Then load `dist/` as an unpacked extension as described in [Installing](#installing).
+
 ## Features
 
 - **Floating overlay** — a draggable, resizable glass panel injected into every

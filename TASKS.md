@@ -58,9 +58,10 @@
 - [ ] Supabase optional auth + cloud sync of saved words
 
 ## Phase 8 QA
-- [x] vitest suite (111 tests, 3 live-API tests skipped) covering the
+- [x] vitest suite (163 tests, 3 live-API tests skipped) covering the
       coordinator, the offline dictionary, the type-ahead, the providers, the
-      history store, the overlay, the service worker and the content script
+      history store, the overlay, the service worker, the content script and
+      keyboard isolation from host-page hotkeys
 - [x] type-check + production build green
 - [x] built-artifact check: `dist/dictionary.json.gz` present, content bundle free
       of dictionary data, service-worker load path simulated
@@ -74,4 +75,6 @@
 - [x] shadow host element removed when the overlay unmounts
 - [x] offline result ranked below every provider result
 - [x] overlay position write debounced, history pruning batched
+- [x] overlay keyboard events no longer trigger host-page hotkeys: the shadow
+      host stops keydown/keyup/keypress before they bubble to the page
 

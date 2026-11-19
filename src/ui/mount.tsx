@@ -33,6 +33,11 @@ export function mountOverlay(onClose: () => void) {
   style.textContent = OVERLAY_STYLES
   shadow.appendChild(style)
 
+  const stopPageKeys = (e: KeyboardEvent) => e.stopPropagation()
+  for (const type of ['keydown', 'keyup', 'keypress'] as const) {
+    host.addEventListener(type, stopPageKeys)
+  }
+
   const container = document.createElement('div')
   shadow.appendChild(container)
   const root = createRoot(container)
@@ -40,6 +45,9 @@ export function mountOverlay(onClose: () => void) {
 
   return () => {
     root.unmount()
+    for (const type of ['keydown', 'keyup', 'keypress'] as const) {
+      host.removeEventListener(type, stopPageKeys)
+    }
     container.remove()
     host.remove()
   }
