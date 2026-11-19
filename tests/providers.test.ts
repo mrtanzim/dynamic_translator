@@ -159,6 +159,15 @@ describe('provider prompt', () => {
     expect(buildUserPrompt('বই', true)).toContain('বই')
   })
 
+  it('asks for an idiomatic English equivalent for Bengali greetings and idioms', () => {
+    // "ki khobor" is a greeting. The primary English answer must carry the
+    // natural equivalent ("How are you?"), not the literal "What's the news?".
+    expect(SYSTEM_PROMPT).toContain('natural idiomatic English equivalent')
+    const bengaliPrompt = buildUserPrompt('ki khobor', true)
+    expect(bengaliPrompt).toContain('idiomatic')
+    expect(buildUserPrompt('cucumber', false)).not.toContain('idiomatic')
+  })
+
   it('carries the transcription and the pronunciation into the result', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

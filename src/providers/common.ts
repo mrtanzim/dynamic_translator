@@ -22,6 +22,7 @@ CRITICAL ACCURACY & QUALITY RULES (ZERO TOLERANCE FOR HALLUCINATIONS):
 5. COLLOCATIONS: Provide 3 to 5 natural, high-frequency word partnerships essential for IELTS writing and speaking (e.g. ["reluctant to admit", "grow reluctant", "deeply reluctant"]).
 6. WORD FAMILY: Provide related derivatives if they exist: noun, verb, adj, adv.
 7. COMMON MISTAKE: ONE brief, practical sentence on preposition or usage trap (e.g. "Followed by 'to + infinitive' (reluctant to go), not 'of'."). If none, use "".
+8. IDIOMATIC BENGALI QUERIES: for Bengali or Banglish input, the englishHeadword field must be the natural idiomatic English equivalent - the way a native English speaker would actually say it (e.g. "ki khobor" -> "How are you?", NOT "What's the news?"). Never put a literal word-for-word translation there. Keep literal or alternative renderings in the synonyms field.
 
 Return ONLY a valid JSON object — no markdown, no backticks, no extra text:
 {
@@ -47,7 +48,7 @@ Return ONLY a valid JSON object — no markdown, no backticks, no extra text:
 }
 
 Field rules:
-- englishHeadword: when the query is Bengali script or romanized Bengali (Banglish), the exact English word it means. Empty string for an English query.
+- englishHeadword: for Bengali script or romanized Bengali (Banglish), the natural idiomatic English equivalent - how an English speaker would actually express it, not a literal word-for-word translation. For an idiom or greeting, use its true figurative meaning. Empty string for an English query.
 - bengaliMeaning: standard Bengali translation(s). Multiple meanings joined with ", ". For a Bengali/Banglish query this is the Bengali word itself or its close variants.
 - partOfSpeech: "noun", "verb", "adjective", "adverb", etc.
 - englishDefinition: ONE concise, clear sentence explaining the dictionary meaning.
@@ -64,11 +65,16 @@ Field rules:
 
 Direction — the query may be English, Bengali script, or romanized Bengali (Banglish):
 - English query -> Bengali meaning in bengaliMeaning, Bengali script transcription, and detailed English categories.
-- Bengali or Banglish query -> put the English word in englishHeadword, use English in englishDefinition, Latin-script transcription, and provide the SAME detailed categories (definition, pronunciation, part of speech, synonyms, antonyms, collocations, word family, band level, common mistake, bilingual examples).
+- Bengali or Banglish query -> put the natural idiomatic English equivalent in englishHeadword (never a literal translation), use English in englishDefinition, Latin-script transcription, and provide the SAME detailed categories (definition, pronunciation, part of speech, synonyms, antonyms, collocations, word family, band level, common mistake, bilingual examples). Literal or alternative English renderings belong in synonyms.
 If unknown, use "" or []. Never invent.`
 
-export function buildUserPrompt(query: string, _isBengaliInput: boolean): string {
-  return `Word: "${query}" — the query may be English, Bengali script, or romanized Bengali (Banglish). Detect the script yourself and follow the direction rules in the system prompt. Return every category you can support.`
+export function buildUserPrompt(query: string, isBengaliInput: boolean): string {
+  const base = `Word: "${query}" — the query may be English, Bengali script, or romanized Bengali (Banglish). Detect the script yourself and follow the direction rules in the system prompt. Return every category you can support.`
+  if (!isBengaliInput) return base
+  // The primary answer is rendered from englishHeadword. Without this hint the
+  // model returns a literal translation for greetings and idioms, while the
+  // natural equivalent ends up buried in synonyms.
+  return `${base}\nThis is Bengali/Banglish input: put the natural idiomatic English equivalent in englishHeadword (how an English speaker would actually say it), never a literal word-for-word translation. Keep literal or alternative renderings in synonyms.`
 }
 
 export function parseAiJson(text: string): Partial<LookupResult> | null {

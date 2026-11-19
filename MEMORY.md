@@ -172,6 +172,10 @@
 - Pure Bengali script is always `bn-en`, regardless of the selected pair.
 - Providers receive the resolved direction, not just a Bengali-script test, so
   a Banglish query is treated as Bengali input on the AI path too.
+- The primary Bengali-to-English answer is rendered from `englishHeadword`, so
+  the prompt requires the natural idiomatic English equivalent for greetings
+  and idioms ("ki khobor" -> "How are you?", not "What's the news?"). Literal
+  or alternative renderings belong in `synonyms`.
 
 ## Next step
 - Manual Chrome verification of the built extension.
