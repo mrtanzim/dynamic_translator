@@ -13,6 +13,7 @@ import {
   type OfflineLookupMatch,
 } from '../providers/bridge'
 import { loadSettings, type ProviderId, type ProviderSettings } from '../storage/settings'
+import { isSupportedPair, loadLanguagePair } from '../storage/languages'
 import type { LookupDirection, LookupEvent, LookupResult, ResultSource } from '../shared/types'
 
 /**
@@ -225,7 +226,6 @@ export class LookupCoordinator {
     //    asynchronous: its result is emitted as soon as it arrives, without
     //    waiting for the AI providers.
     const bengaliInput = isBengali(query)
-    let direction: LookupDirection = bengaliInput ? 'bn-en' : 'en-bn'
 
     // The seed handshake is dispatched first (without awaiting it) so that the
     // service worker applies the first-run seed while the offline lookup is
@@ -237,11 +237,23 @@ export class LookupCoordinator {
     // is read without awaiting the lookup, so a slow offline dictionary can
     // never delay a provider result.
     const offlinePromise = this.fetchOffline(query, bengaliInput)
+    const pairPromise = loadLanguagePair()
+
+    // The explicit language choice must be resolved before any result is
+    // emitted. Banglish is Latin script, so it cannot be detected from the
+    // query alone; the offline roman index is incomplete and can even
+    // misclassify a Banglish word as an English headword.
+    const [cfg, pair] = await Promise.all([settingsPromise, pairPromise])
+    const pinnedToBengali = isSupportedPair(pair) && pair.source === 'bn' && pair.target === 'en'
+    let direction: LookupDirection = bengaliInput || pinnedToBengali ? 'bn-en' : 'en-bn'
+
     let headword: string | undefined
     const offlineJob = offlinePromise.then((hit) => {
       headword = hit?.headword
-      if (hit?.via === 'roman' || hit?.via === 'bengali') direction = 'bn-en'
-      else if (hit?.via === 'english') direction = 'en-bn'
+      // Auto-detect from the offline match only when the user has not pinned
+      // the direction. A pinned Bengali-to-English choice must never be
+      // overridden by an ambiguous dictionary match.
+      if (!pinnedToBengali && (hit?.via === 'roman' || hit?.via === 'bengali')) direction = 'bn-en'
       if (!hit) return
       if (this.currentId !== requestId) return // stale
       const source = hit.entry
@@ -286,17 +298,19 @@ export class LookupCoordinator {
       }
     })
 
-    const cfg = await settingsPromise
+    // Tell providers the resolved direction, not just whether the query
+    // contains Bengali script: a Banglish query is Bengali input too.
+    const providerIsBengali = direction === 'bn-en'
 
     const jobs: Array<{ id: ProviderId; run: () => Promise<LookupResult> }> = []
     if (cfg.groq.enabled && cfg.groq.apiKey) {
-      jobs.push({ id: 'groq', run: () => this.callProvider('groq', query, bengaliInput, cfg.groq.apiKey, cfg.groq.model, requestId) })
+      jobs.push({ id: 'groq', run: () => this.callProvider('groq', query, providerIsBengali, cfg.groq.apiKey, cfg.groq.model, requestId) })
     }
     if (cfg.openrouter.enabled && cfg.openrouter.apiKey) {
-      jobs.push({ id: 'openrouter', run: () => this.callProvider('openrouter', query, bengaliInput, cfg.openrouter.apiKey, cfg.openrouter.model, requestId) })
+      jobs.push({ id: 'openrouter', run: () => this.callProvider('openrouter', query, providerIsBengali, cfg.openrouter.apiKey, cfg.openrouter.model, requestId) })
     }
     if (cfg.gemini.enabled && cfg.gemini.apiKey) {
-      jobs.push({ id: 'gemini', run: () => this.callProvider('gemini', query, bengaliInput, cfg.gemini.apiKey, cfg.gemini.model, requestId) })
+      jobs.push({ id: 'gemini', run: () => this.callProvider('gemini', query, providerIsBengali, cfg.gemini.apiKey, cfg.gemini.model, requestId) })
     }
 
     if (jobs.length === 0) {

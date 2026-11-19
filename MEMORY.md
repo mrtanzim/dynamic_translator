@@ -161,6 +161,18 @@
 - Manual Chrome verification (toggle, drag, resize, persistence) not yet reported.
 - Offline dataset is not yet a large, formally licensed corpus.
 
+## Bidirectional lookup
+- The stored language pair (`vocabflow.languages`) is read by the coordinator,
+  not just by the picker UI. A supported `bn -> en` selection pins the result
+  direction: Banglish is Latin script, so it cannot be detected from the query
+  alone.
+- The offline roman index is best-effort evidence only. It is incomplete and
+  can misclassify a Banglish word as an English headword (e.g. `hasy`), so it
+  never overrides an explicit Bengali-to-English choice.
+- Pure Bengali script is always `bn-en`, regardless of the selected pair.
+- Providers receive the resolved direction, not just a Bengali-script test, so
+  a Banglish query is treated as Bengali input on the AI path too.
+
 ## Next step
 - Manual Chrome verification of the built extension.
 - Live verification of the new provider model IDs once API keys are available.

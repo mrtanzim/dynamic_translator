@@ -82,3 +82,11 @@
 - [x] language picker uses a custom dark-glass listbox; no native select popup
       or white focus ring, with keyboard navigation and reduced-motion support
 
+## Phase 10 Bidirectional lookup
+- [x] Banglish (romanized Bengali) offline lookup and direction detection
+- [x] selected language pair drives the result direction; Bengali script is
+      always treated as Bengali-to-English
+- [x] rich result fields (synonyms, antonyms, collocations, word family, band,
+      examples) are produced for both directions
+- [ ] remaining language pairs stay UI previews until a dataset exists
+

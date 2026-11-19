@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { LookupCoordinator } from '../src/lookup/coordinator'
-import { OFFLINE_LOOKUP_MESSAGE, SEED_MESSAGE } from '../src/providers/bridge'
+import { LOOKUP_MESSAGE, OFFLINE_LOOKUP_MESSAGE, SEED_MESSAGE } from '../src/providers/bridge'
 import type { LookupEvent, LookupResult } from '../src/shared/types'
 
 const sendMessage = vi.fn()
@@ -371,5 +371,47 @@ describe('LookupCoordinator', () => {
     const local = events.find((e) => e.type === 'LOCAL_RESULT')
     expect(local && local.type === 'LOCAL_RESULT' && local.result.direction).toBe('bn-en')
     expect(local && local.type === 'LOCAL_RESULT' && local.result.headword).toBe('book')
+  })
+
+  it('honours a selected Bengali-to-English pair for Banglish with no offline hit', async () => {
+    // A Banglish word that is not in the roman index must still be rendered
+    // as a Bengali-to-English answer when that pair is selected in the UI.
+    ;(globalThis as unknown as { chrome: any }).chrome.storage.local.get = (
+      _key: string,
+      cb: (r: Record<string, unknown>) => void,
+    ) => cb({ 'vocabflow.languages': { source: 'bn', target: 'en' } })
+    sendMessage.mockImplementation(async (req: { type?: string }) => {
+      if (req.type === OFFLINE_LOOKUP_MESSAGE) return { ok: true, result: null }
+      if (req.type === LOOKUP_MESSAGE) {
+        return { ok: true, result: aiResult('groq', { headword: 'need', englishDefinition: 'necessity' }) }
+      }
+      return { ok: true }
+    })
+    const events: LookupEvent[] = []
+    const c = new LookupCoordinator({ onEvent: (e) => events.push(e) })
+    await c.lookup('dorkar', settings)
+    const ai = events.find((e) => e.type === 'AI_RESULT')
+    expect(ai && ai.type === 'AI_RESULT' && ai.result.direction).toBe('bn-en')
+  })
+
+  it('does not let an English offline match override a selected Bengali-to-English pair', async () => {
+    // The offline roman index can misclassify a Banglish word as English
+    // (e.g. "hasy"). The explicit language choice must still win.
+    ;(globalThis as unknown as { chrome: any }).chrome.storage.local.get = (
+      _key: string,
+      cb: (r: Record<string, unknown>) => void,
+    ) => cb({ 'vocabflow.languages': { source: 'bn', target: 'en' } })
+    sendMessage.mockImplementation(async (req: { type?: string }) => {
+      if (req.type === OFFLINE_LOOKUP_MESSAGE) {
+        return { ok: true, result: offlineEntry('hasy', 'meaning'), via: 'english' }
+      }
+      return new Promise(() => {})
+    })
+    const events: LookupEvent[] = []
+    const c = new LookupCoordinator({ onEvent: (e) => events.push(e) })
+    void c.lookup('hasy', settings)
+    await new Promise((r) => setTimeout(r, 10))
+    const local = events.find((e) => e.type === 'LOCAL_RESULT')
+    expect(local && local.type === 'LOCAL_RESULT' && local.result.direction).toBe('bn-en')
   })
 })
