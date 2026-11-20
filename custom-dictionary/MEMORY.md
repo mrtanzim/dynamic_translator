@@ -1,3 +1,37 @@
+# MEMORY.md — Custom Dictionary Package System (current status)
+
+**Last updated:** 2026-11-20 · **Branch:** main
+
+## Bengali-first package (Phase 8)
+- Decision: build a **language-specific Bengali-first dataset** (`data/bn/`, artifact
+  `public/dictionary.bn.json.gz`, schema **v1**) because the English-first dataset's
+  reverse lookup returns English definitions/relations and almost no Bengali
+  examples or idiomatic English equivalents.
+- Decision: **hybrid build** — invert the existing generated English-first dataset
+  for broad coverage (8,776 Bengali headwords), then apply hand-curated words and
+  idioms (`curated.json`, `idioms.json`) that always win. No new dependencies, no
+  network, no ML model — a "dictionary AI" driven by rich data.
+- Decision: English synonyms/antonyms + bilingual (Bengali + English) examples for
+  `bn→en`; an idiom's natural English equivalent is the primary `en` answer and
+  the literal rendering lives in `enAlt` / `usage` (e.g. `ki khobor` → "How are you?").
+- Decision: the extension mirrors the indexer in `src/providers/offline/bn-dataset.ts`
+  (+ `bn-loader.ts`) instead of importing from this package, so Vite/tsc never reach
+  outside the extension's build root. Both share the v1 columnar contract.
+- Decision: `VOCABFLOW_OFFLINE_LOOKUP` carries an optional `direction`; the service
+  worker uses the BN index for `bn-en` and falls back to the English-first reverse
+  path. A broken BN dataset is best-effort.
+- Bug fixed: Banglish keys must strip whitespace so `ki khobor` == `kikhobor`.
+- Bug fixed: provider errors are no longer cleared by a late provisional result —
+  errors are cleared only at the start of a new search (see extension `Overlay.tsx`).
+- Bug fixed: tests resolve `data/bn` from `import.meta.url`, not `process.cwd()`, so
+  they pass when vitest runs from the extension root.
+- Files added: `src/{bn-types,bn-indexer,bn-lookup}.ts`,
+  `scripts/builders/{bn-schema,bn-invert,bn-curated}.ts`,
+  `scripts/build-bn-dictionary.mjs`, `data/bn/*`, four `tests/bn-*.test.ts`.
+- Next: wider licensed Bengali corpus with Bengali examples; more idioms.
+
+---
+
 // # MEMORY.md — Custom Dictionary Package System
 //
 // Persistent scratchpad for the Custom Dictionary Package System. Any AI

@@ -94,3 +94,14 @@
       open no longer throws or permanently blocks the toggle in that frame
 - [ ] remaining language pairs stay UI previews until a dataset exists
 
+## Phase 11 Bengali-first offline dictionary (2026-11-20)
+- [x] `custom-dictionary/data/bn/` language-specific dataset folder (curated + idioms)
+- [x] v1 Bengali-headword columnar schema + builder (`build:bn-dictionary`)
+- [x] 8,776-entry derived dataset with English syn/ant + bilingual examples
+- [x] `BanglaDictionary` runtime in the package and mirrored in the extension
+- [x] bridge carries `direction`; service worker uses BN index for `bn→en` with fallback
+- [x] coordinator maps rich BN fields; provider errors survive a late provisional result
+- [x] tests: schema/build/indexer/lookup/bridge/service-worker/coordinator integration
+- [ ] wider licensed Bengali corpus with Bengali examples for every entry
+- [ ] more idioms and greetings verified by native speakers
+

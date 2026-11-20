@@ -171,4 +171,47 @@ interface DictSuggestResponse {
 
 ---
 
-*Last updated: 2026-10-22*
+## 9. Bengali-first dataset package (added 2026-11-20)
+
+### Folder and artifact
+```
+data/bn/
+  curated.json      # hand-authored Bengali-first entries (rich fields)
+  idioms.json       # greetings/idioms -> natural idiomatic English
+  README.md         # contributor guide
+public/
+  dictionary.bn.json      # uncompressed (tests)
+  dictionary.bn.json.gz   # runtime artifact (also copied to extension public/)
+```
+
+### Schema (version 1)
+Bengali is the headword. Multi-valued columns use `U+0001`. Columns:
+`headwords`(bn), `roman`, `romanAlt`, `en`, `enAlt`, `defBn`, `defEn`, `pos`,
+`synEn`, `antEn`, `exBn`, `exEn`, `pron`, `usage`. `BN_DATASET_VERSION = 1` is
+independent of the English-first dataset's v4; the loader fails fast on a
+mismatch.
+
+### Build pipeline
+`scripts/build-bn-dictionary.mjs` reads `public/dictionary.json`, inverts every
+Bengali spelling into a Bengali-headword entry (aggregating English equivalents,
+WordNet syn/ant, examples and IPA), then merges `curated.json` and `idioms.json`
+overrides (hand-written values win). Outputs JSON + level-9 gzip to both this
+package's `public/` and the extension's `public/`.
+
+### Runtime
+`src/bn-indexer.ts` builds `byBengali`, `byRoman` (romanized + tolerant Banglish)
+and sorted Bengali keys for prefix/fuzzy suggestions. `src/bn-lookup.ts` maps an
+entry to the shared `LookupResult` (English synonyms/antonyms, bilingual
+examples, romanization, `usageNote`). The extension carries a mirrored runtime
+in `src/providers/offline/bn-dataset.ts` plus `bn-loader.ts` so Vite/tsc never
+reach outside its build root; both share the v1 columnar contract.
+
+### Message flow
+`VOCABFLOW_OFFLINE_LOOKUP` gains an optional `direction`. The worker selects the
+BN index for `bn-en` (or Bengali script), otherwise the English-first index.
+`VOCABFLOW_SUGGEST` uses the BN index for Bengali input. A missing/broken BN
+dataset is best-effort: the English-first path and AI providers are unaffected.
+
+---
+
+*Last updated: 2026-11-20*

@@ -56,9 +56,12 @@ Multi-valued fields (`bnAlt`, `transAlt`, `syn`, `ant`) are joined with
 
 ```bash
 npm run build:dictionary
+npm run build:bn-dictionary
 ```
 
-Outputs `public/dictionary.json.gz` and `public/dictionary.json`.
+`build:dictionary` outputs the English-first `public/dictionary.json(.gz)`.
+`build:bn-dictionary` outputs the Bengali-first `public/dictionary.bn.json(.gz)`
+and also copies the gzip artifact into the extension's `public/` folder.
 
 ## Test
 
@@ -91,10 +94,35 @@ Rules:
 
 Then rebuild: `npm run build:dictionary`
 
+## Bengali-first dataset
+
+`data/bn/` holds the Bengali-first sources. A Bengali query is **not** answered by
+reverse-resolving an English entry any more — the `bn→en` direction uses a
+dedicated v1 columnar dataset where Bengali is the headword:
+
+| Field | Meaning |
+|-------|---------|
+| `headwords` / `roman` / `romanAlt` | Bengali spelling and its Latin forms |
+| `en` / `enAlt` | Natural English equivalent; literal renderings in `enAlt` |
+| `defBn` / `defEn` | Bengali definition and English gloss |
+| `synEn` / `antEn` | English synonyms and antonyms |
+| `exBn` / `exEn` | Bengali and English example sentences |
+| `pron` / `usage` | IPA and register/idiom note |
+
+The build inverts the English-first dataset for coverage, then applies
+`curated.json` and `idioms.json` (hand-written values always win). Greetings and
+idioms get the **natural idiomatic English** primary answer — `কি খবর` →
+"How are you?", with "What is the news?" kept only as an alternative. See
+[`data/bn/README.md`](data/bn/README.md) for the contribution rules.
+
+Dataset stats: ~8,776 entries, ~5,089 with English synonyms, ~1,979 with English
+antonyms, ~515 with bilingual examples.
+
 ## Architecture
 
 ```
 scripts/
+  build-bn-dictionary.mjs  (Bengali-first artifact builder)
   build-dictionary.mjs   ← Entry point (ESM, runs build-dict.ts)
   build-dict.ts          ← Main orchestration pipeline
   lib/
@@ -122,6 +150,10 @@ tests/
   suggest.test.ts        ← Type-ahead (exact, prefix, typo, Bengali, latency)
   placeholder.test.ts    ← Placeholder (always passes)
 ```
+
+The Bengali-first runtime files (`src/bn-types.ts`, `src/bn-indexer.ts`,
+`src/bn-lookup.ts`) live alongside the English-first ones; the extension mirrors
+the indexer under `src/providers/offline/bn-dataset.ts`.
 
 ## Adding a new language
 

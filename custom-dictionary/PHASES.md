@@ -9,7 +9,8 @@
 **Phase 4:** Pronunciation (IPA) + romanization — ✅ COMPLETE  
 **Phase 5:** Tests + CI — ✅ COMPLETE  
 **Phase 6:** Integration with Translator extension — ✅ COMPLETE  
-**Phase 7:** Polish, docs, release — ✅ COMPLETE
+**Phase 7:** Polish, docs, release — ✅ COMPLETE  
+**Phase 8:** Bengali-first dataset package — ✅ COMPLETE (2026-11-20)
 
 ---
 
@@ -114,6 +115,22 @@
 - [ ] Write `README.md` for `custom-dictionary/`
 - [ ] Tag release `v1.0.0`
 - [ ] Document how to add new languages (Hindi, etc.)
+
+---
+
+## Phase 8 — Bengali-first dataset (2026-11-20)
+
+- [x] `data/bn/` folder with `curated.json`, `idioms.json` and contributor README
+- [x] v1 columnar schema (`src/bn-types.ts`, `scripts/builders/bn-schema.ts`)
+- [x] Inversion builder (`scripts/builders/bn-invert.ts`) + curated/idiom merge (`bn-curated.ts`)
+- [x] `scripts/build-bn-dictionary.mjs` + `npm run build:bn-dictionary`
+- [x] `BanglaDictionary` runtime index (`src/bn-indexer.ts`) — Bengali, roman, Banglish, suggestions
+- [x] `BanglaLookupCoordinator` (`src/bn-lookup.ts`) + package exports
+- [x] Extension integration: bridge direction, mirrored runtime/loader, service worker, coordinator
+- [x] Tests: schema, build, indexer, lookup + full extension suite green
+- [x] Docs: PRD / ARCHITECTURE / MEMORY / PHASES / README resynced
+- [ ] Wider licensed Bengali corpus with Bengali examples for every entry
+- [ ] More idiom/greeting coverage from native speakers
 
 ---
 

@@ -55,7 +55,7 @@ A custom dictionary package system lets us:
 | Type-ahead suggestions latency | < 10 ms |
 | Package size (gzipped, 10k entries) | < 500 KB |
 | Test coverage | > 80% |
-| Languages supported at launch | Bengali–English |
+| Languages supported at launch | Bengali–English (both English-first and Bengali-first packages) |
 
 ## 6. User Stories
 
@@ -74,4 +74,36 @@ A custom dictionary package system lets us:
 
 ---
 
-*Last updated: 2026-10-22*
+## 8. Bengali-first dataset package (added 2026-11-20)
+
+The English-first dataset answers a Bengali query by reverse-resolving it to an
+English entry, so the result carries English definitions and English relations
+but almost no Bengali examples or idiomatic equivalents. To make Bangla→English
+as rich as English→Bangla, a **language-specific Bengali-first package** was
+added:
+
+- Source folder: `data/bn/` (`curated.json`, `idioms.json`, `README.md`).
+- Artifact: `public/dictionary.bn.json.gz` (also copied to the extension's
+  `public/`), schema version `1`, Bengali as the headword language.
+- Build: `npm run build:bn-dictionary` — inverts the existing English-first
+  dataset for broad coverage, then applies curated words and idioms (which
+  always win). No new dependencies, no network, no ML model.
+- Result fields: natural English equivalent (idioms get the idiomatic rendering
+  as the primary answer, literal ones in `enAlt`/`usage`), Bengali definition,
+  English gloss, English synonyms/antonyms, bilingual examples, romanization
+  and IPA.
+- The extension's service worker picks this package for `bn→en` direction
+  (Bengali script, Banglish, or a pinned language pair) and falls back to the
+  English-first reverse path when a word is absent.
+
+### Updated success metrics
+| Metric | Target |
+|--------|--------|
+| Bengali-first entries | ≥ 8,000 derived + curated overrides |
+| Bengali lookup latency (p50) | < 5 ms |
+| Package size (gzipped) | < 500 KB |
+| Curated/idiom override coverage | hand-written entries win over derived |
+
+---
+
+*Last updated: 2026-11-20*

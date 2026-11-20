@@ -181,8 +181,29 @@
   runtime API gone. Marking the frame as registered before `addListener` would
   permanently disable that frame, so the flag is set only after success.
 
+## Bengali-first offline dataset (2026-11-20)
+- A language-specific Bengali-first dataset now lives in `custom-dictionary/data/bn/`
+  with its own v1 columnar schema and `npm run build:bn-dictionary` artifact
+  (`dictionary.bn.json.gz`, copied into the extension's `public/`).
+- The build is data-driven, not ML: it inverts the English-first dataset for
+  coverage (8,776 Bengali headwords) and applies hand-written curated entries and
+  idioms that always win. "Dictionary AI" here means rich data + smart lookup.
+- Bangla→English now carries a natural/idiomatic English equivalent (`headword`),
+  English synonyms and antonyms, a Bengali definition, bilingual examples,
+  romanization, IPA and a `usageNote`. Idioms keep the literal rendering in
+  `enAlt`/`usage` (e.g. `ki khobor` → "How are you?").
+- `VOCABFLOW_OFFLINE_LOOKUP` carries optional `direction`; the worker selects the
+  BN index for `bn-en` and falls back to the English-first path. A broken BN
+  dataset is best-effort. The extension mirrors the indexer inside its own `src/`
+  so Vite/tsc never reach outside the build root.
+- Banglish keys strip whitespace so `ki khobor` and `kikhobor` match.
+- Provider errors are no longer cleared when a result event arrives; errors are
+  cleared at the start of a new search. This keeps a provider failure visible
+  even when the provisional offline answer arrives afterwards.
+
 ## Next step
-- Manual Chrome verification of the built extension.
+- Manual Chrome verification of the built extension, including a Bengali script
+  query and a Banglish query with the language pair pinned to `bn→en`.
 - Live verification of the new provider model IDs once API keys are available.
 - Import a licensed dictionary dataset and add part-of-speech + Bengali examples.
 - History/saved export (CSV/JSON) and the full bilingual sentence translation view.
