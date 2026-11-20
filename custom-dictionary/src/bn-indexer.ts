@@ -1,7 +1,7 @@
 // In-memory indexes over the Bengali-first columnar dataset.
-import { BN_DATASET_VERSION, BN_SEP } from './bn-types.ts'
-import type { BengaliDataset, BengaliEntry } from './bn-types.ts'
-import type { SuggestionPayload } from './types.ts'
+import { BN_DATASET_VERSION, BN_SEP } from './bn-types'
+import type { BengaliDataset, BengaliEntry } from './bn-types'
+import type { SuggestionPayload } from './types'
 
 /** NFC-normalized lookup key; Bengali vowel signs (\p{M}) are preserved. */
 export function normalizeBengaliKey(text: string): string {

@@ -27,6 +27,10 @@ export { LookupCoordinator } from './lookup';
 export { loadOfflineDictionary };
 export { SuggestEngine } from './suggest';
 export type { SuggestResponse } from './suggest';
+export { BanglaDictionary, normalizeBengaliKey, normalizeBanglishKey } from './bn-indexer';
+export { BanglaLookupCoordinator } from './bn-lookup';
+export { BN_DATASET_VERSION, BN_SEP } from './bn-types';
+export type { BengaliDataset, BengaliEntry } from './bn-types';
 export const VERSION = '0.1.0';
 
 /**

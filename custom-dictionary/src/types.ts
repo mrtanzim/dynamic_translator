@@ -39,6 +39,8 @@ export interface LookupResult {
   exampleBn?: string
   /** Part of speech. */
   partOfSpeech?: string
+  /** Register / literal-vs-idiomatic / usage note (Bengali-first results). */
+  usageNote?: string
   /** Source of the result. */
   source: ResultSource
   /** Stable identity of this lookup action (shared by offline + AI results of one search). */
