@@ -229,8 +229,11 @@ export function Overlay({ onClose }: { onClose: () => void }) {
     const c = new LookupCoordinator({
       onEvent: (e) => {
         if (e.type === 'LOCAL_RESULT' || e.type === 'AI_RESULT') {
+          // A result must never clear a provider error: with the offline
+          // lookup running concurrently, its provisional answer can arrive
+          // after a provider has already failed. Errors are cleared at the
+          // start of each new lookup instead.
           setResult(e.result)
-          setError(null)
           resultRef.current = e.result
           void persistHistory(e.result)
         } else if (e.type === 'LOOKUP_ERROR') {

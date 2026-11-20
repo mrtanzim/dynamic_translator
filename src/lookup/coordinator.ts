@@ -157,13 +157,18 @@ export class LookupCoordinator {
    * on after a timeout: a broken offline dictionary must never break the AI
    * lookups.
    */
-  private async fetchOffline(query: string, bengaliInput: boolean): Promise<OfflineHit | null> {
+  private async fetchOffline(
+    query: string,
+    bengaliInput: boolean,
+    direction: LookupDirection,
+  ): Promise<OfflineHit | null> {
+    const useBengaliDataset = direction === 'bn-en' || bengaliInput
     const lookup = (async () => {
       let payload: OfflineEntryPayload | null = null
       let roman = ''
       let via: OfflineLookupMatch | undefined
-      if (bengaliInput) {
-        const hit = await offlineBengaliLookup(query)
+      if (useBengaliDataset) {
+        const hit = await offlineBengaliLookup(query, direction)
         payload = hit?.entry ?? null
         roman = hit?.roman ?? ''
         via = 'bengali'
@@ -231,12 +236,6 @@ export class LookupCoordinator {
     // service worker applies the first-run seed while the offline lookup is
     // already in flight. The settings are awaited further down.
     const settingsPromise = settings ? Promise.resolve(settings) : this.loadSeededSettings()
-
-    // A single offline round trip serves two purposes: it produces the
-    // provisional result and it resolves the canonical headword. The headword
-    // is read without awaiting the lookup, so a slow offline dictionary can
-    // never delay a provider result.
-    const offlinePromise = this.fetchOffline(query, bengaliInput)
     const pairPromise = loadLanguagePair()
 
     // The explicit language choice must be resolved before any result is
@@ -246,6 +245,13 @@ export class LookupCoordinator {
     const [cfg, pair] = await Promise.all([settingsPromise, pairPromise])
     const pinnedToBengali = isSupportedPair(pair) && pair.source === 'bn' && pair.target === 'en'
     let direction: LookupDirection = bengaliInput || pinnedToBengali ? 'bn-en' : 'en-bn'
+
+    // A single offline round trip serves two purposes: it produces the
+    // provisional result and it resolves the canonical headword. The headword
+    // is read without awaiting the lookup, so a slow offline dictionary can
+    // never delay a provider result. The resolved direction is passed so the
+    // service worker can pick the Bengali-first dataset for a Banglish query.
+    const offlinePromise = this.fetchOffline(query, bengaliInput, direction)
 
     let headword: string | undefined
     const offlineJob = offlinePromise.then((hit) => {
@@ -284,6 +290,7 @@ export class LookupCoordinator {
         // The pronunciation guide (IPA), from the dataset.
         pronunciation: source.pron || undefined,
         partOfSpeech: source.pos || undefined,
+        usageNote: source.usageNote || undefined,
         synonyms: source.syn,
         antonyms: source.ant,
         exampleEn: source.ex,
