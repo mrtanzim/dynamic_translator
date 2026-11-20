@@ -93,6 +93,51 @@ export type SuggestResponse =
   | { ok: true; suggestions: SuggestionPayload[] }
   | { ok: false; error: string }
 
+/** Japanese lookup and suggestion messages (service-worker side only). */
+export const JA_LOOKUP_MESSAGE = 'VOCABFLOW_JA_LOOKUP'
+export const JA_SUGGEST_MESSAGE = 'VOCABFLOW_JA_SUGGEST'
+
+export interface JaLookupRequest {
+  type: typeof JA_LOOKUP_MESSAGE
+  query: string
+  direction: 'ja-en' | 'en-ja'
+}
+
+export interface JaSuggestRequest {
+  type: typeof JA_SUGGEST_MESSAGE
+  query: string
+  limit?: number
+}
+
+export interface JaEntryPayload {
+  surface: string
+  kana: string
+  romaji: string
+  en: string
+  enAlt: string[]
+  pos: string
+  synEn: string[]
+  antEn: string[]
+  exampleJa: string
+  exampleEn: string
+  formalMeaning: string
+  conversationalMeaning: string
+  exampleFormal: string
+  exampleConversational: string
+  collocations: string[]
+  wordFamily: string
+  bandLevel: string
+  commonMistake: string
+}
+
+export type JaLookupResponse =
+  | { ok: true; result: JaEntryPayload | null }
+  | { ok: false; error: string }
+
+export type JaSuggestResponse =
+  | { ok: true; suggestions: Array<{ word: string; headword: string; japanese: boolean; hint: string }> }
+  | { ok: false; error: string }
+
 export interface ListModelsRequest {
   type: typeof LIST_MODELS_MESSAGE
   provider: ProviderId
