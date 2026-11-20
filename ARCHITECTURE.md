@@ -72,6 +72,12 @@ frame reuses the existing listener instead of opening a second overlay.
   also fetched only in the service worker, never bundled into the content
   script. It is best-effort: a failure never breaks the English-first path or
   the AI lookups.
+- `public/dictionary.ja.json.gz` — Japanese–English dataset (schema **v1**),
+  built from a committed 10,000-entry JMdict "common" subset
+  (`scripts/data/jmdict-common-subset.json`). Loaded by
+  `src/providers/offline/ja-loader.ts` and indexed by `ja-dataset.ts`.
+  **Attribution:** JMdict is property of EDRDG, used under the EDRDG license;
+  project started 1991 by Jim Breen. See `scripts/data/ja-source.md`.
 - The dataset is **not** written by an AI model. It is assembled from two open
   datasets and a hand-written file:
   - `bn-en-dictionary` — the Bengali ⇄ English pairs of a Wiktionary dump
@@ -179,6 +185,8 @@ src/
       loader.ts           # service-worker fetch + gunzip + index
       bn-dataset.ts       # Bengali-first mirror: BanglaDictionary + payload mapping
       bn-loader.ts        # best-effort loader for dictionary.bn.json.gz
+      ja-dataset.ts       # JapaneseDictionary: kanji/kana/romaji + English reverse
+      ja-loader.ts        # best-effort loader for dictionary.ja.json.gz
       index.ts            # content-side offline lookup + suggestion client
   shared/types.ts         # LookupResult, LookupEvent, View
   storage/

@@ -108,6 +108,14 @@ added:
 
 *Last updated: 2026-11-20*
 
+## 10. Japanese dataset (2026-11-20)
+
+A Japanese–English dataset (schema v1) is built from a committed 10,000-entry
+JMdict "common" subset with kana, romaji, English glosses and the enriched
+fields. Attribution: JMdict is property of EDRDG under the EDRDG license;
+project started 1991 by Jim Breen (`scripts/data/ja-source.md`). No runtime
+network access.
+
 ## 9. AI-style fields offline (2026-11-20)
 
 Both dataset formats were extended with the eight fields the AI providers emit:

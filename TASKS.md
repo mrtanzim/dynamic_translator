@@ -116,3 +116,14 @@
 - [ ] improve generated collocation quality with a licensed corpus
 - [ ] verify band levels against an official source
 
+## Phase 13 Japanese dictionary (2026-11-20)
+- [x] licensed JMdict common subset (10,000 entries) with EDRDG attribution
+- [x] Japanese dataset v1 with kana, romaji, English glosses and enriched fields
+- [x] service-worker runtime, loader and JA bridge messages
+- [x] ja-en / en-ja direction codes and functional language picker pair
+- [x] direction-aware AI prompt with kana/romaji/exampleJa
+- [x] UI renders kana, romaji and Japanese examples with CJK font fallback
+- [x] tests: source, dataset, romaji, runtime, routing, prompt, UI
+- [ ] full Japanese inflection handling
+- [ ] kanji reading disambiguation from context
+

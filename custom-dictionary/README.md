@@ -155,6 +155,14 @@ The Bengali-first runtime files (`src/bn-types.ts`, `src/bn-indexer.ts`,
 `src/bn-lookup.ts`) live alongside the English-first ones; the extension mirrors
 the indexer under `src/providers/offline/bn-dataset.ts`.
 
+## Japanese dataset
+
+A separate Japanese–English dataset (`public/dictionary.ja.json.gz`, schema v1)
+is built from the committed JMdict subset in `scripts/data/`. **Attribution:**
+JMdict is property of EDRDG, used under the EDRDG license; project started 1991
+by Jim Breen. See `scripts/data/ja-source.md`. Run `npm run build:japanese-dictionary`
+from the repository root.
+
 ## AI-style fields offline
 
 Both datasets now carry the eight fields the AI providers emit: band level,

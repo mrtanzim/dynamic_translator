@@ -216,6 +216,22 @@
   `usageNote`; the other five already had cards. Offline remains provisional
   and ranks below every provider result.
 
+## Japanese dictionary (2026-11-20)
+- A Japanese–English offline dataset (v1) is built from a committed 10,000-entry
+  JMdict "common" subset. Source attribution: JMdict is property of EDRDG under
+  the EDRDG license, project started 1991 by Jim Breen (`scripts/data/ja-source.md`).
+- The dataset carries kana, build-time romaji from a fixed kana table, English
+  glosses, POS, relations and the eight enriched fields. One dataset serves both
+  directions through a runtime English reverse index.
+- `LookupDirection` now includes `ja-en`/`en-ja`; the picker treats both Japanese
+  pairs as functional. New bridge messages `VOCABFLOW_JA_LOOKUP`/`_SUGGEST` route
+  to the JA dataset. Kana and romaji get dedicated `LookupResult` fields.
+- The AI prompt is direction-aware (`buildUserPrompt(query, direction)`); the old
+  boolean argument is still accepted so Bengali tests stay unchanged. Provider
+  JSON now supports `kana`, `romaji` and `exampleJa`.
+- Best-effort loading: an unavailable JA dataset never breaks English/Bengali
+  lookup or the AI path.
+
 ## Next step
 - Manual Chrome verification of the built extension, including a Bengali script
   query and a Banglish query with the language pair pinned to `bn→en`.
