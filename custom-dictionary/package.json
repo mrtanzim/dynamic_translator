@@ -6,6 +6,7 @@
   "description": "Offline-first custom dictionary package system for VocabFlow",
   "scripts": {
     "build:dictionary": "node --import tsx/esm scripts/build-dictionary.mjs",
+    "build:bn-dictionary": "node --import tsx/esm scripts/build-bn-dictionary.mjs",
     "test": "vitest run",
     "lint": "oxlint",
     "typecheck": "tsc -b"
