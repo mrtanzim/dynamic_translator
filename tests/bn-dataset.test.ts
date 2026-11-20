@@ -35,6 +35,20 @@ describe('extension Bengali dataset', () => {
     expect(dict.lookup('kikhobor')?.en).toBe('How are you?')
   })
 
+  it('suggests the Bengali headword for romanized and Banglish input', () => {
+    const spaced: BengaliDataset = {
+      ...dataset,
+      headwords: ['কি খবর'], roman: ['ki khobor'], romanAlt: [''], en: ['How are you?'],
+      enAlt: [''], antEn: [''],
+      defBn: [''], defEn: [''], pos: [''], synEn: [''], exBn: [''], exEn: [''], pron: [''], usage: [''],
+    }
+    const dict = new BanglaDictionary(spaced)
+    const spacedHits = dict.suggestions('ki khobor', 5)
+    expect(spacedHits[0]).toMatchObject({ word: 'কি খবর', headword: 'How are you?', bengali: true })
+    const joinedHits = dict.suggestions('kikhobor', 5)
+    expect(joinedHits[0]).toMatchObject({ word: 'কি খবর', headword: 'How are you?' })
+  })
+
   it('rejects a wrong version', () => {
     expect(() => new BanglaDictionary({ ...dataset, v: 4 })).toThrow(/version/i)
   })

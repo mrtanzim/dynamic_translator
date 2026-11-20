@@ -142,29 +142,61 @@ export class BanglaDictionary {
     return this.byRoman.get(normalize(query)) ?? this.byRoman.get(banglish(query)) ?? null
   }
 
-  /** Type-ahead over Bengali headwords. */
+  /** Type-ahead over Bengali headwords and their romanized spellings. */
   suggestions(query: string, limit = 8): Array<{ word: string; headword: string; bengali: boolean; hint: string }> {
+    type Suggestion = { word: string; headword: string; bengali: boolean; hint: string }
     const n = normalize(query)
     if (!n) return []
-    const out: Array<{ word: string; headword: string; bengali: boolean; hint: string }> = []
+    const scored: Array<{ suggestion: Suggestion; score: number }> = []
+    const seen = new Set<string>()
+    const push = (entry: BengaliEntry, score: number) => {
+      if (seen.has(entry.bengali)) return
+      seen.add(entry.bengali)
+      scored.push({
+        suggestion: { word: entry.bengali, headword: entry.en, bengali: true, hint: entry.en },
+        score,
+      })
+    }
+
+    const exact = this.byBengali.get(n)
+    if (exact) push(exact, 0)
+    const roman = this.byRoman.get(n) ?? this.byRoman.get(banglish(query))
+    if (roman) push(roman, 100)
     for (const key of this.bengaliKeys) {
-      if (key.startsWith(n) && out.length < limit) {
+      if (key.startsWith(n)) {
         const entry = this.byBengali.get(key)
-        if (entry) out.push({ word: entry.bengali, headword: entry.en, bengali: true, hint: entry.en })
+        if (entry) push(entry, 1000 + key.length)
       }
     }
+    for (const key of this.byRoman.keys()) {
+      if (key.startsWith(n)) {
+        const entry = this.byRoman.get(key)
+        if (entry) push(entry, 1100 + key.length)
+      }
+    }
+
     const maxDist = n.length >= 3 ? 2 : 0
-    if (maxDist && out.length < limit) {
+    if (maxDist && scored.length < limit) {
       for (const key of this.bengaliKeys) {
-        if (out.length >= limit) break
         const distance = editDistance(n, key, maxDist)
         if (distance > 0 && distance <= maxDist) {
           const entry = this.byBengali.get(key)
-          if (entry) out.push({ word: entry.bengali, headword: entry.en, bengali: true, hint: entry.en })
+          if (entry) push(entry, 2000 + distance * 100 + key.length)
+        }
+      }
+      for (const key of this.byRoman.keys()) {
+        const distance = editDistance(n, key, maxDist)
+        if (distance > 0 && distance <= maxDist) {
+          const entry = this.byRoman.get(key)
+          if (entry) push(entry, 2100 + distance * 100 + key.length)
         }
       }
     }
-    return out
+
+    return scored
+      .sort((a, b) => a.score - b.score || a.suggestion.word.localeCompare(b.suggestion.word))
+      .slice(0, limit)
+      .map((s) => s.suggestion)
   }
 }
 

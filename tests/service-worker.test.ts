@@ -48,7 +48,9 @@ vi.mock('../src/providers/offline/bn-loader', () => {
       lookup: (query: string) =>
         query === 'কি খবর' || query === 'ki khobor' ? bnEntry : null,
       suggestions: (query: string) =>
-        query.startsWith('ক') ? [{ word: 'কি খবর', headword: 'How are you?', bengali: true, hint: 'How are you?' }] : [],
+        query.startsWith('ক') || query.toLowerCase().includes('khobor')
+          ? [{ word: 'কি খবর', headword: 'How are you?', bengali: true, hint: 'How are you?' }]
+          : [],
     })),
   }
 })
@@ -104,7 +106,15 @@ function installChrome(options: {
     },
     tabs: { sendMessage, reload },
     scripting: { executeScript },
-    storage: { local: { get: (_k: string, cb: (r: Record<string, unknown>) => void) => cb({}), set: (_i: Record<string, unknown>, cb?: () => void) => cb?.() } },
+    storage: {
+      local: {
+        get: (key: string, cb: (r: Record<string, unknown>) => void) =>
+          cb(key === 'vocabflow.languages'
+            ? { 'vocabflow.languages': { source: 'bn', target: 'en' } }
+            : {}),
+        set: (_i: Record<string, unknown>, cb?: () => void) => cb?.(),
+      },
+    },
   }
 
   return {
@@ -232,6 +242,17 @@ describe('Bengali-first offline lookup', () => {
     })
 
     expect(response.result.headword).toBe('How are you?')
+  })
+
+  it('serves Banglish suggestions when bn→en is pinned', async () => {
+    const chromeMock = installChrome({})
+    await loadServiceWorker()
+
+    const response = await chromeMock.ask({ type: SUGGEST_MESSAGE, query: 'ki khobor', limit: 8 })
+
+    expect(response.suggestions[0]).toMatchObject({
+      word: 'কি খবর', headword: 'How are you?', bengali: true,
+    })
   })
 
   it('falls back to the English dictionary when the Bengali dataset is unavailable', async () => {

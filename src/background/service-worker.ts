@@ -20,6 +20,7 @@ import { tryLoadBanglaDictionary } from '../providers/offline/bn-loader'
 import { toOfflineEntryPayload } from '../providers/offline/bn-dataset'
 import { isBengali } from '../providers/offline/dataset'
 import { seedProviderSettings } from '../storage/seed'
+import { isSupportedPair, loadLanguagePair } from '../storage/languages'
 import { contentScriptFiles } from './content-script'
 
 // A single shared promise so that the seed runs exactly once per worker start
@@ -163,10 +164,15 @@ async function handleOfflineLookup(
 
 /** Suggests dictionary words; Bengali/Banglish input uses the BN dataset. */
 async function handleSuggest(msg: SuggestRequest): Promise<SuggestResponse> {
-  if (isBengali(msg.query)) {
+  // A pinned bn→en pair makes Latin-script input Bengali too, so it must reach
+  // the BN index even when the query itself has no Bengali script.
+  const pair = await loadLanguagePair()
+  const pinnedBengali = isSupportedPair(pair) && pair.source === 'bn' && pair.target === 'en'
+  if (pinnedBengali || isBengali(msg.query)) {
     const bn = await tryLoadBanglaDictionary()
     if (bn) {
-      return { ok: true, suggestions: bn.suggestions(msg.query, msg.limit ?? 8) }
+      const suggestions = bn.suggestions(msg.query, msg.limit ?? 8)
+      if (suggestions.length > 0) return { ok: true, suggestions }
     }
   }
   const dictionary = await loadOfflineDictionary()
