@@ -46,6 +46,15 @@ export interface OfflineEntryPayload {
   pron: string
   /** Register / idiom note, present on Bengali-first results. */
   usageNote?: string
+  /** Rich fields generated offline for both lookup directions. */
+  formalMeaning?: string
+  conversationalMeaning?: string
+  exampleFormal?: string
+  exampleConversational?: string
+  collocations?: string[]
+  wordFamily?: { noun?: string; verb?: string; adj?: string; adv?: string }
+  bandLevel?: string
+  commonMistake?: string
 }
 
 export interface OfflineLookupRequest {

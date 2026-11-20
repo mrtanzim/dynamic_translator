@@ -37,7 +37,7 @@ describe('build script output', () => {
   })
 
   it('has correct dataset version', () => {
-    expect(dataset.v).toBe(4)
+    expect(dataset.v).toBe(5)
   })
 
   it('all columns have the same length', () => {

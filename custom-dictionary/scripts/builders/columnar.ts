@@ -25,7 +25,7 @@
 export const SEP = '\u0001'
 
 /** Dataset format version, bumped when the layout changes. */
-export const DATASET_VERSION = 4
+export const DATASET_VERSION = 5
 
 /** A single dictionary entry as held in memory during the build. */
 export interface DictionaryEntry {
@@ -41,6 +41,14 @@ export interface DictionaryEntry {
   ex: string
   exBn?: string
   pron: string
+  formalMeaning?: string
+  conversationalMeaning?: string
+  exampleFormal?: string
+  exampleConversational?: string
+  collocations?: string[]
+  wordFamily?: string
+  bandLevel?: string
+  commonMistake?: string
 }
 
 /** The raw columnar dataset as stored on disk. */
@@ -58,7 +66,21 @@ export interface DictionaryDataset {
   ex: string[]
   exBn?: string[]
   pron: string[]
+  formalMeaning: string[]
+  conversationalMeaning: string[]
+  exampleFormal: string[]
+  exampleConversational: string[]
+  collocations: string[]
+  wordFamily: string[]
+  bandLevel: string[]
+  commonMistake: string[]
 }
+
+/** The eight enriched fields, in serialization order. */
+export const ENRICHED_COLUMNS = [
+  'formalMeaning', 'conversationalMeaning', 'exampleFormal', 'exampleConversational',
+  'collocations', 'wordFamily', 'bandLevel', 'commonMistake',
+] as const
 
 /**
  * Joins an array of strings into a single SEP-joined string.
@@ -108,6 +130,14 @@ export function serializeDataset(entries: DictionaryEntry[]): DictionaryDataset 
     ex: sorted.map((e) => e.ex),
     exBn: sorted.map((e) => e.exBn ?? ''),
     pron: sorted.map((e) => e.pron),
+    formalMeaning: sorted.map((e) => e.formalMeaning ?? ''),
+    conversationalMeaning: sorted.map((e) => e.conversationalMeaning ?? ''),
+    exampleFormal: sorted.map((e) => e.exampleFormal ?? ''),
+    exampleConversational: sorted.map((e) => e.exampleConversational ?? ''),
+    collocations: sorted.map((e) => (e.collocations ?? []).join(SEP)),
+    wordFamily: sorted.map((e) => e.wordFamily ?? ''),
+    bandLevel: sorted.map((e) => e.bandLevel ?? ''),
+    commonMistake: sorted.map((e) => e.commonMistake ?? ''),
   }
 }
 
@@ -135,6 +165,14 @@ export function deserializeDataset(dataset: DictionaryDataset): DictionaryEntry[
       ex: dataset.ex[i],
       exBn: dataset.exBn ? dataset.exBn[i] : '',
       pron: dataset.pron[i],
+      formalMeaning: dataset.formalMeaning[i] ?? '',
+      conversationalMeaning: dataset.conversationalMeaning[i] ?? '',
+      exampleFormal: dataset.exampleFormal[i] ?? '',
+      exampleConversational: dataset.exampleConversational[i] ?? '',
+      collocations: splitColumn(dataset.collocations[i] ?? ''),
+      wordFamily: dataset.wordFamily[i] ?? '',
+      bandLevel: dataset.bandLevel[i] ?? '',
+      commonMistake: dataset.commonMistake[i] ?? '',
     })
   }
 
@@ -150,16 +188,8 @@ export function deserializeDataset(dataset: DictionaryDataset): DictionaryEntry[
 export function validateDataset(dataset: DictionaryDataset): boolean {
   const n = dataset.headwords.length
   const columns = [
-    'bn',
-    'bnAlt',
-    'trans',
-    'transAlt',
-    'def',
-    'pos',
-    'syn',
-    'ant',
-    'ex',
-    'pron',
+    'bn', 'bnAlt', 'trans', 'transAlt', 'def', 'pos', 'syn', 'ant', 'ex', 'pron',
+    ...ENRICHED_COLUMNS,
   ]
 
   for (const column of columns) {

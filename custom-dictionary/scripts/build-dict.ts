@@ -11,12 +11,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import zlib from 'node:zlib'
+import { fileURLToPath } from 'node:url'
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
 
 import { loadBengaliDictionary, selectVocabulary } from './lib/bengali.mjs'
 import { loadWordNet } from './lib/wordnet.mjs'
 import { loadPronunciations } from './lib/pronunciation.mjs'
 import { posToWordnet, getSynonyms, getAntonyms } from './builders/relations.ts'
 import { serializeDataset, type DictionaryEntry } from './builders/columnar.ts'
+import { enrichEntry, loadBandList } from '../../scripts/lib/enrichment.mjs'
 
 const LIMITS = {
   synonyms: 8,
@@ -68,6 +72,11 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
   }>
   console.log(`  ${Object.keys(curated).length} curated entries`)
 
+  const bandList = loadBandList(path.join(repoRoot, 'scripts', 'data', 'cefr-bands.json'))
+  const enrichmentOverrides = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'scripts', 'data', 'enrichment-overrides.json'), 'utf8'),
+  ) as Record<string, Record<string, unknown>>
+
   const table = new Map<string, DictionaryEntry>()
 
   for (const [headword, entry] of selected) {
@@ -106,6 +115,20 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
       ex: '',
       exBn: '',
       pron,
+      ...enrichEntry(
+        { def: entry.def ?? '', ex: '' },
+        {
+          word: headword,
+          pos: wnPos,
+          senses: wordnet.senses,
+          examples: [],
+          bandList,
+          overrides: {
+            ...(enrichmentOverrides[headword] ?? {}),
+            ...((curated[headword] ?? {}) as Record<string, unknown>),
+          },
+        },
+      ),
     })
   }
 
@@ -116,6 +139,8 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
     const existing = table.get(headword)
 
     table.set(headword, {
+      // Keep generated enrichment fields; explicit values below still win.
+      ...existing,
       headword,
       bn:       value.bn       ?? existing?.bn       ?? '',
       bnAlts:   value.bnAlts   ?? existing?.bnAlts   ?? [],

@@ -26,7 +26,7 @@
 export const SEP = '\u0001'
 
 /** Current dataset format version. */
-export const DATASET_VERSION = 4
+export const DATASET_VERSION = 5
 
 export interface DictionaryEntry {
   /** English headword. */
@@ -53,6 +53,14 @@ export interface DictionaryEntry {
   exBn?: string
   /** Pronunciation guide (IPA). */
   pron: string
+  formalMeaning?: string
+  conversationalMeaning?: string
+  exampleFormal?: string
+  exampleConversational?: string
+  collocations?: string[]
+  wordFamily?: string
+  bandLevel?: string
+  commonMistake?: string
 }
 
 /** The raw columnar dataset as stored on disk. */
@@ -70,11 +78,34 @@ export interface DictionaryDataset {
   ex: string[]
   exBn?: string[]
   pron: string[]
+  formalMeaning: string[]
+  conversationalMeaning: string[]
+  exampleFormal: string[]
+  exampleConversational: string[]
+  collocations: string[]
+  wordFamily: string[]
+  bandLevel: string[]
+  commonMistake: string[]
 }
 
 function splitColumn(value: string): string[] {
   if (!value) return []
   return value.split(SEP)
+}
+
+/** Decodes the `wordFamily` column into its four optional roles. */
+export function decodeWordFamily(value: string | undefined): { noun?: string; verb?: string; adj?: string; adv?: string } | undefined {
+  if (!value) return undefined
+  const out: { noun?: string; verb?: string; adj?: string; adv?: string } = {}
+  for (const part of value.split(SEP)) {
+    const i = part.indexOf(':')
+    if (i <= 0) continue
+    const role = part.slice(0, i)
+    if (role === 'noun' || role === 'verb' || role === 'adj' || role === 'adv') {
+      out[role] = part.slice(i + 1)
+    }
+  }
+  return Object.keys(out).length ? out : undefined
 }
 
 /**
@@ -261,7 +292,11 @@ export class OfflineDictionary {
       throw new Error(`Unsupported dictionary dataset version: ${dataset.v}`)
     }
     const n = dataset.headwords.length
-    for (const key of ['bn', 'bnAlt', 'trans', 'transAlt', 'def', 'pos', 'syn', 'ant', 'ex', 'pron'] as const) {
+    for (const key of [
+      'bn', 'bnAlt', 'trans', 'transAlt', 'def', 'pos', 'syn', 'ant', 'ex', 'pron',
+      'formalMeaning', 'conversationalMeaning', 'exampleFormal', 'exampleConversational',
+      'collocations', 'wordFamily', 'bandLevel', 'commonMistake',
+    ] as const) {
       if (dataset[key].length !== n) {
         throw new Error(`Dictionary dataset column "${key}" has the wrong length`)
       }
@@ -286,6 +321,14 @@ export class OfflineDictionary {
         ex: dataset.ex[i],
         exBn: dataset.exBn ? dataset.exBn[i] : '',
         pron: dataset.pron[i],
+        formalMeaning: dataset.formalMeaning[i] ?? '',
+        conversationalMeaning: dataset.conversationalMeaning[i] ?? '',
+        exampleFormal: dataset.exampleFormal[i] ?? '',
+        exampleConversational: dataset.exampleConversational[i] ?? '',
+        collocations: splitColumn(dataset.collocations[i] ?? ''),
+        wordFamily: dataset.wordFamily[i] ?? '',
+        bandLevel: dataset.bandLevel[i] ?? '',
+        commonMistake: dataset.commonMistake[i] ?? '',
       }
       this.byHeadword.set(entry.headword, entry)
       const normalized = normalize(entry.headword)

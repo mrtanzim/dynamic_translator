@@ -18,6 +18,15 @@ describe('enrichment', () => {
     expect(deriveWordFamily('unknown', 'adj', senses)).toEqual({})
   })
 
+  it('accepts WordNet senses in the custom-dictionary Map shape', () => {
+    const mapSenses = new Map([
+      ['reluctant', new Map([['adj', new Set()]])],
+      ['reluctance', new Map([['noun', new Set()]])],
+    ])
+    expect(deriveWordFamily('reluctant', 'adj', mapSenses)).toEqual({ noun: 'reluctance' })
+    expect(estimateBand('reluctant', new Map(), mapSenses)).toBe('5.5')
+  })
+
   it('round-trips the word-family encoding', () => {
     const encoded = encodeWordFamily({ noun: 'reluctance', adv: 'reluctantly' })
     expect(encoded).toBe('noun:reluctance\u0001adv:reluctantly')

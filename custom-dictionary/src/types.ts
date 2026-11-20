@@ -78,6 +78,14 @@ export interface DictionaryEntry {
   exBn?: string
   /** Pronunciation guide (IPA). */
   pron: string
+  formalMeaning?: string
+  conversationalMeaning?: string
+  exampleFormal?: string
+  exampleConversational?: string
+  collocations?: string[]
+  wordFamily?: string
+  bandLevel?: string
+  commonMistake?: string
 }
 
 /**
@@ -98,6 +106,14 @@ export interface DictionaryDataset {
   ex: string[]
   exBn?: string[]
   pron: string[]
+  formalMeaning: string[]
+  conversationalMeaning: string[]
+  exampleFormal: string[]
+  exampleConversational: string[]
+  collocations: string[]
+  wordFamily: string[]
+  bandLevel: string[]
+  commonMistake: string[]
 }
 
 /**

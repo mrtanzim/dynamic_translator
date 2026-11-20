@@ -46,6 +46,7 @@ import { fileURLToPath } from 'node:url'
 import { canonicalBengali, loadBengaliDictionary, selectVocabulary } from './lib/bengali.mjs'
 import { loadPronunciations } from './lib/pronunciation.mjs'
 import { loadWordNet } from './lib/wordnet.mjs'
+import { enrichEntry, loadBandList } from './lib/enrichment.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -53,7 +54,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SEP = '\u0001'
 
 /** Dataset format version, bumped when the layout changes. */
-const FORMAT_VERSION = 4
+const FORMAT_VERSION = 5
+
+const NEW_COLUMNS = [
+  'formalMeaning', 'conversationalMeaning', 'exampleFormal', 'exampleConversational',
+  'collocations', 'wordFamily', 'bandLevel', 'commonMistake',
+]
 
 const LIMITS = {
   synonyms: 8,
@@ -294,6 +300,10 @@ async function main() {
     loadBengaliDictionary(path.join(root, 'node_modules', 'bn-en-dictionary')),
   )
   const curated = loadCurated()
+  const bandList = loadBandList(path.join(root, 'scripts', 'data', 'cefr-bands.json'))
+  const enrichmentOverrides = JSON.parse(
+    fs.readFileSync(path.join(root, 'scripts', 'data', 'enrichment-overrides.json'), 'utf8'),
+  )
 
   console.log(`wordnet lemmas: ${wordNet.senses.size}`)
   console.log(`bengali headwords (single token): ${bengali.size}`)
@@ -357,6 +367,17 @@ async function main() {
       ex: exampleTrimmed,
       exBn: '',
       pron: pronunciations.get(head) ?? '',
+      ...enrichEntry(
+        { def: entry.def, ex: exampleTrimmed },
+        {
+          word: head,
+          pos,
+          senses: wordNet.senses,
+          examples: synset ? [wordNet.examples.get(synset) ?? ''] : [],
+          bandList,
+          overrides: { ...(enrichmentOverrides[head] ?? {}), ...(curated[head] ?? {}) },
+        },
+      ),
     }
   }
 
@@ -377,6 +398,9 @@ async function main() {
       return romanOf(source, alt)
     })
     table[head] = {
+      // Preserve the generated enrichment fields; the explicit values below
+      // still win over everything in `base`.
+      ...(base ?? {}),
       bn: primary,
       bnAlts: alts,
       trans,
@@ -388,6 +412,18 @@ async function main() {
       ex: value.ex ?? base.ex ?? '',
       exBn: value.exBn ?? base.exBn ?? '',
       pron: value.pron ?? base.pron ?? pronunciations.get(head) ?? '',
+      // Curated-only headwords never pass through the generated loop above.
+      ...enrichEntry(
+        { def: value.def ?? base.def ?? '', ex: value.ex ?? base.ex ?? '' },
+        {
+          word: head,
+          pos: POS_TO_WORDNET[(value.pos ?? '').split(' ')[0]] ?? null,
+          senses: wordNet.senses,
+          examples: [],
+          bandList,
+          overrides: { ...(enrichmentOverrides[head] ?? {}), ...value },
+        },
+      ),
     }
   }
 
@@ -406,6 +442,9 @@ async function main() {
     ex: [],
     exBn: [],
     pron: [],
+    formalMeaning: [], conversationalMeaning: [], exampleFormal: [],
+    exampleConversational: [], collocations: [], wordFamily: [],
+    bandLevel: [], commonMistake: [],
   }
   for (const head of heads) {
     const entry = table[head]
@@ -420,6 +459,10 @@ async function main() {
     columns.ex.push(entry.ex)
     columns.exBn.push(entry.exBn ?? '')
     columns.pron.push(entry.pron)
+    for (const column of NEW_COLUMNS) {
+      const value = entry[column]
+      columns[column].push(Array.isArray(value) ? value.join(SEP) : (value ?? ''))
+    }
   }
 
   const dataset = { v: FORMAT_VERSION, ...columns }

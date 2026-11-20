@@ -18,7 +18,7 @@ import {
 import { loadOfflineDictionary } from '../providers/offline/loader'
 import { tryLoadBanglaDictionary } from '../providers/offline/bn-loader'
 import { toOfflineEntryPayload } from '../providers/offline/bn-dataset'
-import { isBengali } from '../providers/offline/dataset'
+import { decodeWordFamily, isBengali } from '../providers/offline/dataset'
 import { seedProviderSettings } from '../storage/seed'
 import { isSupportedPair, loadLanguagePair } from '../storage/languages'
 import { contentScriptFiles } from './content-script'
@@ -149,15 +149,19 @@ async function handleOfflineLookup(
     // The word the user typed is the Bengali word. The entry's primary
     // meaning may be a different spelling of the same word, so the matched
     // spelling and its romanization are returned instead.
-    return { ok: true, result: { ...hit.entry, bn: hit.bengali, trans: hit.roman }, via: 'bengali' }
+    return {
+      ok: true,
+      result: { ...hit.entry, bn: hit.bengali, trans: hit.roman, wordFamily: decodeWordFamily(hit.entry.wordFamily) },
+      via: 'bengali',
+    }
   }
   const english = dictionary.lookupEnglish(msg.query)
   if (english) {
-    return { ok: true, result: { ...english }, via: 'english' }
+    return { ok: true, result: { ...english, wordFamily: decodeWordFamily(english.wordFamily) }, via: 'english' }
   }
   const roman = dictionary.lookupRoman(msg.query)
   if (roman) {
-    return { ok: true, result: { ...roman.entry }, via: 'roman' }
+    return { ok: true, result: { ...roman.entry, wordFamily: decodeWordFamily(roman.entry.wordFamily) }, via: 'roman' }
   }
   return { ok: true, result: null, via: 'english' }
 }

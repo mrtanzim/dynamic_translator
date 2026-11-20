@@ -40,6 +40,15 @@ export function decodeWordFamily(value) {
   return out
 }
 
+/** Normalizes both WordNet sense shapes: array of {pos} or Map<pos, …>. */
+function sensesFor(senses, word) {
+  const value = senses.get(word.toLowerCase())
+  if (!value) return []
+  if (typeof value.some === 'function') return value
+  if (value instanceof Map) return [...value.keys()].map((pos) => ({ pos }))
+  return []
+}
+
 const RULES = [
   ['adj', 'noun', /ant$/, 'ance'],
   ['adj', 'noun', /ent$/, 'ence'],
@@ -57,7 +66,7 @@ const RULES = [
 /** Derives related forms, keeping only those WordNet knows. */
 export function deriveWordFamily(word, pos, senses) {
   const known = (candidate, target) =>
-    !!candidate && (senses.get(candidate.toLowerCase()) ?? []).some((s) => s.pos === target)
+    !!candidate && sensesFor(senses, candidate).some((s) => s.pos === target)
   const family = {}
   for (const [from, to, pattern, replacement] of RULES) {
     if (from !== pos || !pattern.test(word) || family[to]) continue
@@ -94,7 +103,7 @@ export function deriveCollocations(word, examples) {
 export function estimateBand(word, bandList, senses) {
   const listed = bandList.get(word.toLowerCase())
   if (listed) return listed
-  const count = (senses.get(word.toLowerCase()) ?? []).length
+  const count = sensesFor(senses, word).length
   if (count >= 6) return '8.0'
   if (count >= 4) return '7.5'
   if (count >= 2) return '7.0'
