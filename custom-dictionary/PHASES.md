@@ -134,6 +134,18 @@
 
 ---
 
+## Phase 9 — AI-style fields offline (2026-11-20)
+
+- [x] shared enricher + hand-authored IELTS band list with attribution
+- [x] English-first builder → v5 with eight new columns
+- [x] Bengali-first builder → v2 with eight new columns
+- [x] package runtimes and extension coordinator map all fields
+- [x] tests: schema, enricher, builders, runtimes, coordinator, UI
+- [ ] licensed corpus for better collocations
+- [ ] official-source band verification
+
+---
+
 ## Micro-Task Execution Rule
 
 When an AI is asked to work on this project:

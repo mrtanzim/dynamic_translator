@@ -155,6 +155,19 @@ The Bengali-first runtime files (`src/bn-types.ts`, `src/bn-indexer.ts`,
 `src/bn-lookup.ts`) live alongside the English-first ones; the extension mirrors
 the indexer under `src/providers/offline/bn-dataset.ts`.
 
+## AI-style fields offline
+
+Both datasets now carry the eight fields the AI providers emit: band level,
+collocations, word family, common mistake, formal/conversational meanings and
+formal/conversational examples. They are generated at build time by
+`../../scripts/lib/enrichment.mjs` from WordNet data and the hand-authored
+IELTS band list `../../scripts/data/cefr-bands.json` (attribution: "not an
+official Cambridge score"). Curated overrides in `src/dictionary/curated.json`
+and `data/bn/*.json` always win. No runtime network call, no ML model. Some
+fields may be empty for rare words — they are best-effort, not fabricated.
+
+Artifact versions: English-first `v5`, Bengali-first `v2`.
+
 ## Adding a new language
 
 1. Add a source loader in `scripts/lib/` (similar to `bengali.mjs`)

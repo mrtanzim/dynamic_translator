@@ -201,6 +201,21 @@
   cleared at the start of a new search. This keeps a provider failure visible
   even when the provisional offline answer arrives afterwards.
 
+## AI-style fields offline (2026-11-20)
+- Every field the AI providers emit is now produced by the offline datasets:
+  collocations, word family, band level, common mistake, formal and
+  conversational meanings, and formal/conversational examples.
+- English-first dataset is v5, Bengali-first is v2; both carry the same eight
+  columns. A shared build-time `scripts/lib/enrichment.mjs` generates them from
+  WordNet senses/examples plus a hand-authored IELTS band list; curated values
+  win. No runtime network and no ML model.
+- The band list is hand-authored from standard IELTS vocabulary — attribution:
+  "not an official Cambridge score". Some fields are best-effort and may be
+  empty for rare words (especially `commonMistake`).
+- The result card now renders `formalMeaning`, `conversationalMeaning` and
+  `usageNote`; the other five already had cards. Offline remains provisional
+  and ranks below every provider result.
+
 ## Next step
 - Manual Chrome verification of the built extension, including a Bengali script
   query and a Banglish query with the language pair pinned to `bn→en`.

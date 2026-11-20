@@ -32,6 +32,27 @@
 
 ---
 
+# MEMORY.md — Custom Dictionary Package System (current status)
+
+## AI-style fields offline (2026-11-20)
+- English-first is now **v5**, Bengali-first **v2**; both add eight columns:
+  formal/conversational meanings and examples, collocations, word family,
+  band level, common mistake.
+- Decision: a shared build-time `scripts/lib/enrichment.mjs` generates them
+  from WordNet (collocations from examples, word family from derivation rules
+  verified against senses), a hand-authored IELTS band list with attribution,
+  and curated overrides that win. No runtime network, no ML model.
+- Decision: `wordFamily` is `role:value` pairs joined with U+0001; collocations
+  are U+0001-joined. Schema readers tolerate absent columns in hand-built test
+  fixtures but reject wrong-length ones.
+- Bug fixed: curated-only headwords (e.g. "reluctant") needed enrichment in the
+  curated branch too; otherwise their rich fields stayed empty.
+- Bug fixed: the collocations column was written as a nested array; it must be
+  SEP-joined text for the runtime `splitColumn`.
+- Next: licensed corpus for collocations; official-source band verification.
+
+---
+
 // # MEMORY.md — Custom Dictionary Package System
 //
 // Persistent scratchpad for the Custom Dictionary Package System. Any AI

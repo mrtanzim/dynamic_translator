@@ -107,3 +107,16 @@ added:
 ---
 
 *Last updated: 2026-11-20*
+
+## 9. AI-style fields offline (2026-11-20)
+
+Both dataset formats were extended with the eight fields the AI providers emit:
+`formalMeaning`, `conversationalMeaning`, `exampleFormal`,
+`exampleConversational`, `collocations`, `wordFamily`, `bandLevel` and
+`commonMistake`. English-first is v5, Bengali-first is v2.
+
+The fields are generated at build time by `scripts/lib/enrichment.mjs` from
+WordNet senses and examples, a hand-authored IELTS band list
+(`scripts/data/cefr-bands.json`, attribution: "not an official Cambridge
+score"), and curated overrides (which always win). There is no runtime network
+call and no ML model; quality is best-effort for words without curated data.

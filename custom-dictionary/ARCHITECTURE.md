@@ -215,3 +215,19 @@ dataset is best-effort: the English-first path and AI providers are unaffected.
 ---
 
 *Last updated: 2026-11-20*
+
+## 10. Enriched dataset schemas
+
+- English-first `scripts/builders/columnar.ts`: `DATASET_VERSION = 5`.
+- Bengali-first `src/bn-types.ts`: `BN_DATASET_VERSION = 2`.
+- Both add eight columns: `formalMeaning`, `conversationalMeaning`,
+  `exampleFormal`, `exampleConversational`, `collocations` (U+0001-joined),
+  `wordFamily` (`role:value` pairs joined with U+0001), `bandLevel`,
+  `commonMistake`.
+- `scripts/lib/enrichment.mjs` is imported by the root builder and
+  `scripts/build-dict.ts`; it reads `scripts/data/cefr-bands.json` and
+  `scripts/data/enrichment-overrides.json`. It normalizes both WordNet sense
+  shapes (array of `{pos}` and `Map<pos, …>`).
+- `bn-schema.ts`, `bn-invert.ts`, `bn-indexer.ts` and `bn-lookup.ts` carry the
+  fields through; the extension mirrors them in
+  `src/providers/offline/{dataset,bn-dataset}.ts` and `coordinator.ts`.

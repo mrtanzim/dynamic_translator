@@ -105,3 +105,14 @@
 - [ ] wider licensed Bengali corpus with Bengali examples for every entry
 - [ ] more idioms and greetings verified by native speakers
 
+## Phase 12 AI-style fields offline (2026-11-20)
+- [x] shared build-time enricher (collocations, word family, band, mistake, register variants)
+- [x] hand-authored IELTS band list with attribution; no runtime network
+- [x] English-first dataset v5 with eight new columns (both builders)
+- [x] Bengali-first dataset v2 with the same eight columns
+- [x] service worker and coordinator map all fields for both directions
+- [x] result card renders formal meaning, conversational meaning and usage note
+- [x] tests: enricher, v5/v2 schemas, both builders, both runtimes, coordinator, UI
+- [ ] improve generated collocation quality with a licensed corpus
+- [ ] verify band levels against an official source
+
