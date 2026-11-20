@@ -3,7 +3,7 @@ import { groqLookup } from '../providers/groq'
 import { listGroqModels } from '../providers/groq/models'
 import { openRouterLookup } from '../providers/openrouter'
 import type { ProviderId } from '../storage/settings'
-import type { LookupResult } from '../shared/types'
+import type { LookupDirection, LookupResult } from '../shared/types'
 
 export const LOOKUP_MESSAGE = 'VOCABFLOW_AI_LOOKUP'
 export const OFFLINE_LOOKUP_MESSAGE = 'VOCABFLOW_OFFLINE_LOOKUP'
@@ -44,12 +44,16 @@ export interface OfflineEntryPayload {
   exBn?: string
   /** Pronunciation guide (IPA). */
   pron: string
+  /** Register / idiom note, present on Bengali-first results. */
+  usageNote?: string
 }
 
 export interface OfflineLookupRequest {
   type: typeof OFFLINE_LOOKUP_MESSAGE
   query: string
   isBengali: boolean
+  /** Resolved direction; needed for Banglish queries where isBengali is false. */
+  direction?: LookupDirection
 }
 
 export type OfflineLookupMatch = 'english' | 'bengali' | 'roman'

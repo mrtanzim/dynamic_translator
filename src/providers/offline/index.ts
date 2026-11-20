@@ -13,6 +13,7 @@ import {
   type SuggestionPayload,
   type SuggestResponse,
 } from '../bridge'
+import type { LookupDirection } from '../../shared/types'
 
 export {
   isBengali,
@@ -40,6 +41,7 @@ function isContextInvalid(err: unknown): boolean {
 export async function offlineLookupWithMatch(
   query: string,
   bengali = false,
+  direction?: LookupDirection,
 ): Promise<{ entry: OfflineEntryPayload | null; via: OfflineLookupMatch | undefined }> {
   try {
     if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {
@@ -49,6 +51,7 @@ export async function offlineLookupWithMatch(
       type: OFFLINE_LOOKUP_MESSAGE,
       query,
       isBengali: bengali,
+      direction,
     })) as OfflineLookupResponse | undefined
     if (!response) return { entry: null, via: undefined }
     if (!response.ok) throw new Error(response.error)
@@ -62,8 +65,9 @@ export async function offlineLookupWithMatch(
 export async function offlineLookup(
   query: string,
   bengali = false,
+  direction?: LookupDirection,
 ): Promise<OfflineEntryPayload | null> {
-  return (await offlineLookupWithMatch(query, bengali)).entry
+  return (await offlineLookupWithMatch(query, bengali, direction)).entry
 }
 
 /**
@@ -74,8 +78,9 @@ export async function offlineLookup(
  */
 export async function offlineBengaliLookup(
   query: string,
+  direction?: LookupDirection,
 ): Promise<{ headword: string; entry: OfflineEntryPayload; roman: string } | null> {
-  const entry = await offlineLookup(query, true)
+  const entry = await offlineLookup(query, true, direction)
   return entry ? { headword: entry.headword, entry, roman: entry.trans } : null
 }
 
