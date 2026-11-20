@@ -787,7 +787,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                       )}
 
                       {/* Register-specific meanings and usage guidance */}
-                      {result.formalMeaning && (settings.showFormalMeaning ?? true) && (
+                      {result.formalMeaning && result.formalMeaning !== result.englishDefinition && (settings.showFormalMeaning ?? true) && (
                         <div className="register-card">
                           <div className="card-label">Formal</div>
                           <div className="register-text">{result.formalMeaning}</div>
@@ -898,6 +898,9 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                                     : result.query
                                 )}
                               </div>
+                            )}
+                            {result.exampleFormal && !result.exampleEn && !result.exampleConversational && (
+                              <div className="example-en">{result.exampleFormal}</div>
                             )}
                             {result.exampleBn && (
                               <div className="example-bn bn">{result.exampleBn}</div>

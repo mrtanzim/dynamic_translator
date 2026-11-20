@@ -15,6 +15,16 @@ import { fileURLToPath } from 'node:url'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
 
+/** Maps a human-readable curated POS to a WordNet POS code. */
+function curatedWordnetPos(pos: string): string | null {
+  const raw = pos.toLowerCase()
+  if (raw.startsWith('adject')) return 'adj'
+  if (raw.startsWith('adverb')) return 'adv'
+  if (raw.startsWith('noun') || raw.startsWith('proper')) return 'noun'
+  if (raw.startsWith('verb')) return 'verb'
+  return null
+}
+
 import { loadBengaliDictionary, selectVocabulary } from './lib/bengali.mjs'
 import { loadWordNet } from './lib/wordnet.mjs'
 import { loadPronunciations } from './lib/pronunciation.mjs'
@@ -82,6 +92,13 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
   for (const [headword, entry] of selected) {
     const wnPos = posToWordnet(entry.pos[0] ?? '') ?? null
 
+    // The first synset of the right part of speech that carries an example
+    // gives the enricher real collocations and conversational examples.
+    const exampleKey = wnPos
+      ? (wordnet.senses.get(headword)?.get(wnPos) ?? []).find((key) => wordnet.examples.get(key))
+      : undefined
+    const example = exampleKey ? (wordnet.examples.get(exampleKey) ?? '') : ''
+
     // Collect synonyms and antonyms using the relations builder
     const syn = wnPos
       ? getSynonyms(wordnet, headword, wnPos).slice(0, LIMITS.synonyms)
@@ -112,16 +129,16 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
       pos: entry.pos.slice(0, 3).join('/'),
       syn,
       ant,
-      ex: '',
+      ex: example,
       exBn: '',
       pron,
       ...enrichEntry(
-        { def: entry.def ?? '', ex: '' },
+        { def: entry.def ?? '', ex: example },
         {
           word: headword,
           pos: wnPos,
           senses: wordnet.senses,
-          examples: [],
+          examples: example ? [example] : [],
           bandList,
           overrides: {
             ...(enrichmentOverrides[headword] ?? {}),
@@ -154,6 +171,21 @@ export async function buildDictionary(options: BuildOptions): Promise<BuildResul
       ex:       (value.ex      ?? existing?.ex      ?? '').slice(0, LIMITS.example),
       exBn:     value.exBn     ?? existing?.exBn     ?? '',
       pron:     value.pron     ?? existing?.pron     ?? '',
+      // Curated-only headwords never pass through the generated loop above.
+      ...enrichEntry(
+        { def: value.def ?? existing?.def ?? '', ex: value.ex ?? existing?.ex ?? '' },
+        {
+          word: headword,
+          pos: curatedWordnetPos(value.pos ?? existing?.pos ?? ''),
+          senses: wordnet.senses,
+          examples: (value.ex ?? existing?.ex) ? [value.ex ?? existing?.ex ?? ''] : [],
+          bandList,
+          overrides: {
+            ...(enrichmentOverrides[headword] ?? {}),
+            ...(value as Record<string, unknown>),
+          },
+        },
+      ),
     })
   }
 

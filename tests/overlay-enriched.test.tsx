@@ -25,17 +25,21 @@ const RESULT = {
   formalMeaning: 'Unwilling to do something.',
   conversationalMeaning: 'Not keen on it.',
   usageNote: 'Prefer "reluctant to" in IELTS writing.',
+  exampleFormal: 'A formal example sentence.',
 }
+
+let currentResult = RESULT
 
 const sendMessage = vi.fn()
 
 beforeEach(() => {
+  currentResult = RESULT
   sendMessage.mockReset()
   ;(globalThis as unknown as { chrome: unknown }).chrome = {
     runtime: {
       sendMessage: (req: { type?: string }) => {
         if (req.type === 'VOCABFLOW_SEED') return Promise.resolve({ ok: true })
-        if (req.type === 'VOCABFLOW_OFFLINE_LOOKUP') return Promise.resolve({ ok: true, result: RESULT, via: 'english' })
+        if (req.type === 'VOCABFLOW_OFFLINE_LOOKUP') return Promise.resolve({ ok: true, result: currentResult, via: 'english' })
         if (req.type === 'VOCABFLOW_SUGGEST') return Promise.resolve({ ok: true, suggestions: [] })
         return new Promise(() => {})
       },
@@ -60,5 +64,16 @@ describe('enriched result cards', () => {
     await screen.findByText(/Unwilling to do something/)
     expect(screen.getByText(/Not keen on it/)).toBeTruthy()
     expect(screen.getByText(/Prefer "reluctant to"/)).toBeTruthy()
+    expect(screen.getByText(/A formal example sentence/)).toBeTruthy()
+  })
+
+  it('does not show a Formal card when the formal meaning just repeats the definition', async () => {
+    currentResult = { ...RESULT, formalMeaning: RESULT.def }
+    render(<Overlay onClose={vi.fn()} />)
+    const input = screen.getByPlaceholderText('Search any word')
+    fireEvent.change(input, { target: { value: 'reluctant' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await screen.findByText(/Not keen on it/)
+    expect(screen.queryByText('Formal')).toBeNull()
   })
 })
