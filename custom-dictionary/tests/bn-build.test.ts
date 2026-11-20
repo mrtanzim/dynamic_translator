@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { applyBengaliOverrides, loadBengaliOverrides } from '../scripts/builders/bn-curated.ts'
 import { invertEnglishDataset } from '../scripts/builders/bn-invert.ts'
@@ -40,7 +41,7 @@ describe('Bengali dataset build', () => {
   })
 
   it('idiom override sets the natural English primary answer and literal in enAlt', () => {
-    const overrides = loadBengaliOverrides('data/bn')
+    const overrides = loadBengaliOverrides(fileURLToPath(new URL('../data/bn', import.meta.url)))
     const idiom = overrides.get('কি খবর')
     expect(idiom?.en).toBe('How are you?')
     expect(idiom?.enAlt).toContain('What is the news?')
