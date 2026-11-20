@@ -25,7 +25,7 @@ describe('Japanese builder output', () => {
   })
 
   it('has no non-Latin romaji strings', () => {
-    const bad = dataset.romaji.filter((r) => /[^\x00-\x7f]/.test(r))
+    const bad = dataset.romaji.filter((r) => [...r].some((ch) => ch.charCodeAt(0) > 127))
     expect(bad.length).toBe(0)
   })
 })
