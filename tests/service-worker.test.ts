@@ -36,9 +36,26 @@ vi.mock('../src/providers/offline/loader', () => ({
   })),
 }))
 
+vi.mock('../src/providers/offline/bn-loader', () => {
+  const bnEntry = {
+    bengali: 'কি খবর', roman: 'ki khobor', romanAlt: [], en: 'How are you?', enAlt: [],
+    defBn: '', defEn: 'A casual greeting', pos: 'phrase', synEn: ['How are you doing?'],
+    antEn: [], exBn: 'কি খবর?', exEn: 'How are you?', pron: '', usage: 'Casual greeting',
+  }
+  return {
+    BN_DATASET_PATH: 'dictionary.bn.json.gz',
+    tryLoadBanglaDictionary: vi.fn(async () => ({
+      lookup: (query: string) =>
+        query === 'কি খবর' || query === 'ki khobor' ? bnEntry : null,
+      suggestions: (query: string) =>
+        query.startsWith('ক') ? [{ word: 'কি খবর', headword: 'How are you?', bengali: true, hint: 'How are you?' }] : [],
+    })),
+  }
+})
+
 /** A message listener as the service worker registers it. */
 type MessageListener = (
-  msg: { type?: string; query?: string; limit?: number },
+  msg: { type?: string; query?: string; limit?: number; direction?: 'bn-en' | 'en-bn'; isBengali?: boolean },
   sender: unknown,
   respond: (r: unknown) => void,
 ) => boolean
@@ -95,7 +112,7 @@ function installChrome(options: {
     executeScript,
     reload,
     /** Sends a message to the service worker and waits for the answer. */
-    ask: async (msg: { type?: string; query?: string; limit?: number }) => {
+    ask: async (msg: { type?: string; query?: string; limit?: number; direction?: 'bn-en' | 'en-bn'; isBengali?: boolean }) => {
       const respond = vi.fn()
       for (const listener of messageListeners) {
         if (listener(msg, {}, respond)) break
@@ -182,5 +199,54 @@ describe('action click handler', () => {
     expect(chromeMock.sendMessage).not.toHaveBeenCalled()
     expect(chromeMock.executeScript).not.toHaveBeenCalled()
     expect(chromeMock.reload).not.toHaveBeenCalled()
+  })
+})
+
+describe('Bengali-first offline lookup', () => {
+  it('answers a pinned bn→en query from the Bengali dataset', async () => {
+    const chromeMock = installChrome({})
+    await loadServiceWorker()
+
+    const response = await chromeMock.ask({
+      type: OFFLINE_LOOKUP_MESSAGE,
+      query: 'কি খবর',
+      isBengali: true,
+      direction: 'bn-en',
+    })
+
+    expect(response.ok).toBe(true)
+    expect(response.result.headword).toBe('How are you?')
+    expect(response.result.syn).toEqual(['How are you doing?'])
+    expect(response.result.exBn).toBe('কি খবর?')
+  })
+
+  it('answers a Banglish query when direction is pinned to bn→en', async () => {
+    const chromeMock = installChrome({})
+    await loadServiceWorker()
+
+    const response = await chromeMock.ask({
+      type: OFFLINE_LOOKUP_MESSAGE,
+      query: 'ki khobor',
+      isBengali: false,
+      direction: 'bn-en',
+    })
+
+    expect(response.result.headword).toBe('How are you?')
+  })
+
+  it('falls back to the English dictionary when the Bengali dataset is unavailable', async () => {
+    const { tryLoadBanglaDictionary } = await import('../src/providers/offline/bn-loader')
+    vi.mocked(tryLoadBanglaDictionary).mockResolvedValueOnce(null)
+    const chromeMock = installChrome({})
+    await loadServiceWorker()
+
+    const response = await chromeMock.ask({
+      type: OFFLINE_LOOKUP_MESSAGE,
+      query: 'বই',
+      isBengali: true,
+      direction: 'bn-en',
+    })
+
+    expect(response.result.headword).toBe('book')
   })
 })

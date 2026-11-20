@@ -16,6 +16,9 @@ import {
   type SuggestResponse,
 } from '../providers/bridge'
 import { loadOfflineDictionary } from '../providers/offline/loader'
+import { tryLoadBanglaDictionary } from '../providers/offline/bn-loader'
+import { toOfflineEntryPayload } from '../providers/offline/bn-dataset'
+import { isBengali } from '../providers/offline/dataset'
 import { seedProviderSettings } from '../storage/seed'
 import { contentScriptFiles } from './content-script'
 
@@ -120,10 +123,24 @@ chrome.runtime.onMessage.addListener(
   },
 )
 
-/** Resolves a query against the offline dictionary. */
+/** Resolves a query against the Bengali-first or English-first dictionary. */
 async function handleOfflineLookup(
   msg: OfflineLookupRequest,
 ): Promise<OfflineLookupResponse> {
+  // A pinned bn→en pair can produce Latin-script Banglish, so direction is the
+  // primary signal. isBengali is kept for callers that do not send direction.
+  if (msg.direction === 'bn-en' || msg.isBengali) {
+    const bn = await tryLoadBanglaDictionary()
+    if (bn) {
+      const hit = bn.lookup(msg.query)
+      if (hit) {
+        return { ok: true, result: toOfflineEntryPayload(hit), via: 'bengali' }
+      }
+    }
+    // Fall through: a word missing from the BN dataset still gets the old
+    // reverse lookup, so the new package never makes a query fail.
+  }
+
   const dictionary = await loadOfflineDictionary()
   if (msg.isBengali) {
     const hit = dictionary.lookupBengali(msg.query)
@@ -144,8 +161,14 @@ async function handleOfflineLookup(
   return { ok: true, result: null, via: 'english' }
 }
 
-/** Suggests the dictionary words that match a partially typed query. */
+/** Suggests dictionary words; Bengali/Banglish input uses the BN dataset. */
 async function handleSuggest(msg: SuggestRequest): Promise<SuggestResponse> {
+  if (isBengali(msg.query)) {
+    const bn = await tryLoadBanglaDictionary()
+    if (bn) {
+      return { ok: true, suggestions: bn.suggestions(msg.query, msg.limit ?? 8) }
+    }
+  }
   const dictionary = await loadOfflineDictionary()
   return { ok: true, suggestions: dictionary.suggest(msg.query, msg.limit ?? 8) }
 }
