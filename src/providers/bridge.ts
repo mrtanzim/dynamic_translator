@@ -55,6 +55,10 @@ export interface OfflineEntryPayload {
   wordFamily?: { noun?: string; verb?: string; adj?: string; adv?: string }
   bandLevel?: string
   commonMistake?: string
+  /** Japanese fields (present only on JA-backed results). */
+  kana?: string
+  romaji?: string
+  exampleJa?: string
 }
 
 export interface OfflineLookupRequest {
@@ -65,7 +69,7 @@ export interface OfflineLookupRequest {
   direction?: LookupDirection
 }
 
-export type OfflineLookupMatch = 'english' | 'bengali' | 'roman'
+export type OfflineLookupMatch = 'english' | 'bengali' | 'roman' | 'japanese'
 
 export type OfflineLookupResponse =
   | { ok: true; result: OfflineEntryPayload | null; via?: OfflineLookupMatch }

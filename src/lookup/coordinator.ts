@@ -2,9 +2,12 @@ import {
   isBengali,
   normalize,
   offlineBengaliLookup,
+  offlineJapaneseLookup,
   offlineLookupWithMatch,
   type OfflineEntryPayload,
 } from '../providers/offline'
+import { isJapanese } from '../providers/offline/ja-dataset'
+import { decodeWordFamily } from '../providers/offline/dataset'
 import {
   LOOKUP_MESSAGE,
   SEED_MESSAGE,
@@ -167,7 +170,38 @@ export class LookupCoordinator {
       let payload: OfflineEntryPayload | null = null
       let roman = ''
       let via: OfflineLookupMatch | undefined
-      if (useBengaliDataset) {
+      if (direction === 'ja-en' || direction === 'en-ja') {
+        const ja = await offlineJapaneseLookup(query, direction)
+        if (ja) {
+          payload = {
+            headword: ja.en,
+            bn: ja.surface,
+            bnAlts: [],
+            trans: ja.romaji,
+            transAlts: [],
+            def: ja.en,
+            pos: ja.pos,
+            syn: ja.synEn,
+            ant: ja.antEn,
+            ex: ja.exampleEn,
+            exBn: ja.exampleJa,
+            pron: '',
+            kana: ja.kana,
+            romaji: ja.romaji,
+            exampleJa: ja.exampleJa,
+            formalMeaning: ja.formalMeaning,
+            conversationalMeaning: ja.conversationalMeaning,
+            exampleFormal: ja.exampleFormal,
+            exampleConversational: ja.exampleConversational,
+            collocations: ja.collocations,
+            wordFamily: decodeWordFamily(ja.wordFamily),
+            bandLevel: ja.bandLevel,
+            commonMistake: ja.commonMistake,
+          }
+          roman = ja.romaji
+          via = 'japanese'
+        }
+      } else if (useBengaliDataset) {
         const hit = await offlineBengaliLookup(query, direction)
         payload = hit?.entry ?? null
         roman = hit?.roman ?? ''
@@ -231,6 +265,7 @@ export class LookupCoordinator {
     //    asynchronous: its result is emitted as soon as it arrives, without
     //    waiting for the AI providers.
     const bengaliInput = isBengali(query)
+    const japaneseInput = isJapanese(query)
 
     // The seed handshake is dispatched first (without awaiting it) so that the
     // service worker applies the first-run seed while the offline lookup is
@@ -244,7 +279,12 @@ export class LookupCoordinator {
     // misclassify a Banglish word as an English headword.
     const [cfg, pair] = await Promise.all([settingsPromise, pairPromise])
     const pinnedToBengali = isSupportedPair(pair) && pair.source === 'bn' && pair.target === 'en'
-    let direction: LookupDirection = bengaliInput || pinnedToBengali ? 'bn-en' : 'en-bn'
+    const pinnedJaEn = isSupportedPair(pair) && pair.source === 'ja' && pair.target === 'en'
+    const pinnedEnJa = isSupportedPair(pair) && pair.source === 'en' && pair.target === 'ja'
+    let direction: LookupDirection
+    if (japaneseInput || pinnedJaEn) direction = 'ja-en'
+    else if (pinnedEnJa) direction = 'en-ja'
+    else direction = bengaliInput || pinnedToBengali ? 'bn-en' : 'en-bn'
 
     // A single offline round trip serves two purposes: it produces the
     // provisional result and it resolves the canonical headword. The headword
@@ -291,6 +331,9 @@ export class LookupCoordinator {
         pronunciation: source.pron || undefined,
         partOfSpeech: source.pos || undefined,
         usageNote: source.usageNote || undefined,
+        kana: source.kana,
+        romaji: source.romaji,
+        exampleJa: source.exampleJa,
         conversationalMeaning: source.conversationalMeaning,
         exampleFormal: source.exampleFormal,
         collocations: source.collocations,

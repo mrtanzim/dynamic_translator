@@ -28,7 +28,7 @@ export const POPULAR_LANGUAGES: ReadonlyArray<{ code: LanguageCode; label: strin
   { code: 'es', label: 'Spanish' },
   { code: 'fr', label: 'French' },
   { code: 'de', label: 'German' },
-  { code: 'ja', label: 'Japanese' },
+  { code: 'ja', label: '日本語 / Japanese' },
   { code: 'ko', label: 'Korean' },
   { code: 'zh', label: 'Chinese' },
   { code: 'pt', label: 'Portuguese' },
@@ -42,8 +42,8 @@ export const LANGUAGE_PAIR_KEY = 'vocabflow.languages'
 
 export function isSupportedPair(pair: LanguagePair): boolean {
   return (
-    (pair.source === 'en' && pair.target === 'bn') ||
-    (pair.source === 'bn' && pair.target === 'en')
+    (pair.source === 'en' && (pair.target === 'bn' || pair.target === 'ja')) ||
+    ((pair.source === 'bn' || pair.source === 'ja') && pair.target === 'en')
   )
 }
 

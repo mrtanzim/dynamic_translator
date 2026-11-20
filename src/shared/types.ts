@@ -1,6 +1,6 @@
 export type ResultSource = 'offline' | 'groq' | 'openrouter' | 'gemini'
 
-export type LookupDirection = 'en-bn' | 'bn-en'
+export type LookupDirection = 'en-bn' | 'bn-en' | 'en-ja' | 'ja-en'
 
 export interface LookupResult {
   /**
@@ -78,6 +78,12 @@ export interface LookupResult {
   }
   /** Common preposition or usage trap to avoid in IELTS. */
   commonMistake?: string
+  /** Japanese reading in kana. */
+  kana?: string
+  /** Japanese reading in Latin script. */
+  romaji?: string
+  /** Japanese example sentence. */
+  exampleJa?: string
   source: ResultSource
   requestId: string
   timestamp: number

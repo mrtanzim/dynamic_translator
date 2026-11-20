@@ -14,6 +14,12 @@ import {
   type SuggestResponse,
 } from '../bridge'
 import type { LookupDirection } from '../../shared/types'
+import {
+  JA_LOOKUP_MESSAGE,
+  type JaEntryPayload,
+  type JaLookupRequest,
+  type JaLookupResponse,
+} from '../bridge'
 
 export {
   isBengali,
@@ -93,6 +99,25 @@ export async function offlineBengaliLookup(
  * @param query  the partially typed word
  * @param limit  the maximum number of suggestions
  */
+/** Asks the service worker for a Japanese-first lookup. Best-effort. */
+export async function offlineJapaneseLookup(
+  query: string,
+  direction: LookupDirection,
+): Promise<JaEntryPayload | null> {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) return null
+    const request: JaLookupRequest = {
+      type: JA_LOOKUP_MESSAGE,
+      query,
+      direction: direction as 'ja-en' | 'en-ja',
+    }
+    const response = (await chrome.runtime.sendMessage(request)) as JaLookupResponse | undefined
+    return response?.ok ? response.result : null
+  } catch {
+    return null
+  }
+}
+
 export async function suggestWords(
   query: string,
   limit = 8,

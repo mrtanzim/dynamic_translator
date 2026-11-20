@@ -1,6 +1,8 @@
 import {
   LIST_MODELS_MESSAGE,
   LOOKUP_MESSAGE,
+  JA_LOOKUP_MESSAGE,
+  JA_SUGGEST_MESSAGE,
   OFFLINE_LOOKUP_MESSAGE,
   SEED_MESSAGE,
   SUGGEST_MESSAGE,
@@ -8,6 +10,10 @@ import {
   runListModels,
   runProviderLookup,
   type AiLookupRequest,
+  type JaLookupRequest,
+  type JaLookupResponse,
+  type JaSuggestRequest,
+  type JaSuggestResponse,
   type ListModelsRequest,
   type ListModelsResponse,
   type OfflineLookupRequest,
@@ -17,6 +23,7 @@ import {
 } from '../providers/bridge'
 import { loadOfflineDictionary } from '../providers/offline/loader'
 import { tryLoadBanglaDictionary } from '../providers/offline/bn-loader'
+import { loadJapaneseDictionary, tryLoadJapaneseDictionary } from '../providers/offline/ja-loader'
 import { toOfflineEntryPayload } from '../providers/offline/bn-dataset'
 import { decodeWordFamily, isBengali } from '../providers/offline/dataset'
 import { seedProviderSettings } from '../storage/seed'
@@ -95,6 +102,32 @@ chrome.runtime.onMessage.addListener(
       sendResponse({ ok: false, error: err instanceof Error ? err.message : String(err) }),
     )
     return true // async response
+  },
+)
+
+// Japanese lookups and suggestions use their own dataset in the worker.
+chrome.runtime.onMessage.addListener(
+  (msg: JaLookupRequest, _sender, sendResponse: (r: JaLookupResponse) => void) => {
+    if (msg?.type !== JA_LOOKUP_MESSAGE) return false
+    void (async () => {
+      const dict = await tryLoadJapaneseDictionary()
+      if (!dict) {
+        sendResponse({ ok: false, error: 'Japanese dictionary unavailable' })
+        return
+      }
+      const entry = msg.direction === 'en-ja' ? dict.lookupEnglish(msg.query) : dict.lookup(msg.query)
+      sendResponse({ ok: true, result: entry ? { ...entry } : null })
+    })()
+    return true
+  },
+)
+chrome.runtime.onMessage.addListener(
+  (msg: JaSuggestRequest, _sender, sendResponse: (r: JaSuggestResponse) => void) => {
+    if (msg?.type !== JA_SUGGEST_MESSAGE) return false
+    void loadJapaneseDictionary()
+      .then((dict) => sendResponse({ ok: true, suggestions: dict.suggestions(msg.query, msg.limit ?? 8) }))
+      .catch((err: unknown) => sendResponse({ ok: false, error: err instanceof Error ? err.message : String(err) }))
+    return true
   },
 )
 
