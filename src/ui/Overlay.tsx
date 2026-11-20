@@ -786,6 +786,23 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                         </div>
                       )}
 
+                      {/* Register-specific meanings and usage guidance */}
+                      {result.formalMeaning && (settings.showFormalMeaning ?? true) && (
+                        <div className="register-card">
+                          <div className="card-label">Formal</div>
+                          <div className="register-text">{result.formalMeaning}</div>
+                        </div>
+                      )}
+                      {result.conversationalMeaning && (settings.showConversationalMeaning ?? true) && (
+                        <div className="register-card">
+                          <div className="card-label">Conversational</div>
+                          <div className="register-text">{result.conversationalMeaning}</div>
+                        </div>
+                      )}
+                      {result.usageNote && (settings.showUsageNote ?? true) && (
+                        <div className="usage-note">{result.usageNote}</div>
+                      )}
+
                       {/* Discrete Definition Quality Badge without raw "groq" or "AI" text */}
                       <div
                         className={`enhanced-badge ${result.source === 'offline' ? 'offline' : ''}`}

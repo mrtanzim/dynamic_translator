@@ -12,6 +12,9 @@ export interface AppSettings {
   showWordFamily: boolean
   showCommonMistake: boolean
   showBandLevel: boolean
+  showFormalMeaning: boolean
+  showConversationalMeaning: boolean
+  showUsageNote: boolean
 }
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -25,6 +28,9 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   showWordFamily: true,
   showCommonMistake: true,
   showBandLevel: true,
+  showFormalMeaning: true,
+  showConversationalMeaning: true,
+  showUsageNote: true,
 }
 
 export const APP_SETTINGS_KEY = 'vocabflow.settings'

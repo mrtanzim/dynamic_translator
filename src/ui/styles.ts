@@ -720,6 +720,28 @@ export const OVERLAY_STYLES = `
   margin-bottom: 10px;
 }
 
+/* Register-specific meaning and usage guidance — DESIGN.md tokens */
+.register-card {
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 10px;
+  background: rgba(30, 41, 54, .82);
+}
+
+.register-text {
+  color: #f3f6fa;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.usage-note {
+  margin: 4px 0 8px;
+  color: #aab8c8;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 /* Subtle result source indicator (no raw "groq" or "AI" text shown) */
 .enhanced-badge {
   display: inline-flex;
