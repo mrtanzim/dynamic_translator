@@ -1,0 +1,22 @@
+{
+  "こんにちは": {
+    "en": "Hello",
+    "enAlt": ["Good afternoon", "Hi"],
+    "pos": "greeting",
+    "synEn": ["Hi", "Good afternoon"],
+    "exampleJa": "こんにちは、お元気ですか？",
+    "exampleEn": "Hello, how are you?",
+    "formalMeaning": "Hello (a standard daytime greeting)",
+    "conversationalMeaning": "Hi"
+  },
+  "ありがとう": {
+    "en": "Thank you",
+    "enAlt": ["Thanks"],
+    "pos": "phrase",
+    "synEn": ["Thanks", "Many thanks"],
+    "exampleJa": "助けてくれてありがとう。",
+    "exampleEn": "Thank you for helping me.",
+    "formalMeaning": "Thank you",
+    "conversationalMeaning": "Thanks"
+  }
+}
