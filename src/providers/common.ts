@@ -1,4 +1,4 @@
-import type { LookupResult, ResultSource } from '../shared/types'
+import type { LookupDirection, LookupResult, ResultSource } from '../shared/types'
 
 /**
  * The system prompt every provider uses.
@@ -68,7 +68,11 @@ Direction — the query may be English, Bengali script, or romanized Bengali (Ba
 - Bengali or Banglish query -> put the natural idiomatic English equivalent in englishHeadword (never a literal translation), use English in englishDefinition, Latin-script transcription, and provide the SAME detailed categories (definition, pronunciation, part of speech, synonyms, antonyms, collocations, word family, band level, common mistake, bilingual examples). Literal or alternative English renderings belong in synonyms.
 If unknown, use "" or []. Never invent.`
 
-export function buildUserPrompt(query: string, isBengaliInput: boolean): string {
+export function buildUserPrompt(query: string, direction: LookupDirection | boolean): string {
+  if (direction === 'ja-en' || direction === 'en-ja') {
+    return `Word: "${query}" — this is a Japanese lookup (${direction}). Put the natural English equivalent in englishHeadword, the reading in kana, the Latin spelling in romaji, and a Japanese example in exampleJa. Never give a literal word-by-word translation as the primary answer. Return every category you can support.`
+  }
+  const isBengaliInput = direction === 'bn-en' || direction === true
   const base = `Word: "${query}" — the query may be English, Bengali script, or romanized Bengali (Banglish). Detect the script yourself and follow the direction rules in the system prompt. Return every category you can support.`
   if (!isBengaliInput) return base
   // The primary answer is rendered from englishHeadword. Without this hint the
@@ -119,6 +123,9 @@ export function parseAiJson(text: string): Partial<LookupResult> | null {
       exampleConversational: str(obj.exampleConversational),
       exampleFormal: str(obj.exampleFormal),
       exampleBn: str(obj.exampleBn),
+      kana: str(obj.kana),
+      romaji: str(obj.romaji),
+      exampleJa: str(obj.exampleJa),
       partOfSpeech: str(obj.partOfSpeech),
     }
   } catch {
@@ -170,6 +177,9 @@ export function toResult(
     exampleConversational: parsed.exampleConversational,
     exampleFormal: parsed.exampleFormal,
     exampleBn: parsed.exampleBn,
+    kana: parsed.kana,
+    romaji: parsed.romaji,
+    exampleJa: parsed.exampleJa,
     partOfSpeech: parsed.partOfSpeech,
   }
 }

@@ -1,5 +1,5 @@
 import { buildUserPrompt, fetchWithTimeout, isValidResult, parseAiJson, SYSTEM_PROMPT, toResult } from '../common'
-import type { LookupResult } from '../../shared/types'
+import type { LookupDirection, LookupResult } from '../../shared/types'
 import type { ProviderConfig } from '../../storage/settings'
 
 const URL = 'https://api.groq.com/openai/v1/chat/completions'
@@ -9,6 +9,7 @@ export async function groqLookup(
   isBengaliInput: boolean,
   config: ProviderConfig,
   requestId: string,
+  direction?: LookupDirection,
 ): Promise<LookupResult> {
   const res = await fetchWithTimeout(URL, {
     method: 'POST',
@@ -22,7 +23,7 @@ export async function groqLookup(
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: buildUserPrompt(query, isBengaliInput) },
+        { role: 'user', content: buildUserPrompt(query, direction ?? isBengaliInput) },
       ],
     }),
   })

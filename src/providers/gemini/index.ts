@@ -1,5 +1,5 @@
 import { buildUserPrompt, fetchWithTimeout, isValidResult, parseAiJson, SYSTEM_PROMPT, toResult } from '../common'
-import type { LookupResult } from '../../shared/types'
+import type { LookupDirection, LookupResult } from '../../shared/types'
 import type { ProviderConfig } from '../../storage/settings'
 
 const URL_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
@@ -21,6 +21,7 @@ export async function geminiLookup(
   isBengaliInput: boolean,
   config: ProviderConfig,
   requestId: string,
+  direction?: LookupDirection,
 ): Promise<LookupResult> {
   const url = `${URL_BASE}/${encodeURIComponent(config.model)}:generateContent`
   const res = await fetchWithTimeout(url, {
@@ -33,7 +34,7 @@ export async function geminiLookup(
     },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [{ role: 'user', parts: [{ text: buildUserPrompt(query, isBengaliInput) }] }],
+      contents: [{ role: 'user', parts: [{ text: buildUserPrompt(query, direction ?? isBengaliInput) }] }],
       generationConfig: {
         // NOTE: `temperature`, `top_p` and `top_k` are intentionally absent.
         // The Gemini 3.x line deprecated them and answers with HTTP 400 when

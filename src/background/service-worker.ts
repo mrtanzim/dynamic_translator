@@ -87,7 +87,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 // Content Security Policy and CORS rules never block the API requests.
 chrome.runtime.onMessage.addListener((msg: AiLookupRequest, _sender, sendResponse) => {
   if (msg?.type !== LOOKUP_MESSAGE) return false
-  runProviderLookup(msg.provider, msg.query, msg.isBengali, msg.apiKey, msg.model, msg.requestId)
+  runProviderLookup(msg.provider, msg.query, msg.isBengali, msg.apiKey, msg.model, msg.requestId, msg.direction)
     .then((result) => sendResponse({ ok: true, result }))
     .catch((err: unknown) => sendResponse({ ok: false, error: err instanceof Error ? err.message : String(err) }))
   return true // async response

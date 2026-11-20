@@ -131,6 +131,7 @@ export class LookupCoordinator {
     apiKey: string,
     model: string,
     requestId: string,
+    direction: LookupDirection,
   ): Promise<LookupResult> {
     const request: AiLookupRequest = {
       type: LOOKUP_MESSAGE,
@@ -140,6 +141,7 @@ export class LookupCoordinator {
       model,
       apiKey,
       requestId,
+      direction,
     }
     const response = (await chrome.runtime.sendMessage(request).catch((err) => {
       if (String(err).includes('Extension context invalidated')) {
@@ -360,13 +362,13 @@ export class LookupCoordinator {
 
     const jobs: Array<{ id: ProviderId; run: () => Promise<LookupResult> }> = []
     if (cfg.groq.enabled && cfg.groq.apiKey) {
-      jobs.push({ id: 'groq', run: () => this.callProvider('groq', query, providerIsBengali, cfg.groq.apiKey, cfg.groq.model, requestId) })
+      jobs.push({ id: 'groq', run: () => this.callProvider('groq', query, providerIsBengali, cfg.groq.apiKey, cfg.groq.model, requestId, direction) })
     }
     if (cfg.openrouter.enabled && cfg.openrouter.apiKey) {
-      jobs.push({ id: 'openrouter', run: () => this.callProvider('openrouter', query, providerIsBengali, cfg.openrouter.apiKey, cfg.openrouter.model, requestId) })
+      jobs.push({ id: 'openrouter', run: () => this.callProvider('openrouter', query, providerIsBengali, cfg.openrouter.apiKey, cfg.openrouter.model, requestId, direction) })
     }
     if (cfg.gemini.enabled && cfg.gemini.apiKey) {
-      jobs.push({ id: 'gemini', run: () => this.callProvider('gemini', query, providerIsBengali, cfg.gemini.apiKey, cfg.gemini.model, requestId) })
+      jobs.push({ id: 'gemini', run: () => this.callProvider('gemini', query, providerIsBengali, cfg.gemini.apiKey, cfg.gemini.model, requestId, direction) })
     }
 
     if (jobs.length === 0) {

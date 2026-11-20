@@ -20,6 +20,7 @@ export interface AiLookupRequest {
   model: string
   apiKey: string
   requestId: string
+  direction?: LookupDirection
 }
 
 export type AiLookupResponse =
@@ -159,15 +160,16 @@ export async function runProviderLookup(
   apiKey: string,
   model: string,
   requestId: string,
+  direction?: LookupDirection,
 ): Promise<LookupResult> {
   const config = { apiKey, model, enabled: true }
   switch (provider) {
     case 'groq':
-      return groqLookup(query, isBengaliInput, config, requestId)
+      return groqLookup(query, isBengaliInput, config, requestId, direction)
     case 'openrouter':
-      return openRouterLookup(query, isBengaliInput, config, requestId)
+      return openRouterLookup(query, isBengaliInput, config, requestId, direction)
     case 'gemini':
-      return geminiLookup(query, isBengaliInput, config, requestId)
+      return geminiLookup(query, isBengaliInput, config, requestId, direction)
   }
 }
 
