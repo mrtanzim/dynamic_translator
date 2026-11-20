@@ -3,11 +3,15 @@ import { BanglaDictionary, toOfflineEntryPayload } from '../src/providers/offlin
 import type { BengaliDataset } from '../src/providers/offline/bn-dataset'
 
 const dataset: BengaliDataset = {
-  v: 1,
+  v: 2,
   headwords: ['বই'], roman: ['boi'], romanAlt: [''], en: ['book'], enAlt: ['volume'],
   defBn: ['পড়ার বই'], defEn: ['A written work'], pos: ['noun'],
   synEn: ['volume\u0001text'], antEn: [''], exBn: ['আমি বই পড়ি।'],
   exEn: ['I read a book.'], pron: ['/bʊk/'], usage: ['Everyday word'],
+  formalMeaning: ['a written work'], conversationalMeaning: ['a book'],
+  exampleFormal: ['I read a book.'], exampleConversational: ['Books are fun.'],
+  collocations: ['read a book'], wordFamily: ['noun:book'],
+  bandLevel: ['5.5'], commonMistake: [''],
 }
 
 describe('extension Bengali dataset', () => {

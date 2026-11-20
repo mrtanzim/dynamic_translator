@@ -41,6 +41,14 @@ export interface LookupResult {
   partOfSpeech?: string
   /** Register / literal-vs-idiomatic / usage note (Bengali-first results). */
   usageNote?: string
+  formalMeaning?: string
+  conversationalMeaning?: string
+  exampleFormal?: string
+  exampleConversational?: string
+  collocations?: string[]
+  wordFamily?: { noun?: string; verb?: string; adj?: string; adv?: string }
+  bandLevel?: string
+  commonMistake?: string
   /** Source of the result. */
   source: ResultSource
   /** Stable identity of this lookup action (shared by offline + AI results of one search). */

@@ -6,7 +6,7 @@
 export const BN_SEP = '\u0001'
 
 /** Version of the Bengali-first columnar dataset format. */
-export const BN_DATASET_VERSION = 1
+export const BN_DATASET_VERSION = 2
 
 /** A single Bengali-first dictionary entry. */
 export interface BengaliEntry {
@@ -38,6 +38,14 @@ export interface BengaliEntry {
   pron: string
   /** Register / literal-vs-idiomatic / usage note. */
   usage: string
+  formalMeaning: string
+  conversationalMeaning: string
+  exampleFormal: string
+  exampleConversational: string
+  collocations: string[]
+  wordFamily: string
+  bandLevel: string
+  commonMistake: string
 }
 
 /** Columnar dataset; every array shares the same index space. */
@@ -57,4 +65,12 @@ export interface BengaliDataset {
   exEn: string[]
   pron: string[]
   usage: string[]
+  formalMeaning: string[]
+  conversationalMeaning: string[]
+  exampleFormal: string[]
+  exampleConversational: string[]
+  collocations: string[]
+  wordFamily: string[]
+  bandLevel: string[]
+  commonMistake: string[]
 }

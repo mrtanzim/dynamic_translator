@@ -36,6 +36,14 @@ export function invertEnglishDataset(dataset: DictionaryDataset): BengaliEntry[]
           exEn: dataset.ex[i] ?? '',
           pron: dataset.pron[i] ?? '',
           usage: '',
+          formalMeaning: dataset.formalMeaning?.[i] ?? '',
+          conversationalMeaning: dataset.conversationalMeaning?.[i] ?? '',
+          exampleFormal: dataset.exampleFormal?.[i] ?? '',
+          exampleConversational: dataset.exampleConversational?.[i] ?? '',
+          collocations: split(dataset.collocations?.[i] ?? ''),
+          wordFamily: dataset.wordFamily?.[i] ?? '',
+          bandLevel: dataset.bandLevel?.[i] ?? '',
+          commonMistake: dataset.commonMistake?.[i] ?? '',
         }
         byBengali.set(bengali, entry)
         return

@@ -297,7 +297,8 @@ export class OfflineDictionary {
       'formalMeaning', 'conversationalMeaning', 'exampleFormal', 'exampleConversational',
       'collocations', 'wordFamily', 'bandLevel', 'commonMistake',
     ] as const) {
-      if (dataset[key].length !== n) {
+      const columnValue = (dataset as unknown as Record<string, unknown[]>)[key]
+      if (columnValue !== undefined && columnValue.length !== n) {
         throw new Error(`Dictionary dataset column "${key}" has the wrong length`)
       }
     }

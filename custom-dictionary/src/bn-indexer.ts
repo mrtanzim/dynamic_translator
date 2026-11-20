@@ -73,9 +73,14 @@ export class BanglaDictionary {
       throw new Error(`Bengali dataset version ${String(dataset.v)} !== ${BN_DATASET_VERSION}`)
     }
     const n = dataset.headwords.length
-    for (const column of ['roman', 'romanAlt', 'en', 'enAlt', 'defBn', 'defEn', 'pos', 'synEn', 'antEn', 'exBn', 'exEn', 'pron', 'usage'] as const) {
+    for (const column of [
+      'roman', 'romanAlt', 'en', 'enAlt', 'defBn', 'defEn', 'pos', 'synEn', 'antEn',
+      'exBn', 'exEn', 'pron', 'usage', 'formalMeaning', 'conversationalMeaning',
+      'exampleFormal', 'exampleConversational', 'collocations', 'wordFamily',
+      'bandLevel', 'commonMistake',
+    ] as const) {
       const arr = dataset[column]
-      if (!Array.isArray(arr) || arr.length !== n) {
+      if (arr !== undefined && (!Array.isArray(arr) || arr.length !== n)) {
         throw new Error(`Bengali dataset column "${column}" has the wrong length`)
       }
     }
@@ -95,6 +100,14 @@ export class BanglaDictionary {
         exEn: dataset.exEn[i] ?? '',
         pron: dataset.pron[i] ?? '',
         usage: dataset.usage[i] ?? '',
+        formalMeaning: dataset.formalMeaning[i] ?? '',
+        conversationalMeaning: dataset.conversationalMeaning[i] ?? '',
+        exampleFormal: dataset.exampleFormal[i] ?? '',
+        exampleConversational: dataset.exampleConversational[i] ?? '',
+        collocations: (dataset.collocations[i] ?? '').split(BN_SEP).filter(Boolean),
+        wordFamily: dataset.wordFamily[i] ?? '',
+        bandLevel: dataset.bandLevel[i] ?? '',
+        commonMistake: dataset.commonMistake[i] ?? '',
       }
       const bnKey = normalizeBengaliKey(entry.bengali)
       if (bnKey) {

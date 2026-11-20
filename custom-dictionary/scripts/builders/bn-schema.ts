@@ -5,6 +5,8 @@ import type { BengaliDataset, BengaliEntry } from '../../src/bn-types.ts'
 export const BN_COLUMNS = [
   'headwords', 'roman', 'romanAlt', 'en', 'enAlt', 'defBn', 'defEn', 'pos',
   'synEn', 'antEn', 'exBn', 'exEn', 'pron', 'usage',
+  'formalMeaning', 'conversationalMeaning', 'exampleFormal', 'exampleConversational',
+  'collocations', 'wordFamily', 'bandLevel', 'commonMistake',
 ] as const
 
 /** Serializes entries to a sorted columnar dataset. */
@@ -26,6 +28,14 @@ export function serializeBengaliDataset(entries: BengaliEntry[]): BengaliDataset
     exEn: sorted.map((e) => e.exEn),
     pron: sorted.map((e) => e.pron),
     usage: sorted.map((e) => e.usage),
+    formalMeaning: sorted.map((e) => e.formalMeaning ?? ''),
+    conversationalMeaning: sorted.map((e) => e.conversationalMeaning ?? ''),
+    exampleFormal: sorted.map((e) => e.exampleFormal ?? ''),
+    exampleConversational: sorted.map((e) => e.exampleConversational ?? ''),
+    collocations: sorted.map((e) => (e.collocations ?? []).join(BN_SEP)),
+    wordFamily: sorted.map((e) => e.wordFamily ?? ''),
+    bandLevel: sorted.map((e) => e.bandLevel ?? ''),
+    commonMistake: sorted.map((e) => e.commonMistake ?? ''),
   }
 }
 
@@ -52,6 +62,14 @@ export function deserializeBengaliDataset(dataset: BengaliDataset): BengaliEntry
     exEn: dataset.exEn[i] ?? '',
     pron: dataset.pron[i] ?? '',
     usage: dataset.usage[i] ?? '',
+    formalMeaning: dataset.formalMeaning?.[i] ?? '',
+    conversationalMeaning: dataset.conversationalMeaning?.[i] ?? '',
+    exampleFormal: dataset.exampleFormal?.[i] ?? '',
+    exampleConversational: dataset.exampleConversational?.[i] ?? '',
+    collocations: split(dataset.collocations?.[i] ?? ''),
+    wordFamily: dataset.wordFamily?.[i] ?? '',
+    bandLevel: dataset.bandLevel?.[i] ?? '',
+    commonMistake: dataset.commonMistake?.[i] ?? '',
   }))
 }
 

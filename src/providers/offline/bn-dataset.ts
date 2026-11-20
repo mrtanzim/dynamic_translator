@@ -3,7 +3,7 @@
 import type { OfflineEntryPayload } from '../bridge'
 
 /** Version of the Bengali-first dataset. */
-export const BN_DATASET_VERSION = 1
+export const BN_DATASET_VERSION = 2
 
 /** Bengali-first columnar dataset. */
 export interface BengaliDataset {
@@ -22,6 +22,14 @@ export interface BengaliDataset {
   exEn: string[]
   pron: string[]
   usage: string[]
+  formalMeaning: string[]
+  conversationalMeaning: string[]
+  exampleFormal: string[]
+  exampleConversational: string[]
+  collocations: string[]
+  wordFamily: string[]
+  bandLevel: string[]
+  commonMistake: string[]
 }
 
 /** A single Bengali-first entry. */
@@ -40,6 +48,27 @@ export interface BengaliEntry {
   exEn: string
   pron: string
   usage: string
+  formalMeaning: string
+  conversationalMeaning: string
+  exampleFormal: string
+  exampleConversational: string
+  collocations: string[]
+  wordFamily: string
+  bandLevel: string
+  commonMistake: string
+}
+
+/** Decodes the `wordFamily` column into its four optional roles. */
+function decodeFamily(value: string | undefined): { noun?: string; verb?: string; adj?: string; adv?: string } | undefined {
+  if (!value) return undefined
+  const out: { noun?: string; verb?: string; adj?: string; adv?: string } = {}
+  for (const part of value.split('\u0001')) {
+    const i = part.indexOf(':')
+    if (i <= 0) continue
+    const role = part.slice(0, i)
+    if (role === 'noun' || role === 'verb' || role === 'adj' || role === 'adv') out[role] = part.slice(i + 1)
+  }
+  return Object.keys(out).length ? out : undefined
 }
 
 /** NFC lookup key; Bengali vowel signs (\p{M}) are preserved. */
@@ -97,9 +126,13 @@ export class BanglaDictionary {
       throw new Error(`Bengali dataset version ${String(dataset.v)} !== ${BN_DATASET_VERSION}`)
     }
     const n = dataset.headwords.length
-    for (const key of ['roman', 'romanAlt', 'en', 'enAlt', 'defBn', 'defEn', 'pos', 'synEn', 'antEn', 'exBn', 'exEn', 'pron', 'usage'] as const) {
+    for (const key of [
+      'roman', 'romanAlt', 'en', 'enAlt', 'defBn', 'defEn', 'pos', 'synEn', 'antEn', 'exBn', 'exEn',
+      'pron', 'usage', 'formalMeaning', 'conversationalMeaning', 'exampleFormal', 'exampleConversational',
+      'collocations', 'wordFamily', 'bandLevel', 'commonMistake',
+    ] as const) {
       const arr = dataset[key]
-      if (!Array.isArray(arr) || arr.length !== n) {
+      if (arr !== undefined && (!Array.isArray(arr) || arr.length !== n)) {
         throw new Error(`Bengali dataset column "${key}" has the wrong length`)
       }
     }
@@ -119,6 +152,14 @@ export class BanglaDictionary {
         exEn: dataset.exEn[i] ?? '',
         pron: dataset.pron[i] ?? '',
         usage: dataset.usage[i] ?? '',
+        formalMeaning: dataset.formalMeaning[i] ?? '',
+        conversationalMeaning: dataset.conversationalMeaning[i] ?? '',
+        exampleFormal: dataset.exampleFormal[i] ?? '',
+        exampleConversational: dataset.exampleConversational[i] ?? '',
+        collocations: (dataset.collocations[i] ?? '').split('\u0001').filter(Boolean),
+        wordFamily: dataset.wordFamily[i] ?? '',
+        bandLevel: dataset.bandLevel[i] ?? '',
+        commonMistake: dataset.commonMistake[i] ?? '',
       }
       const bn = normalize(entry.bengali)
       if (bn) {
@@ -216,5 +257,13 @@ export function toOfflineEntryPayload(entry: BengaliEntry): OfflineEntryPayload 
     exBn: entry.exBn,
     pron: entry.pron,
     usageNote: entry.usage || undefined,
+    formalMeaning: entry.formalMeaning || undefined,
+    conversationalMeaning: entry.conversationalMeaning || undefined,
+    exampleFormal: entry.exampleFormal || undefined,
+    exampleConversational: entry.exampleConversational || undefined,
+    collocations: entry.collocations,
+    wordFamily: decodeFamily(entry.wordFamily),
+    bandLevel: entry.bandLevel || undefined,
+    commonMistake: entry.commonMistake || undefined,
   }
 }
