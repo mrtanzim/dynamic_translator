@@ -277,12 +277,12 @@ export class LookupCoordinator {
         // All Bengali meanings of the headword, not just the first one.
         bengaliMeaning: bengaliMeanings.join(', '),
         englishDefinition: source.def,
-        // Offline dictionary has one definition — surface it in both the
-        // formal slot (so the dual-register UI still shows something useful)
-        // and the legacy englishDefinition slot for backward compatibility.
-        formalMeaning: source.def || undefined,
-        // Example sentence from the dataset used as conversational example.
-        exampleConversational: source.ex || undefined,
+        // Prefer the generated formal meaning; fall back to the definition so
+        // the dual-register UI still shows something useful on older entries.
+        formalMeaning: source.formalMeaning || source.def || undefined,
+        // Prefer the generated conversational example; fall back to the single
+        // dataset example on older entries.
+        exampleConversational: source.exampleConversational || source.ex || undefined,
         // The Latin-script spelling of the Bengali word the user typed. It
         // comes from the dataset, so the offline answer carries it even when
         // no AI provider is reachable.
@@ -291,6 +291,12 @@ export class LookupCoordinator {
         pronunciation: source.pron || undefined,
         partOfSpeech: source.pos || undefined,
         usageNote: source.usageNote || undefined,
+        conversationalMeaning: source.conversationalMeaning,
+        exampleFormal: source.exampleFormal,
+        collocations: source.collocations,
+        wordFamily: source.wordFamily,
+        bandLevel: source.bandLevel,
+        commonMistake: source.commonMistake,
         synonyms: source.syn,
         antonyms: source.ant,
         exampleEn: source.ex,
