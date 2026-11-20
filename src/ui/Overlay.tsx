@@ -729,14 +729,16 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                   const direction =
                     result.direction ?? (isBengali(result.query) ? 'bn-en' : 'en-bn')
                   const englishAnswer = result.headword || result.englishDefinition || ''
-                  const spoken = direction === 'bn-en' ? englishAnswer || result.query : result.query
+                  const spoken = direction === 'bn-en' || direction === 'ja-en'
+                    ? englishAnswer || result.query
+                    : result.query
 
                   return (
                     <div className={`result-section density-${settings.layoutDensity ?? 'comfortable'}`}>
                       {/* Main Word in cyan accent */}
                       <div className={`hero-word ${isSentence ? 'sentence' : ''}`}>{result.query}</div>
 
-                      {direction === 'en-bn' ? (
+                      {direction === 'en-bn' || direction === 'en-ja' ? (
                         <div className={`meaning-bn bn ${isSentence ? 'sentence' : ''}`}>
                           {result.bengaliMeaning}
                         </div>
@@ -766,6 +768,12 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                           <span className="transcription-tag">
                             ({result.transcription})
                           </span>
+                        )}
+                        {result.kana && (
+                          <span className="ja-kana">{result.kana}</span>
+                        )}
+                        {result.romaji && (
+                          <span className="ja-romaji">({result.romaji})</span>
                         )}
 
                         {result.partOfSpeech && (
@@ -882,6 +890,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                       {(settings.showExample ?? true) &&
                         (result.exampleEn ||
                           result.exampleBn ||
+                          result.exampleJa ||
                           result.exampleConversational ||
                           result.exampleFormal) && (
                           <div className="example-card">
@@ -893,7 +902,7 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                               <div className="example-en">
                                 {renderHighlightedExample(
                                   result.exampleEn || result.exampleConversational || '',
-                                  direction === 'bn-en'
+                                  direction === 'bn-en' || direction === 'ja-en'
                                     ? result.headword || result.query
                                     : result.query
                                 )}
@@ -904,6 +913,9 @@ export function Overlay({ onClose }: { onClose: () => void }) {
                             )}
                             {result.exampleBn && (
                               <div className="example-bn bn">{result.exampleBn}</div>
+                            )}
+                            {result.exampleJa && (
+                              <div className="example-ja jp">{result.exampleJa}</div>
                             )}
                           </div>
                         )}

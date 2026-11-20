@@ -186,7 +186,7 @@ export class LookupCoordinator {
             syn: ja.synEn,
             ant: ja.antEn,
             ex: ja.exampleEn,
-            exBn: ja.exampleJa,
+            exBn: '',
             pron: '',
             kana: ja.kana,
             romaji: ja.romaji,
@@ -200,7 +200,9 @@ export class LookupCoordinator {
             bandLevel: ja.bandLevel,
             commonMistake: ja.commonMistake,
           }
-          roman = ja.romaji
+          // No offline English-in-Japanese-script transcription exists; the
+          // dedicated kana/romaji fields carry the reading instead.
+          roman = ''
           via = 'japanese'
         }
       } else if (useBengaliDataset) {

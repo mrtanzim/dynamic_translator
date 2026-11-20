@@ -720,6 +720,11 @@ export const OVERLAY_STYLES = `
   margin-bottom: 10px;
 }
 
+/* Japanese reading and example support */
+.ja-kana { color: #65cfff; font-size: 13px; margin-right: 6px; }
+.ja-romaji { color: #aab8c8; font-size: 12px; }
+.example-ja.jp { font-family: "Noto Sans JP", "Noto Sans Bengali", system-ui, sans-serif; }
+
 /* Register-specific meaning and usage guidance — DESIGN.md tokens */
 .register-card {
   margin: 4px 0 8px;
