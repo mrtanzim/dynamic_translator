@@ -60,6 +60,6 @@ export async function geminiLookup(
   const parsed = parseAiJson(content)
   if (!parsed) throw new Error('Gemini returned malformed JSON')
   const result = toResult('gemini', query, requestId, parsed)
-  if (!isValidResult(result)) throw new Error('Gemini response missing required fields')
+  if (!isValidResult(result, direction)) throw new Error('Gemini response missing required fields')
   return result
 }

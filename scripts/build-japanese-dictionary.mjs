@@ -17,6 +17,22 @@ const overrides = JSON.parse(fs.readFileSync(path.join(root, 'scripts', 'data', 
 const bandList = loadBandList(path.join(root, 'scripts', 'data', 'cefr-bands.json'))
 
 const POS_LABELS = { n: 'noun', v5r: 'verb', vs: 'verb', 'adj-i': 'adjective', adv: 'adverb', int: 'interjection' }
+
+/** Japanese surface -> first English gloss, used to resolve related/antonym refs. */
+const glossByWord = new Map()
+for (const w of source.words) {
+  const gloss = w.sense?.flatMap((s) => s.gloss ?? []).find((g) => g.lang === 'eng' && g.text)?.text
+  if (!gloss) continue
+  for (const k of [...(w.kana ?? []), ...(w.kanji ?? [])]) {
+    const key = k.text.toLowerCase()
+    if (key && !glossByWord.has(key)) glossByWord.set(key, gloss)
+  }
+}
+/** Resolves JMdict related/antonym refs (arrays of [word, sense?]) to glosses. */
+const glossesFor = (refs) => (refs ?? [])
+  .map((ref) => glossByWord.get(String(Array.isArray(ref) ? ref[0] : ref).toLowerCase()))
+  .filter((g) => !!g && typeof g === 'string')
+
 const entries = []
 
 for (const word of source.words) {
@@ -28,30 +44,33 @@ for (const word of source.words) {
   if (!glosses.length) continue
   const surface = word.kanji?.find((k) => k.common)?.text ?? kanaEntry.text
   const pos = POS_LABELS[sense.partOfSpeech?.[0]] ?? 'word'
+  // Curated entries may be keyed by kana or by the surface form.
+  const ov = overrides[surface] ?? overrides[kanaEntry.text] ?? {}
+  const examples = ov.exampleJa ? [ov.exampleJa] : []
   const enriched = enrichEntry(
     { def: glosses[0], ex: '' },
     {
       word: surface,
       pos: sense.partOfSpeech?.[0] ?? '',
       senses: new Map(),
-      examples: [],
+      examples,
       bandList,
-      overrides: overrides[surface] ?? {},
+      overrides: ov,
     },
   )
   entries.push({
     surface,
     kana: kanaEntry.text,
     romaji: toRomaji(kanaEntry.text),
-    en: overrides[surface]?.en ?? glosses[0],
-    enAlt: overrides[surface]?.enAlt ?? glosses.slice(1),
+    en: ov.en ?? glosses[0],
+    enAlt: ov.enAlt ?? glosses.slice(1),
     pos,
-    synEn: overrides[surface]?.synEn ?? [],
-    antEn: overrides[surface]?.antEn ?? [],
-    exampleJa: overrides[surface]?.exampleJa ?? '',
-    exampleEn: overrides[surface]?.exampleEn ?? '',
+    synEn: ov.synEn ?? glossesFor(sense.related),
+    antEn: ov.antEn ?? glossesFor(sense.antonym),
+    exampleJa: ov.exampleJa ?? '',
+    exampleEn: ov.exampleEn ?? '',
     ...enriched,
-    ...overrides[surface],
+    ...ov,
   })
 }
 

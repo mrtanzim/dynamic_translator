@@ -36,6 +36,18 @@ export function toRomaji(kana) {
   let out = ''
   for (let i = 0; i < chars.length; i++) {
     const ch = chars[i]
+    if (ch === 'ー') {
+      // Katakana long-vowel mark: lengthen the previous vowel.
+      const prev = BASE[chars[i - 1]] ?? ''
+      const vowel = [...prev].find((c) => 'aiueo'.includes(c)) ?? 'o'
+      out += vowel
+      continue
+    }
+    if (ch === '・') continue
+    if (ch === 'ゔ') {
+      out += 'vu'
+      continue
+    }
     if (ch === 'っ') {
       const next = BASE[chars[i + 1]] ?? SMALL[chars[i + 1]] ?? ''
       out += next ? next[0] : ''

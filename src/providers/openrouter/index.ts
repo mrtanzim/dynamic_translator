@@ -34,6 +34,6 @@ export async function openRouterLookup(
   const parsed = parseAiJson(content)
   if (!parsed) throw new Error('OpenRouter returned malformed JSON')
   const result = toResult('openrouter', query, requestId, parsed)
-  if (!isValidResult(result)) throw new Error('OpenRouter response missing required fields')
+  if (!isValidResult(result, direction)) throw new Error('OpenRouter response missing required fields')
   return result
 }

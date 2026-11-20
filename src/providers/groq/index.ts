@@ -34,6 +34,6 @@ export async function groqLookup(
   const parsed = parseAiJson(content)
   if (!parsed) throw new Error('Groq returned malformed JSON')
   const result = toResult('groq', query, requestId, parsed)
-  if (!isValidResult(result)) throw new Error('Groq response missing required fields')
+  if (!isValidResult(result, direction)) throw new Error('Groq response missing required fields')
   return result
 }

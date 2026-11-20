@@ -44,7 +44,10 @@ Return ONLY a valid JSON object — no markdown, no backticks, no extra text:
   },
   "commonMistake": string,
   "exampleEn": string,
-  "exampleBn": string
+  "exampleBn": string,
+  "kana": string,
+  "romaji": string,
+  "exampleJa": string
 }
 
 Field rules:
@@ -62,6 +65,14 @@ Field rules:
 - commonMistake: short tip on common preposition/usage error.
 - exampleEn: ONE natural, high-quality sentence.
 - exampleBn: Natural Bengali translation of exampleEn.
+- kana: for Japanese input, the reading in kana (e.g. "こんにちは").
+- romaji: for Japanese input, the Latin spelling (e.g. "konnichiwa").
+- exampleJa: for Japanese input, a natural Japanese example sentence.
+
+Japanese direction (ja-en / en-ja): the query may be kanji, kana or romaji. Put the
+natural English equivalent in englishHeadword, the reading in kana, the Latin
+spelling in romaji, and a Japanese example in exampleJa. Never give a literal
+word-by-word translation as the primary answer.
 
 Direction — the query may be English, Bengali script, or romanized Bengali (Banglish):
 - English query -> Bengali meaning in bengaliMeaning, Bengali script transcription, and detailed English categories.
@@ -183,6 +194,9 @@ export function toResult(
     partOfSpeech: parsed.partOfSpeech,
   }
 }
-export function isValidResult(r: LookupResult): boolean {
+export function isValidResult(r: LookupResult, direction?: LookupDirection): boolean {
+  if (direction === 'ja-en' || direction === 'en-ja') {
+    return !!(r.headword || r.kana || r.romaji || r.exampleJa || r.englishDefinition || r.exampleEn)
+  }
   return !!(r.englishDefinition || r.bengaliMeaning || r.exampleEn)
 }

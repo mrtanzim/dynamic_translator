@@ -14,8 +14,10 @@ import {
   type SuggestResponse,
 } from '../bridge'
 import type { LookupDirection } from '../../shared/types'
+import { isJapanese } from './ja-dataset'
 import {
   JA_LOOKUP_MESSAGE,
+  JA_SUGGEST_MESSAGE,
   type JaEntryPayload,
   type JaLookupRequest,
   type JaLookupResponse,
@@ -124,8 +126,11 @@ export async function suggestWords(
 ): Promise<SuggestionPayload[]> {
   try {
     if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) return []
+    // Japanese script input gets suggestions from the JA dataset; English and
+    // romaji input keeps using the existing combined dictionaries.
+    const type = isJapanese(query) ? JA_SUGGEST_MESSAGE : SUGGEST_MESSAGE
     const response = (await chrome.runtime.sendMessage({
-      type: SUGGEST_MESSAGE,
+      type,
       query,
       limit,
     })) as SuggestResponse | undefined

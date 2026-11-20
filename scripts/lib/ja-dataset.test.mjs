@@ -18,6 +18,13 @@ describe('Japanese dataset', () => {
     expect(toRomaji('がっこう')).toBe('gakkou')
   })
 
+  it('romanizes katakana loanwords without leaving non-Latin characters', () => {
+    expect(toRomaji('コーヒー')).toBe('koohii')
+    expect(toRomaji('スーパー')).toBe('suupaa')
+    expect(toRomaji('ヴィ')).toBe('vui')
+    expect(toRomaji('カタ・カナ')).toBe('katakana')
+  })
+
   it('serializes a version-1 columnar dataset with equal column lengths', () => {
     const d = serializeJapaneseDataset([entry])
     expect(d.v).toBe(JA_DATASET_VERSION)
